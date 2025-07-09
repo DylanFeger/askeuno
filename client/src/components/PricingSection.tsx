@@ -88,6 +88,14 @@ export default function PricingSection() {
               <Button
                 className="w-full"
                 variant={plan.popular ? 'default' : 'secondary'}
+                onClick={() => {
+                  if (plan.name === 'Enterprise') {
+                    window.location.href = 'mailto:sales@acre.com?subject=Enterprise Plan Inquiry';
+                  } else {
+                    document.getElementById('auth-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                aria-label={`Select ${plan.name} plan - $${plan.price}/month`}
               >
                 {plan.name === 'Enterprise' ? 'Contact Sales' : 'Start Free Trial'}
               </Button>

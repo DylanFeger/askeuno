@@ -43,11 +43,15 @@ export default function Home() {
               <a href="#pricing" className="text-gray-600 hover:text-primary transition-colors">
                 Pricing
               </a>
-              <Button>
+              <Button onClick={() => document.getElementById('auth-section')?.scrollIntoView({ behavior: 'smooth' })}>
                 Get Started
               </Button>
             </nav>
-            <button className="md:hidden text-gray-600">
+            <button 
+              className="md:hidden text-gray-600 p-2 hover:bg-gray-100 rounded transition-colors"
+              aria-label="Toggle mobile menu"
+              onClick={() => alert('Mobile menu coming soon!')}
+            >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
@@ -68,10 +72,19 @@ export default function Home() {
             Your AI assistant monitors and analyzes your business 24/7.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="px-8 py-3">
+            <Button 
+              className="px-8 py-3"
+              onClick={() => document.getElementById('auth-section')?.scrollIntoView({ behavior: 'smooth' })}
+              aria-label="Start your free trial"
+            >
               Start Free Trial
             </Button>
-            <Button variant="outline" className="px-8 py-3">
+            <Button 
+              variant="outline" 
+              className="px-8 py-3"
+              onClick={() => window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank')}
+              aria-label="Watch product demo"
+            >
               Watch Demo
             </Button>
           </div>
@@ -79,7 +92,7 @@ export default function Home() {
       </section>
 
       {/* Main Interface */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8">
+      <section id="auth-section" className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto space-y-8">
           {isLoading ? (
             <div className="text-center py-12">

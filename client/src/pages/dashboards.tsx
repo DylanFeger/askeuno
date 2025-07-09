@@ -91,7 +91,10 @@ export default function Dashboards() {
                 Monitor your business metrics in real-time
               </p>
             </div>
-            <Button>
+            <Button
+              onClick={() => alert('Dashboard creation coming soon!')}
+              aria-label="Create new dashboard"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Create Dashboard
             </Button>
@@ -122,7 +125,12 @@ export default function Dashboards() {
                       <div className={`p-3 rounded-lg ${dashboard.bgColor}`}>
                         <Icon className={`w-6 h-6 ${dashboard.color}`} />
                       </div>
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => alert(`Viewing ${dashboard.name} dashboard coming soon!`)}
+                        aria-label={`View ${dashboard.name} dashboard`}
+                      >
                         View
                       </Button>
                     </div>

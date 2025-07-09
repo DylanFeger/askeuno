@@ -230,6 +230,9 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             variant="ghost"
             size="sm"
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary"
+            onClick={() => alert('Voice input coming soon!')}
+            aria-label="Voice input"
+            title="Voice input coming soon"
           >
             <Mic className="w-4 h-4" />
           </Button>
