@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Database, Upload, MessageSquare, Shield, Glasses } from 'lucide-react';
+import { Database, Upload, MessageSquare, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Link } from 'wouter';
@@ -7,6 +7,7 @@ import FileUpload from '@/components/FileUpload';
 import ChatInterface from '@/components/ChatInterface';
 import PricingSection from '@/components/PricingSection';
 import AuthForm from '@/components/AuthForm';
+import AcreLogo from '@/components/AcreLogo';
 import { useAuth } from '@/contexts/AuthContext';
 import { queryClient } from '@/lib/queryClient';
 
@@ -31,7 +32,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <Glasses className="w-8 h-8 text-primary" />
+              <AcreLogo className="w-8 h-8 text-primary" />
               <span className="text-xl font-bold text-gray-900">Acre</span>
             </div>
             <nav className="hidden md:flex items-center space-x-6">
@@ -144,7 +145,7 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-3 mb-4">
-                <Glasses className="w-8 h-8 text-white" />
+                <AcreLogo className="w-8 h-8 text-white" />
                 <span className="text-xl font-bold">Acre</span>
               </div>
               <p className="text-gray-400">Making business data simple and actionable for everyone.</p>
