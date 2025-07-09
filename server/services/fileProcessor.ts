@@ -1,3 +1,4 @@
+import { readFileSync } from 'fs';
 import * as XLSX from 'xlsx';
 import { parse } from 'csv-parse/sync';
 import { analyzeDataSchema } from './openai';
@@ -61,7 +62,9 @@ async function processCsvFile(filePath: string): Promise<any[]> {
 }
 
 async function processExcelFile(filePath: string): Promise<any[]> {
-  const workbook = XLSX.readFile(filePath);
+  // Read file as buffer
+  const buffer = readFileSync(filePath);
+  const workbook = XLSX.read(buffer);
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];
   
@@ -114,7 +117,12 @@ export function validateFile(file: any): { valid: boolean; error?: string } {
     return { valid: false, error: 'File size exceeds 10MB limit' };
   }
   
-  const fileExt = file.name.split('.').pop()?.toLowerCase();
+  const fileName = file.originalname || file.name;
+  if (!fileName) {
+    return { valid: false, error: 'File name is required' };
+  }
+  
+  const fileExt = fileName.split('.').pop()?.toLowerCase();
   if (!fileExt || !allowedTypes.includes(fileExt)) {
     return { valid: false, error: 'Invalid file type. Only CSV, Excel, and JSON files are supported' };
   }

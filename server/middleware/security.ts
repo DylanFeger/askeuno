@@ -53,10 +53,10 @@ export const validateFileUploadSecurity = (req: Request, res: Response, next: Ne
   // Check file extension vs mime type consistency
   const fileExt = file.originalname.split('.').pop()?.toLowerCase();
   const mimeTypeMapping: { [key: string]: string[] } = {
-    'csv': ['text/csv', 'application/csv'],
-    'xlsx': ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
-    'xls': ['application/vnd.ms-excel'],
-    'json': ['application/json']
+    'csv': ['text/csv', 'application/csv', 'application/octet-stream'],
+    'xlsx': ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/octet-stream'],
+    'xls': ['application/vnd.ms-excel', 'application/octet-stream'],
+    'json': ['application/json', 'application/octet-stream']
   };
 
   if (fileExt && mimeTypeMapping[fileExt]) {

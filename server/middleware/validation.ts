@@ -49,9 +49,11 @@ export const validateFileUpload = (req: Request, res: Response, next: NextFuncti
     'text/csv',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'application/vnd.ms-excel',
-    'application/json'
+    'application/json',
+    'application/octet-stream' // Generic binary type, will check extension
   ];
   
+  // Check MIME type first
   if (!allowedMimeTypes.includes(file.mimetype)) {
     logger.warn('Invalid file type uploaded', { 
       mimetype: file.mimetype, 
@@ -59,6 +61,22 @@ export const validateFileUpload = (req: Request, res: Response, next: NextFuncti
       userId: (req as any).user?.id 
     });
     return res.status(400).json({ error: 'Invalid file type' });
+  }
+  
+  // For generic MIME types, also check file extension
+  if (file.mimetype === 'application/octet-stream') {
+    const allowedExtensions = ['csv', 'xlsx', 'xls', 'json'];
+    const fileExt = file.originalname.split('.').pop()?.toLowerCase();
+    
+    if (!fileExt || !allowedExtensions.includes(fileExt)) {
+      logger.warn('Invalid file extension for generic MIME type', { 
+        mimetype: file.mimetype, 
+        originalname: file.originalname,
+        extension: fileExt,
+        userId: (req as any).user?.id 
+      });
+      return res.status(400).json({ error: 'Invalid file type. Please upload CSV, Excel, or JSON files.' });
+    }
   }
   
   // Check file size again (belt and suspenders)
