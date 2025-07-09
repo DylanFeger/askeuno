@@ -1,0 +1,27 @@
+date,customer_name,product,category,quantity,unit_price,total_amount,payment_method,region
+2024-01-05,Johnson LLC,Office Chair,Furniture,2,299.99,599.98,Credit Card,North
+2024-01-07,Smith & Co,Laptop Stand,Electronics,5,49.99,249.95,PayPal,South
+2024-01-10,Brown Industries,Desk Lamp,Furniture,10,39.99,399.90,Invoice,East
+2024-01-15,Davis Corp,Wireless Mouse,Electronics,15,29.99,449.85,Credit Card,West
+2024-01-18,Wilson Group,Monitor Stand,Electronics,3,79.99,239.97,PayPal,North
+2024-01-22,Miller Solutions,Office Desk,Furniture,1,599.99,599.99,Invoice,South
+2024-01-25,Anderson Tech,USB Hub,Electronics,20,19.99,399.80,Credit Card,East
+2024-01-28,Taylor Services,Ergonomic Keyboard,Electronics,8,89.99,719.92,PayPal,West
+2024-02-02,Thomas Retail,Standing Desk,Furniture,2,899.99,1799.98,Invoice,North
+2024-02-05,White Enterprises,Webcam,Electronics,12,59.99,719.88,Credit Card,South
+2024-02-08,Martin Co,Office Cabinet,Furniture,3,349.99,1049.97,PayPal,East
+2024-02-12,Harris Industries,Desk Organizer,Furniture,25,24.99,624.75,Invoice,West
+2024-02-15,Clark Tech,Wireless Headset,Electronics,6,119.99,719.94,Credit Card,North
+2024-02-18,Lewis Group,Printer Stand,Furniture,4,149.99,599.96,PayPal,South
+2024-02-22,Walker Solutions,Cable Management,Electronics,30,14.99,449.70,Invoice,East
+2024-02-25,Hall Services,Monitor Arm,Electronics,7,199.99,1399.93,Credit Card,West
+2024-02-28,Young Retail,Executive Chair,Furniture,1,1299.99,1299.99,PayPal,North
+2024-03-03,King Enterprises,Laptop Dock,Electronics,9,149.99,1349.91,Invoice,South
+2024-03-06,Wright Co,Bookshelf,Furniture,2,299.99,599.98,Credit Card,East
+2024-03-10,Lopez Industries,Power Strip,Electronics,40,29.99,1199.60,PayPal,West
+2024-03-13,Hill Tech,Conference Table,Furniture,1,2499.99,2499.99,Invoice,North
+2024-03-16,Green Group,Mouse Pad,Electronics,50,9.99,499.50,Credit Card,South
+2024-03-20,Adams Solutions,Filing Cabinet,Furniture,5,249.99,1249.95,PayPal,East
+2024-03-23,Baker Services,HDMI Cable,Electronics,35,12.99,454.65,Invoice,West
+2024-03-27,Nelson Retail,Desk Chair,Furniture,8,399.99,3199.92,Credit Card,North
+2024-03-30,Carter Enterprises,USB Drive,Electronics,100,15.99,1599.00,PayPal,South
