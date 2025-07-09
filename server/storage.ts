@@ -1,0 +1,171 @@
+import { 
+  users, 
+  dataSources, 
+  chatConversations, 
+  chatMessages, 
+  dataRows,
+  type User, 
+  type InsertUser,
+  type DataSource,
+  type InsertDataSource,
+  type ChatConversation,
+  type ChatMessage,
+  type InsertChatMessage,
+  type DataRow
+} from "@shared/schema";
+import { db } from "./db";
+import { eq, and, desc } from "drizzle-orm";
+
+export interface IStorage {
+  // User operations
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  
+  // Data source operations
+  createDataSource(dataSource: InsertDataSource & { userId: number }): Promise<DataSource>;
+  getDataSourcesByUserId(userId: number): Promise<DataSource[]>;
+  getDataSource(id: number): Promise<DataSource | undefined>;
+  updateDataSource(id: number, updates: Partial<DataSource>): Promise<DataSource | undefined>;
+  
+  // Chat operations
+  createConversation(userId: number): Promise<ChatConversation>;
+  getConversation(id: number): Promise<ChatConversation | undefined>;
+  getConversationsByUserId(userId: number): Promise<ChatConversation[]>;
+  createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  getMessagesByConversationId(conversationId: number): Promise<ChatMessage[]>;
+  
+  // Data rows operations
+  insertDataRows(dataSourceId: number, rows: any[]): Promise<void>;
+  getDataRows(dataSourceId: number, limit?: number): Promise<DataRow[]>;
+  queryDataRows(dataSourceId: number, query: string): Promise<any[]>;
+}
+
+export class DatabaseStorage implements IStorage {
+  // User operations
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  // Data source operations
+  async createDataSource(dataSource: InsertDataSource & { userId: number }): Promise<DataSource> {
+    const [source] = await db
+      .insert(dataSources)
+      .values(dataSource)
+      .returning();
+    return source;
+  }
+
+  async getDataSourcesByUserId(userId: number): Promise<DataSource[]> {
+    return await db
+      .select()
+      .from(dataSources)
+      .where(eq(dataSources.userId, userId))
+      .orderBy(desc(dataSources.createdAt));
+  }
+
+  async getDataSource(id: number): Promise<DataSource | undefined> {
+    const [source] = await db
+      .select()
+      .from(dataSources)
+      .where(eq(dataSources.id, id));
+    return source || undefined;
+  }
+
+  async updateDataSource(id: number, updates: Partial<DataSource>): Promise<DataSource | undefined> {
+    const [source] = await db
+      .update(dataSources)
+      .set(updates)
+      .where(eq(dataSources.id, id))
+      .returning();
+    return source || undefined;
+  }
+
+  // Chat operations
+  async createConversation(userId: number): Promise<ChatConversation> {
+    const [conversation] = await db
+      .insert(chatConversations)
+      .values({ userId })
+      .returning();
+    return conversation;
+  }
+
+  async getConversation(id: number): Promise<ChatConversation | undefined> {
+    const [conversation] = await db
+      .select()
+      .from(chatConversations)
+      .where(eq(chatConversations.id, id));
+    return conversation || undefined;
+  }
+
+  async getConversationsByUserId(userId: number): Promise<ChatConversation[]> {
+    return await db
+      .select()
+      .from(chatConversations)
+      .where(eq(chatConversations.userId, userId))
+      .orderBy(desc(chatConversations.createdAt));
+  }
+
+  async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
+    const [chatMessage] = await db
+      .insert(chatMessages)
+      .values(message)
+      .returning();
+    return chatMessage;
+  }
+
+  async getMessagesByConversationId(conversationId: number): Promise<ChatMessage[]> {
+    return await db
+      .select()
+      .from(chatMessages)
+      .where(eq(chatMessages.conversationId, conversationId))
+      .orderBy(chatMessages.createdAt);
+  }
+
+  // Data rows operations
+  async insertDataRows(dataSourceId: number, rows: any[]): Promise<void> {
+    const dataRowsToInsert = rows.map(row => ({
+      dataSourceId,
+      rowData: row
+    }));
+    
+    await db.insert(dataRows).values(dataRowsToInsert);
+  }
+
+  async getDataRows(dataSourceId: number, limit: number = 100): Promise<DataRow[]> {
+    return await db
+      .select()
+      .from(dataRows)
+      .where(eq(dataRows.dataSourceId, dataSourceId))
+      .limit(limit);
+  }
+
+  async queryDataRows(dataSourceId: number, query: string): Promise<any[]> {
+    // This would typically involve more complex SQL generation
+    // For now, return basic data
+    const rows = await this.getDataRows(dataSourceId);
+    return rows.map(row => row.rowData);
+  }
+}
+
+export const storage = new DatabaseStorage();
