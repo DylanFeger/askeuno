@@ -58,11 +58,11 @@ export default function PricingSection() {
             <Card
               key={plan.name}
               className={`p-8 relative ${
-                plan.popular ? 'border-2 border-purple-500 shadow-lg' : 'border border-gray-200'
+                plan.popular ? 'border-2 border-primary shadow-lg' : 'border border-gray-200'
               }`}
             >
               {plan.popular && (
-                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-purple-500">
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                   Most Popular
                 </Badge>
               )}
@@ -86,11 +86,8 @@ export default function PricingSection() {
               </ul>
               
               <Button
-                className={`w-full ${
-                  plan.popular
-                    ? 'bg-purple-500 hover:bg-purple-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className="w-full"
+                variant={plan.popular ? 'default' : 'secondary'}
               >
                 {plan.name === 'Enterprise' ? 'Contact Sales' : 'Start Free Trial'}
               </Button>

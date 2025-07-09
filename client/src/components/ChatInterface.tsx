@@ -85,7 +85,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
         {/* Welcome message */}
         {(!messages || messages.length === 0) && (
           <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
               <Bot className="w-4 h-4 text-white" />
             </div>
             <div className="bg-gray-50 rounded-lg p-4 max-w-md">
@@ -108,14 +108,14 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             className={`flex items-start space-x-3 ${msg.role === 'user' ? 'justify-end' : ''}`}
           >
             {msg.role === 'assistant' && (
-              <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
                 <Bot className="w-4 h-4 text-white" />
               </div>
             )}
             
             <div className={`rounded-lg p-4 max-w-md ${
               msg.role === 'user' 
-                ? 'bg-purple-500 text-white' 
+                ? 'bg-primary text-white' 
                 : 'bg-gray-50 text-gray-800'
             }`}>
               <p>{msg.content}</p>
@@ -133,7 +133,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-purple-600 hover:text-purple-700 p-0"
+                    className="text-primary hover:text-primary/90 p-0"
                     onClick={() => {
                       const newExpanded = new Set(expandedFollowUps);
                       if (expandedFollowUps.has(msg.id)) {
@@ -161,7 +161,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                             setMessage(followUp);
                             handleSendMessage();
                           }}
-                          className="block w-full text-left text-sm bg-purple-50 hover:bg-purple-100 text-purple-700 p-2 rounded border border-purple-200 transition-colors"
+                          className="block w-full text-left text-sm bg-primary/10 hover:bg-primary/20 text-primary p-2 rounded border border-primary/30 transition-colors"
                         >
                           {followUp}
                         </button>
@@ -183,12 +183,12 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
         {/* Loading indicator */}
         {sendMessageMutation.isPending && (
           <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
               <Bot className="w-4 h-4 text-white" />
             </div>
             <div className="bg-gray-50 rounded-lg p-4 max-w-md">
               <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                 <span className="text-gray-600">Analyzing your data...</span>
               </div>
             </div>
@@ -211,7 +211,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
           <Button
             variant="ghost"
             size="sm"
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-purple-500"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary"
           >
             <Mic className="w-4 h-4" />
           </Button>
@@ -219,7 +219,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
         <Button
           onClick={handleSendMessage}
           disabled={!message.trim() || sendMessageMutation.isPending}
-          className="bg-purple-500 hover:bg-purple-600"
+          className=""
         >
           <Send className="w-4 h-4" />
         </Button>

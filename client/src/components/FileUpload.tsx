@@ -61,7 +61,7 @@ export default function FileUpload({ onUploadSuccess }: FileUploadProps) {
   });
 
   return (
-    <Card className="p-8 border-2 border-dashed border-gray-300 hover:border-purple-500 transition-colors">
+    <Card className="p-8 border-2 border-dashed border-gray-300 hover:border-primary transition-colors">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-semibold text-gray-900 mb-2">Upload Your Data</h2>
         <p className="text-gray-600">Drag & drop files or click to browse</p>
@@ -70,7 +70,7 @@ export default function FileUpload({ onUploadSuccess }: FileUploadProps) {
       <div
         {...getRootProps()}
         className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-          isDragActive ? 'border-purple-500 bg-purple-50' : 'border-gray-300 hover:border-purple-500'
+          isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300 hover:border-primary'
         }`}
       >
         <input {...getInputProps()} />
@@ -86,7 +86,7 @@ export default function FileUpload({ onUploadSuccess }: FileUploadProps) {
       {uploadMutation.isPending && (
         <div className="mt-4 text-center">
           <div className="inline-flex items-center space-x-2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
             <span className="text-sm text-gray-600">Processing your file...</span>
           </div>
         </div>
@@ -95,15 +95,15 @@ export default function FileUpload({ onUploadSuccess }: FileUploadProps) {
       <div className="mt-6">
         <p className="text-sm text-gray-600 text-center mb-4">Or connect your data sources:</p>
         <div className="flex flex-wrap gap-3 justify-center">
-          <Button variant="outline" className="flex items-center space-x-2 bg-green-50 text-green-700 hover:bg-green-100">
+          <Button variant="outline" className="flex items-center space-x-2">
             <Database className="w-4 h-4" />
             <span>Google Sheets</span>
           </Button>
-          <Button variant="outline" className="flex items-center space-x-2 bg-blue-50 text-blue-700 hover:bg-blue-100">
+          <Button variant="outline" className="flex items-center space-x-2">
             <Calculator className="w-4 h-4" />
             <span>QuickBooks</span>
           </Button>
-          <Button variant="outline" className="flex items-center space-x-2 bg-purple-50 text-purple-700 hover:bg-purple-100">
+          <Button variant="outline" className="flex items-center space-x-2">
             <FileText className="w-4 h-4" />
             <span>Excel Online</span>
           </Button>

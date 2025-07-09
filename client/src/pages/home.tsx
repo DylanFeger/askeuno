@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import FileUpload from '@/components/FileUpload';
 import ChatInterface from '@/components/ChatInterface';
 import PricingSection from '@/components/PricingSection';
+import acreLogo from '@/assets/acre-logo.png';
 
 export default function Home() {
   const [conversationId, setConversationId] = useState<number | undefined>();
@@ -21,19 +22,17 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
-                <Database className="w-4 h-4 text-white" />
-              </div>
+              <img src={acreLogo} alt="Acre" className="w-8 h-8 object-contain" />
               <span className="text-xl font-bold text-gray-900">Acre</span>
             </div>
             <nav className="hidden md:flex items-center space-x-6">
-              <a href="#features" className="text-gray-600 hover:text-purple-500 transition-colors">
+              <a href="#features" className="text-gray-600 hover:text-primary transition-colors">
                 Features
               </a>
-              <a href="#pricing" className="text-gray-600 hover:text-purple-500 transition-colors">
+              <a href="#pricing" className="text-gray-600 hover:text-primary transition-colors">
                 Pricing
               </a>
-              <Button className="bg-purple-500 hover:bg-purple-600 text-white">
+              <Button>
                 Get Started
               </Button>
             </nav>
@@ -51,14 +50,14 @@ export default function Home() {
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
             Turn Your Business Data Into{' '}
-            <span className="text-purple-500">Instant Insights</span>
+            <span className="text-primary">Instant Insights</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             Upload your data, ask questions, get clear answers. No technical skills needed. 
             Your AI assistant handles all the complexity.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button className="bg-purple-500 hover:bg-purple-600 text-white px-8 py-3">
+            <Button className="px-8 py-3">
               Start Free Trial
             </Button>
             <Button variant="outline" className="px-8 py-3">
@@ -86,8 +85,8 @@ export default function Home() {
           
           <div className="grid md:grid-cols-3 gap-8">
             <Card className="p-8">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                <Upload className="w-6 h-6 text-purple-500" />
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <Upload className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">Instant Upload</h3>
               <p className="text-gray-600">
@@ -126,9 +125,7 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
-                  <Database className="w-4 h-4 text-white" />
-                </div>
+                <img src={acreLogo} alt="Acre" className="w-8 h-8 object-contain brightness-0 invert" />
                 <span className="text-xl font-bold">Acre</span>
               </div>
               <p className="text-gray-400">Making business data simple and actionable for everyone.</p>
