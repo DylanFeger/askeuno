@@ -2,10 +2,16 @@ import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import path from "path";
+import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
 import { processFile, validateFile } from "./services/fileProcessor";
 import { generateDataInsight } from "./services/openai";
 import { insertDataSourceSchema, insertChatMessageSchema } from "@shared/schema";
+import { requireAuth, createUserRateLimit, AuthenticatedRequest } from "./middleware/auth";
+import { validateChatMessage, validateFileUpload, validateConversationId } from "./middleware/validation";
+import { requireOwnership, validateFileUploadSecurity, monitorRequestSize, ipRateLimit } from "./middleware/security";
+import { logger } from "./utils/logger";
+import authRoutes from "./routes/auth";
 
 // Extend Express Request interface for file uploads
 interface MulterRequest extends Request {
@@ -29,14 +35,30 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // File upload endpoint
-  app.post('/api/upload', upload.single('file'), async (req: MulterRequest, res) => {
+  // Authentication routes with IP rate limiting
+  app.use('/api/auth', ipRateLimit(5, 15 * 60 * 1000), authRoutes); // 5 attempts per 15 minutes
+
+  // Rate limiting for AI features
+  const aiRateLimit = createUserRateLimit(
+    60 * 60 * 1000, // 1 hour
+    50, // 50 requests per hour
+    'AI usage limit exceeded. Please upgrade your plan or try again later.'
+  );
+
+  // File upload endpoint - protected with comprehensive security
+  app.post('/api/upload', 
+    requireAuth, 
+    monitorRequestSize,
+    upload.single('file'), 
+    validateFileUpload,
+    validateFileUploadSecurity,
+    async (req: MulterRequest, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      const userId = 1; // TODO: Get from authenticated user session
+      const userId = (req as AuthenticatedRequest).user.id;
       const fileExt = path.extname(req.file.originalname).substring(1);
       
       // Process the file
@@ -72,10 +94,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user's data sources
-  app.get('/api/data-sources', async (req, res) => {
+  // Get user's data sources - protected
+  app.get('/api/data-sources', requireAuth, async (req, res) => {
     try {
-      const userId = 1; // TODO: Get from authenticated user session
+      const userId = (req as AuthenticatedRequest).user.id;
       const dataSources = await storage.getDataSourcesByUserId(userId);
       res.json(dataSources);
     } catch (error: any) {
@@ -84,11 +106,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Chat endpoint
-  app.post('/api/chat', async (req, res) => {
+  // Chat endpoint - protected with AI rate limiting
+  app.post('/api/chat', requireAuth, aiRateLimit, validateChatMessage, async (req, res) => {
     try {
       const { message, conversationId } = req.body;
-      const userId = 1; // TODO: Get from authenticated user session
+      const userId = (req as AuthenticatedRequest).user.id;
       
       if (!message) {
         return res.status(400).json({ error: 'Message is required' });
@@ -177,8 +199,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get conversation history
-  app.get('/api/conversations/:id/messages', async (req, res) => {
+  // Get conversation history - protected with ownership check
+  app.get('/api/conversations/:id/messages', requireAuth, validateConversationId, requireOwnership('conversation'), async (req, res) => {
     try {
       const conversationId = parseInt(req.params.id);
       const messages = await storage.getMessagesByConversationId(conversationId);
@@ -189,10 +211,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user's conversations
-  app.get('/api/conversations', async (req, res) => {
+  // Get user's conversations - protected
+  app.get('/api/conversations', requireAuth, async (req, res) => {
     try {
-      const userId = 1; // TODO: Get from authenticated user session
+      const userId = (req as AuthenticatedRequest).user.id;
       const conversations = await storage.getConversationsByUserId(userId);
       res.json(conversations);
     } catch (error: any) {

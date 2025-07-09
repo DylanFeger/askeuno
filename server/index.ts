@@ -1,11 +1,74 @@
 import express, { type Request, Response, NextFunction } from "express";
+import session from "express-session";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { logger } from "./utils/logger";
+import { sanitizeInput } from "./middleware/validation";
+import { pool } from "./db";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
+// Trust proxy for rate limiting
+app.set('trust proxy', 1);
+
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { error: "Too many requests from this IP, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(limiter);
+
+// Session configuration
+import * as connectPgSimple from 'connect-pg-simple';
+const pgSession = connectPgSimple.default(session);
+app.use(session({
+  store: new pgSession({
+    pool: pool,
+    tableName: 'user_sessions',
+    createTableIfMissing: true,
+  }),
+  secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'strict',
+  },
+}));
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+
+// Input sanitization
+app.use(sanitizeInput);
+
+// Enhanced logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -20,15 +83,35 @@ app.use((req, res, next) => {
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      const logData = {
+        method: req.method,
+        path: path,
+        statusCode: res.statusCode,
+        duration: duration,
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        userId: (req as any).user?.id,
+      };
+
+      // Only log response for successful requests and avoid logging sensitive data
+      if (res.statusCode < 400 && capturedJsonResponse) {
+        const sanitizedResponse = { ...capturedJsonResponse };
+        delete sanitizedResponse.password;
+        delete sanitizedResponse.token;
+        logData.response = sanitizedResponse;
       }
 
+      if (res.statusCode >= 400) {
+        logger.warn('API Request Error', logData);
+      } else {
+        logger.info('API Request', logData);
+      }
+
+      // Keep backward compatibility for development
+      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (logLine.length > 80) {
         logLine = logLine.slice(0, 79) + "…";
       }
-
       log(logLine);
     }
   });
@@ -39,12 +122,29 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  // Enhanced error handling middleware
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    
+    // Log error details
+    logger.error('Server Error', {
+      error: err.message,
+      stack: err.stack,
+      path: req.path,
+      method: req.method,
+      ip: req.ip,
+      userId: (req as any).user?.id,
+    });
 
-    res.status(status).json({ message });
-    throw err;
+    // Don't expose internal errors in production
+    const message = status === 500 && process.env.NODE_ENV === 'production' 
+      ? "Internal Server Error" 
+      : err.message || "Internal Server Error";
+
+    res.status(status).json({ 
+      error: message,
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    });
   });
 
   // importantly only setup vite in development and after

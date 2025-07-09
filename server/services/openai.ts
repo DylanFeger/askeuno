@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { logger } from "../utils/logger";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -66,7 +67,7 @@ Remember: Keep responses conversational but professional, like a helpful busines
       suggestedFollowUps: result.suggestedFollowUps || []
     };
   } catch (error) {
-    console.error("OpenAI API error:", error);
+    logger.error("OpenAI API error", { error, question: question.substring(0, 100) });
     throw new Error("Failed to generate insights. Please try again.");
   }
 }
@@ -100,7 +101,7 @@ export async function analyzeDataSchema(data: any[]): Promise<any> {
 
     return JSON.parse(response.choices[0].message.content || '{}');
   } catch (error) {
-    console.error("Schema analysis error:", error);
+    logger.error("Schema analysis error", { error, dataLength: data.length });
     return {
       columns: [],
       dataType: "unknown",
