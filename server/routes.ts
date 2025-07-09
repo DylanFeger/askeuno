@@ -12,6 +12,7 @@ import { validateChatMessage, validateFileUpload, validateConversationId } from 
 import { requireOwnership, validateFileUploadSecurity, monitorRequestSize, ipRateLimit } from "./middleware/security";
 import { logger, logFileUpload, logETLProcess, logAICall, logPaymentEvent } from "./utils/logger";
 import authRoutes from "./routes/auth";
+import dataSourcesRoutes from "./routes/data-sources";
 
 // Extend Express Request interface for file uploads
 interface MulterRequest extends Request {
@@ -69,6 +70,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication routes with IP rate limiting
   app.use('/api/auth', ipRateLimit(5, 15 * 60 * 1000), authRoutes); // 5 attempts per 15 minutes
+  
+  // Data sources routes
+  app.use('/api/data-sources', dataSourcesRoutes);
 
   // Rate limiting for AI features
   const aiRateLimit = createUserRateLimit(

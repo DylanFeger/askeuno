@@ -1,24 +1,25 @@
 import { useState } from 'react';
-import { Database, Upload, MessageSquare, Shield } from 'lucide-react';
+import { Database, Wifi, MessageSquare, Shield, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'wouter';
-import FileUpload from '@/components/FileUpload';
 import ChatInterface from '@/components/ChatInterface';
 import PricingSection from '@/components/PricingSection';
 import AuthForm from '@/components/AuthForm';
 import AcreLogo from '@/components/AcreLogo';
 import { useAuth } from '@/contexts/AuthContext';
 import { queryClient } from '@/lib/queryClient';
+import { useQuery } from '@tanstack/react-query';
+import type { DataSource } from '@shared/schema';
 
 export default function Home() {
   const [conversationId, setConversationId] = useState<number | undefined>();
   const { user, isLoading, isAuthenticated } = useAuth();
 
-  const handleUploadSuccess = (dataSource: any) => {
-    // Reset conversation to start fresh with new data
-    setConversationId(undefined);
-  };
+  const { data: dataSources = [] } = useQuery<DataSource[]>({
+    queryKey: ['/api/data-sources'],
+    enabled: isAuthenticated,
+  });
 
   const handleAuthSuccess = () => {
     // Refresh the page to show authenticated content
@@ -59,12 +60,12 @@ export default function Home() {
       <section className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-            Turn Your Business Data Into{' '}
-            <span className="text-primary">Instant Insights</span>
+            Live Business Intelligence{' '}
+            <span className="text-primary">Made Simple</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Upload your data, ask questions, get clear answers. No technical skills needed. 
-            Your AI assistant handles all the complexity.
+            Connect to your live data sources, ask questions, get real-time insights. 
+            Your AI assistant monitors and analyzes your business 24/7.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button className="px-8 py-3">
@@ -86,7 +87,62 @@ export default function Home() {
             </div>
           ) : isAuthenticated ? (
             <>
-              <FileUpload onUploadSuccess={handleUploadSuccess} />
+              {/* Data Sources Overview */}
+              <div className="mb-8">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">Your Live Data Connections</h2>
+                  <Link href="/connections">
+                    <Button>
+                      <Database className="w-4 h-4 mr-2" />
+                      Connect Data Source
+                    </Button>
+                  </Link>
+                </div>
+                
+                {dataSources.length === 0 ? (
+                  <Card className="p-8 text-center">
+                    <Wifi className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No data sources connected yet</h3>
+                    <p className="text-gray-600 mb-6">Connect to your live data sources to start getting real-time insights</p>
+                    <Link href="/connections">
+                      <Button>Connect Your First Data Source</Button>
+                    </Link>
+                  </Card>
+                ) : (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {dataSources.map((source) => (
+                      <Card key={source.id} className="p-4">
+                        <CardHeader className="p-0 pb-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle className="text-lg">{source.name}</CardTitle>
+                              <CardDescription>{source.connectionType || source.type}</CardDescription>
+                            </div>
+                            <div className={`px-2 py-1 rounded text-xs font-medium ${
+                              source.status === 'connected' ? 'bg-green-100 text-green-700' : 
+                              source.status === 'error' ? 'bg-red-100 text-red-700' : 
+                              'bg-yellow-100 text-yellow-700'
+                            }`}>
+                              {source.status || 'connected'}
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-0 pt-2">
+                          <div className="text-sm text-gray-600">
+                            {source.rowCount ? `${source.rowCount.toLocaleString()} rows` : 'Syncing...'}
+                          </div>
+                          {source.lastSyncAt && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              Last sync: {new Date(source.lastSyncAt).toLocaleDateString()}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
               <ChatInterface conversationId={conversationId} />
             </>
           ) : (
@@ -106,11 +162,11 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8">
             <Card className="p-8">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                <Upload className="w-6 h-6 text-primary" />
+                <Wifi className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Instant Upload</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Live Data Sync</h3>
               <p className="text-gray-600">
-                Drop your files and they're instantly understood. No setup, no configuration, no waiting.
+                Connect to databases, cloud storage, APIs, and business apps. Real-time sync keeps insights current.
               </p>
             </Card>
             

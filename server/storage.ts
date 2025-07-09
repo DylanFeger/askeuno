@@ -28,6 +28,7 @@ export interface IStorage {
   getDataSourcesByUserId(userId: number): Promise<DataSource[]>;
   getDataSource(id: number): Promise<DataSource | undefined>;
   updateDataSource(id: number, updates: Partial<DataSource>): Promise<DataSource | undefined>;
+  deleteDataSource(id: number): Promise<void>;
   
   // Chat operations
   createConversation(userId: number): Promise<ChatConversation>;
@@ -40,6 +41,7 @@ export interface IStorage {
   insertDataRows(dataSourceId: number, rows: any[]): Promise<void>;
   getDataRows(dataSourceId: number, limit?: number): Promise<DataRow[]>;
   queryDataRows(dataSourceId: number, query: string): Promise<any[]>;
+  clearDataRows(dataSourceId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -165,6 +167,17 @@ export class DatabaseStorage implements IStorage {
     // For now, return basic data
     const rows = await this.getDataRows(dataSourceId);
     return rows.map(row => row.rowData);
+  }
+
+  async deleteDataSource(id: number): Promise<void> {
+    // Delete associated data rows first
+    await db.delete(dataRows).where(eq(dataRows.dataSourceId, id));
+    // Then delete the data source
+    await db.delete(dataSources).where(eq(dataSources.id, id));
+  }
+
+  async clearDataRows(dataSourceId: number): Promise<void> {
+    await db.delete(dataRows).where(eq(dataRows.dataSourceId, dataSourceId));
   }
 }
 
