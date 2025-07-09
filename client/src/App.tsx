@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Home from "@/pages/home";
 import Privacy from "@/pages/privacy";
 import Connections from "@/pages/connections";
+import Dashboards from "@/pages/dashboards";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -14,6 +15,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/connections" component={Connections} />
+      <Route path="/dashboards" component={Dashboards} />
       <Route path="/privacy" component={Privacy} />
       <Route component={NotFound} />
     </Switch>
