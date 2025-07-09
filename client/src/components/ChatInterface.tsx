@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, ChevronDown, ChevronUp, Mic } from 'lucide-react';
+import { Send, Bot, User, ChevronDown, ChevronUp, Mic, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -26,6 +28,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [message, setMessage] = useState('');
   const [currentConversationId, setCurrentConversationId] = useState(conversationId);
   const [expandedFollowUps, setExpandedFollowUps] = useState<Set<number>>(new Set());
+  const [extendedThinking, setExtendedThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: messages, refetch } = useQuery({
@@ -38,6 +41,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
       const response = await apiRequest('POST', '/api/chat', {
         message: messageContent,
         conversationId: currentConversationId,
+        extendedThinking,
       });
       return response.json();
     },
@@ -75,9 +79,23 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     <Card className="p-8">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-semibold text-gray-900">Ask Your AI Assistant</h2>
-        <div className="flex items-center space-x-2 text-sm text-gray-500">
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          <span>Online</span>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <Brain className="w-4 h-4 text-gray-500" />
+            <Label htmlFor="extended-thinking" className="text-sm text-gray-600 cursor-pointer">
+              Extended Thinking
+            </Label>
+            <Switch
+              id="extended-thinking"
+              checked={extendedThinking}
+              onCheckedChange={setExtendedThinking}
+              className="data-[state=checked]:bg-primary"
+            />
+          </div>
+          <div className="flex items-center space-x-2 text-sm text-gray-500">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span>Online</span>
+          </div>
         </div>
       </div>
 

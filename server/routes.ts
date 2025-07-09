@@ -170,7 +170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat endpoint - protected with AI rate limiting
   app.post('/api/chat', requireAuth, aiRateLimit, validateChatMessage, async (req, res) => {
     try {
-      const { message, conversationId } = req.body;
+      const { message, conversationId, extendedThinking = false } = req.body;
       const userId = (req as AuthenticatedRequest).user.id;
       
       if (!message) {
@@ -241,7 +241,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sampleData,
         conversationHistory,
         userId,
-        conversation.id
+        conversation.id,
+        extendedThinking
       );
 
       // Save AI response

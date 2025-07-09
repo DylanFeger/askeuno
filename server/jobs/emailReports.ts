@@ -2,7 +2,7 @@ import { db } from "../db";
 import { users, dataSources, chatMessages, chatConversations } from "@shared/schema";
 import { eq, and, gte, sql } from "drizzle-orm";
 import { logger } from "../utils/logger";
-import { MailService } from '@sendgrid/mail';
+import { sendEmail } from "../services/awsSes";
 
 /**
  * Email Reports Job - Sends scheduled reports to users
@@ -37,9 +37,7 @@ interface UserReport {
   insights: string[];
 }
 
-// Initialize SendGrid
-const mailService = new MailService();
-mailService.setApiKey(process.env.SENDGRID_API_KEY || 'your-api-key');
+// AWS SES configuration is handled in the awsSes service
 
 // Retry wrapper with exponential backoff
 async function retryOperation<T>(
@@ -219,15 +217,15 @@ function formatEmailHtml(report: UserReport): string {
 async function sendUserReport(report: UserReport): Promise<EmailResult> {
   const emailData = {
     to: report.email,
-    from: 'reports@acre.app', // Must be verified in SendGrid
+    from: process.env.SES_FROM_EMAIL || 'reports@acre.app', // Must be verified in AWS SES
     subject: `Your Weekly Acre Report - ${report.stats.messagesThisWeek} insights generated`,
     html: formatEmailHtml(report),
-    text: `Hi ${report.username}, here's your weekly Acre report...` // Plain text fallback
+    text: `Hi ${report.username}, here's your weekly Acre report. You generated ${report.stats.messagesThisWeek} insights this week from ${report.stats.dataSources} data sources.` // Plain text fallback
   };
   
   const sendOperation = async () => {
     // In test mode, just log the email
-    if (process.env.NODE_ENV === 'test' || !process.env.SENDGRID_API_KEY) {
+    if (process.env.NODE_ENV === 'test' || !process.env.AWS_ACCESS_KEY_ID) {
       logger.info('Test mode: Would send email', { 
         to: emailData.to, 
         subject: emailData.subject 
@@ -235,7 +233,10 @@ async function sendUserReport(report: UserReport): Promise<EmailResult> {
       return { success: true };
     }
     
-    await mailService.send(emailData);
+    const result = await sendEmail(emailData);
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to send email');
+    }
     return { success: true };
   };
   

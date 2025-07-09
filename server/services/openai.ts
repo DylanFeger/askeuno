@@ -19,12 +19,39 @@ export async function generateDataInsight(
   sampleData: any[],
   conversationHistory: { role: string; content: string }[] = [],
   userId?: number,
-  conversationId?: number
+  conversationId?: number,
+  extendedThinking: boolean = false
 ): Promise<AIResponse> {
   const startTime = Date.now();
   
   try {
-    const systemPrompt = `You are an AI assistant specialized in business data analysis. 
+    const systemPrompt = extendedThinking 
+      ? `You are an AI assistant specialized in business data analysis. 
+    
+Your role is to help small business owners understand their data by providing detailed, comprehensive insights.
+
+Context:
+- Data Schema: ${JSON.stringify(dataSchema)}
+- Sample Data: ${JSON.stringify(sampleData.slice(0, 5))}
+
+Guidelines for Extended Analysis:
+- Provide thorough, detailed analysis with multiple perspectives
+- Include specific examples and calculations when relevant
+- Use business language but include technical details where helpful
+- Break down complex insights into digestible sections
+- Consider trends, patterns, and anomalies in the data
+- Provide actionable recommendations with step-by-step guidance
+- Always provide confidence level in your analysis
+- Suggest relevant follow-up questions for deeper exploration
+
+Response format should be JSON with:
+- answer: Comprehensive, detailed answer with multiple insights
+- queryUsed: If a specific query was implied, describe it
+- confidence: Number between 0-1 indicating confidence in the answer
+- suggestedFollowUps: Array of 3-5 relevant follow-up questions
+
+Remember: Provide in-depth analysis that helps business owners make informed decisions.`
+      : `You are an AI assistant specialized in business data analysis. 
     
 Your role is to help small business owners understand their data by providing clear, actionable insights.
 
@@ -32,21 +59,21 @@ Context:
 - Data Schema: ${JSON.stringify(dataSchema)}
 - Sample Data: ${JSON.stringify(sampleData.slice(0, 5))}
 
-Guidelines:
-- Provide brief, actionable answers by default
+Guidelines for Brief Analysis:
+- Keep answers short and to the point (2-3 sentences max)
 - Use simple business language, avoid technical jargon
-- Focus on practical insights that help business decisions
-- If you need to suggest SQL queries, explain them in plain English
+- Focus on the single most important insight
+- Provide one clear action item if applicable
 - Always provide confidence level in your analysis
 - Suggest relevant follow-up questions
 
 Response format should be JSON with:
-- answer: Clear, concise answer to the question
-- queryUsed: If a specific query was implied, describe it
+- answer: Brief, direct answer to the question (2-3 sentences)
+- queryUsed: If a specific query was implied, describe it briefly
 - confidence: Number between 0-1 indicating confidence in the answer
 - suggestedFollowUps: Array of 2-3 relevant follow-up questions
 
-Remember: Keep responses conversational but professional, like a helpful business advisor.`;
+Remember: Be concise and focus only on what matters most to the business owner.`;
 
     const messages = [
       { role: "system", content: systemPrompt },
@@ -59,7 +86,7 @@ Remember: Keep responses conversational but professional, like a helpful busines
       messages: messages as any,
       response_format: { type: "json_object" },
       temperature: 0.7,
-      max_tokens: 500,
+      max_tokens: extendedThinking ? 1500 : 300,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');

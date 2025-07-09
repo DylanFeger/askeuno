@@ -76,6 +76,7 @@ Key principles:
 ### Core Services
 - **Database**: Neon PostgreSQL (serverless PostgreSQL)
 - **AI Services**: OpenAI API for data analysis and chat responses
+- **Email Service**: AWS SES (Simple Email Service) for transactional emails
 - **File Processing**: Local file system for temporary uploads
 
 ### Development Tools
@@ -150,5 +151,17 @@ The application follows a monorepo structure with clear separation between front
   - Replaced logo with glasses icon
   - Changed color theme from purple to sage green (hsl(142, 25%, 45%))
   - Updated all UI components to use new color scheme
-→ Waiting for OpenAI API key to enable AI functionality
+✓ **EMAIL SERVICE MIGRATION** (January 9, 2025):
+  - Replaced SendGrid with AWS SES (Simple Email Service)
+  - Implemented welcome emails, password reset, and weekly reports using AWS SES
+  - Created comprehensive AWS SES setup documentation
+  - Added TypeScript implementation with proper error handling and retry logic
+✓ **EXTENDED THINKING TOGGLE** (January 9, 2025):
+  - Implemented toggle switch in chat interface for extended AI responses
+  - Brief mode (default): 2-3 sentence responses focused on key insights
+  - Extended mode: Detailed analysis with multiple perspectives and calculations
+  - Adjusts OpenAI token limits based on mode (300 vs 1500 tokens)
+  - UI toggle clearly visible next to chat status indicator
+→ OpenAI API key configured and working
+→ Waiting for AWS SES credentials to enable email functionality
 → Backend is now production-ready with enterprise-grade security and monitoring

@@ -5,6 +5,7 @@ import { storage } from '../storage';
 import { logger, logSecurityEvent } from '../utils/logger';
 import { handleValidationErrors } from '../middleware/validation';
 import { insertUserSchema } from '@shared/schema';
+import { sendWelcomeEmail } from '../services/awsSes';
 
 const router = Router();
 
@@ -89,6 +90,19 @@ router.post('/register', registerValidation, async (req, res) => {
     });
     
     logger.info('User registered successfully', { userId: user.id, username: user.username });
+    
+    // Send welcome email (don't wait for it)
+    sendWelcomeEmail(user.email, user.username)
+      .then(result => {
+        if (result.success) {
+          logger.info('Welcome email sent', { userId: user.id, email: user.email });
+        } else {
+          logger.warn('Failed to send welcome email', { userId: user.id, error: result.error });
+        }
+      })
+      .catch(error => {
+        logger.error('Error sending welcome email', { userId: user.id, error });
+      });
     
     res.status(201).json({
       message: 'Registration successful',
