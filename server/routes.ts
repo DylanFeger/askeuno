@@ -85,6 +85,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     validateFileUpload,
     validateFileUploadSecurity,
     async (req: MulterRequest, res) => {
+      // Log file details for debugging
+      if (!req.file) {
+        logger.warn('Upload attempt with no file', { userId: req.user?.id });
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
     const startTime = Date.now();
     const userId = (req as AuthenticatedRequest).user.id;
     
