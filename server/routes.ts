@@ -35,6 +35,38 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint - no authentication required
+  app.get('/health', (req, res) => {
+    const startTime = process.hrtime();
+    
+    // Check database connection
+    storage.getUser(1).then(() => {
+      const [seconds, nanoseconds] = process.hrtime(startTime);
+      const responseTime = seconds * 1000 + nanoseconds / 1000000; // Convert to milliseconds
+      
+      res.status(200).json({
+        status: 'healthy',
+        message: 'Acre API is running',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'development',
+        version: '1.0.0',
+        database: 'connected',
+        responseTime: `${responseTime.toFixed(2)}ms`
+      });
+    }).catch((error) => {
+      logger.error('Health check failed - database connection error', { error });
+      res.status(503).json({
+        status: 'unhealthy',
+        message: 'Database connection failed',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'development',
+        error: 'Database unavailable'
+      });
+    });
+  });
+
   // Authentication routes with IP rate limiting
   app.use('/api/auth', ipRateLimit(5, 15 * 60 * 1000), authRoutes); // 5 attempts per 15 minutes
 
