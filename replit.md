@@ -147,6 +147,11 @@ The application follows a monorepo structure with clear separation between front
   - Database connectivity check with response time metrics
   - Health check script for automated monitoring
   - Comprehensive deployment documentation for Replit and AWS
+✓ **FILE SIZE LIMIT INCREASED** (January 9, 2025):
+  - Increased upload limit from 10MB to 500MB for large business datasets
+  - Updated frontend validation and display text
+  - Updated backend multer, security, and validation middleware
+  - Businesses can now upload years of historical data
 ✓ **UI THEME UPDATE COMPLETED** (January 9, 2025):
   - Replaced logo with glasses icon
   - Changed color theme from purple to sage green (hsl(142, 25%, 45%))

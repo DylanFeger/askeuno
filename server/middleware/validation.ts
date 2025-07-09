@@ -80,7 +80,7 @@ export const validateFileUpload = (req: Request, res: Response, next: NextFuncti
   }
   
   // Check file size again (belt and suspenders)
-  if (file.size > 10 * 1024 * 1024) {
+  if (file.size > 500 * 1024 * 1024) {
     logger.warn('File too large', { 
       size: file.size, 
       originalname: file.originalname,

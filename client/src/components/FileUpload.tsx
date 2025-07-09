@@ -57,7 +57,7 @@ export default function FileUpload({ onUploadSuccess }: FileUploadProps) {
       'application/json': ['.json'],
     },
     maxFiles: 1,
-    maxSize: 10 * 1024 * 1024, // 10MB
+    maxSize: 500 * 1024 * 1024, // 500MB
   });
 
   return (
@@ -79,7 +79,7 @@ export default function FileUpload({ onUploadSuccess }: FileUploadProps) {
           {isDragActive ? 'Drop files here' : 'Drop files here or click to upload'}
         </p>
         <p className="text-sm text-gray-500">
-          Supports CSV, Excel, JSON files up to 10MB
+          Supports CSV, Excel, JSON files up to 500MB
         </p>
       </div>
 

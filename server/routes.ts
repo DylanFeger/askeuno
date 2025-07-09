@@ -22,7 +22,7 @@ interface MulterRequest extends Request {
 const upload = multer({
   dest: 'uploads/',
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB
+    fileSize: 500 * 1024 * 1024, // 500MB
   },
   fileFilter: (req: any, file: any, cb: any) => {
     const validation = validateFile(file);

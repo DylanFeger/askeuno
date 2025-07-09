@@ -96,7 +96,7 @@ export const validateFileUploadSecurity = (req: Request, res: Response, next: Ne
 export const monitorRequestSize = (req: Request, res: Response, next: NextFunction) => {
   if (req.get('content-length')) {
     const contentLength = parseInt(req.get('content-length') || '0');
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = 500 * 1024 * 1024; // 500MB
 
     if (contentLength > maxSize) {
       logSecurityEvent('LARGE_REQUEST_BLOCKED', {

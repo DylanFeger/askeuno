@@ -106,7 +106,7 @@ async function processJsonFile(filePath: string): Promise<any[]> {
 }
 
 export function validateFile(file: any): { valid: boolean; error?: string } {
-  const maxSize = 10 * 1024 * 1024; // 10MB
+  const maxSize = 500 * 1024 * 1024; // 500MB
   const allowedTypes = ['csv', 'xlsx', 'xls', 'json'];
   
   if (!file) {
@@ -114,7 +114,7 @@ export function validateFile(file: any): { valid: boolean; error?: string } {
   }
   
   if (file.size > maxSize) {
-    return { valid: false, error: 'File size exceeds 10MB limit' };
+    return { valid: false, error: 'File size exceeds 500MB limit' };
   }
   
   const fileName = file.originalname || file.name;
