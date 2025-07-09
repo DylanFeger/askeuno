@@ -1,0 +1,147 @@
+# Serverless configuration for AWS Lambda functions
+service: acre-jobs
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  stage: ${opt:stage, 'production'}
+  environment:
+    NODE_ENV: production
+    DATABASE_URL: ${env:DATABASE_URL}
+    SENDGRID_API_KEY: ${env:SENDGRID_API_KEY}
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+  
+  # IAM role statements
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - ses:SendEmail
+        - ses:SendRawEmail
+      Resource: "*"
+
+functions:
+  # Data sync function
+  dataSync:
+    handler: dist/server/jobs/dataSync.lambdaHandler
+    timeout: 300 # 5 minutes
+    memorySize: 512
+    events:
+      # Run every 6 hours
+      - schedule:
+          rate: rate(6 hours)
+          name: ${self:service}-${self:provider.stage}-data-sync
+          description: Sync data from external sources
+          enabled: true
+    environment:
+      JOB_TYPE: data-sync
+
+  # Email reports function
+  emailReports:
+    handler: dist/server/jobs/emailReports.lambdaHandler
+    timeout: 300 # 5 minutes
+    memorySize: 256
+    events:
+      # Run every Monday at 9am UTC
+      - schedule:
+          rate: cron(0 9 ? * MON *)
+          name: ${self:service}-${self:provider.stage}-email-reports
+          description: Send weekly email reports
+          enabled: true
+    environment:
+      JOB_TYPE: email-reports
+
+  # Quick sync for premium users
+  quickSync:
+    handler: dist/server/jobs/dataSync.lambdaHandler
+    timeout: 120 # 2 minutes
+    memorySize: 256
+    events:
+      # Run every hour during business hours
+      - schedule:
+          rate: cron(0 9-18 ? * MON-FRI *)
+          name: ${self:service}-${self:provider.stage}-quick-sync
+          description: Quick sync for premium users
+          enabled: true
+    environment:
+      JOB_TYPE: quick-sync
+      SYNC_MODE: premium
+
+  # Database maintenance
+  dbMaintenance:
+    handler: dist/server/jobs/maintenance.lambdaHandler
+    timeout: 300 # 5 minutes
+    memorySize: 512
+    events:
+      # Run daily at 2am UTC
+      - schedule:
+          rate: cron(0 2 * * ? *)
+          name: ${self:service}-${self:provider.stage}-db-maintenance
+          description: Database cleanup and optimization
+          enabled: true
+    environment:
+      JOB_TYPE: db-maintenance
+
+# CloudWatch Alarms
+resources:
+  Resources:
+    # Alarm for data sync failures
+    DataSyncErrorAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmName: ${self:service}-${self:provider.stage}-data-sync-errors
+        AlarmDescription: Alert on data sync Lambda errors
+        MetricName: Errors
+        Namespace: AWS/Lambda
+        Statistic: Sum
+        Period: 300
+        EvaluationPeriods: 1
+        Threshold: 1
+        ComparisonOperator: GreaterThanThreshold
+        Dimensions:
+          - Name: FunctionName
+            Value:
+              Ref: DataSyncLambdaFunction
+        AlarmActions:
+          - ${env:SNS_ALERT_TOPIC_ARN}
+
+    # Alarm for email report failures
+    EmailReportErrorAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmName: ${self:service}-${self:provider.stage}-email-report-errors
+        AlarmDescription: Alert on email report Lambda errors
+        MetricName: Errors
+        Namespace: AWS/Lambda
+        Statistic: Sum
+        Period: 300
+        EvaluationPeriods: 1
+        Threshold: 1
+        ComparisonOperator: GreaterThanThreshold
+        Dimensions:
+          - Name: FunctionName
+            Value:
+              Ref: EmailReportsLambdaFunction
+        AlarmActions:
+          - ${env:SNS_ALERT_TOPIC_ARN}
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+
+custom:
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+    packager: npm
+  
+  # Prune old Lambda versions
+  prune:
+    automatic: true
+    number: 3
