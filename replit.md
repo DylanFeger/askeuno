@@ -162,6 +162,12 @@ The application follows a monorepo structure with clear separation between front
   - Extended mode: Detailed analysis with multiple perspectives and calculations
   - Adjusts OpenAI token limits based on mode (300 vs 1500 tokens)
   - UI toggle clearly visible next to chat status indicator
+✓ **PRIVACY POLICY PAGE ADDED** (January 9, 2025):
+  - Created comprehensive Privacy Policy page at /privacy route
+  - Covers data collection, usage, security, cookie policy, and user rights
+  - Professional yet friendly tone with clear sections and icons
+  - Includes contact information (support@[mydomain].com placeholder)
+  - Linked from footer of home page for easy access
 → OpenAI API key configured and working
 → Waiting for AWS SES credentials to enable email functionality
 → Backend is now production-ready with enterprise-grade security and monitoring
