@@ -1,0 +1,175 @@
+Purpose:
+"Acre is a secure, easy-to-use data platform for small businesses. Its purpose is to help business owners quickly upload or connect their data, store it safely in the cloud, and get clear, real-time answers from an AI assistant — all without needing technical skills. Acre makes business data understandable and actionable, so owners can make better decisions without hiring expensive data teams."
+
+📌 Build Acre with These Core Requirements:
+1️⃣ Data Ingestion
+Build a secure, user-friendly upload portal (React frontend) where businesses can:
+
+Drag & drop CSV, Excel, or JSON files.
+
+Or connect to popular data sources (e.g., Google Sheets, QuickBooks) using OAuth2 for secure access.
+
+The upload must use HTTPS.
+
+Validate files with Python backend (Flask or FastAPI).
+
+Reject invalid formats & notify users if upload fails.
+
+2️⃣ Secure Storage
+Use AWS S3 buckets to store uploaded files.
+
+Use Python’s boto3 SDK to handle storage.
+
+Apply encryption at rest with AWS KMS.
+
+Enable versioning for rollback.
+
+Track file metadata: upload time, owner, file type.
+
+3️⃣ ETL Processing Pipeline
+Trigger automatic ETL when a new file is uploaded:
+
+Use AWS Lambda (Python) or backend Python scripts to run:
+
+Extract: Read the file using Python libraries (pandas for CSV/Excel, json for JSON).
+
+Transform: Clean & format the data — handle missing values, unify column names, validate data types.
+
+Load: Insert structured data into your AWS RDS database (PostgreSQL recommended).
+
+4️⃣ Database
+Use PostgreSQL on AWS RDS.
+
+Write secure Python SQL scripts using SQLAlchemy or psycopg2:
+
+Create tables dynamically based on uploaded data schema.
+
+Insert rows efficiently.
+
+Handle duplicates or conflicts.
+
+Include example CREATE TABLE, INSERT, and SELECT statements.
+
+Store metadata for each data source: which user owns it, last sync time, version number.
+
+5️⃣ Real-Time AI Query
+Build a simple AI chat window in the dashboard (React).
+
+When the user asks a question:
+
+Python backend:
+
+Accepts the question.
+
+Builds a SQL query dynamically based on the user’s intent.
+
+Runs the SQL query securely against the RDS database.
+
+Uses results to craft a short summary.
+
+Calls OpenAI API with the results + question to generate a clear answer in a “text message” style.
+
+The AI should remember prior context (store conversation state per user).
+
+Return the answer to the frontend chat window instantly.
+
+6️⃣ Scheduled Sync & Updates
+For connected sources (Google Sheets, QuickBooks):
+
+Use secure OAuth2 tokens.
+
+Build Python cron jobs or AWS Lambda triggers to pull fresh data every night.
+
+Auto-run ETL again.
+
+Add webhook support if the external app supports it (for instant updates).
+
+7️⃣ Scheduled Email Reports
+Allow businesses to pick specific metrics/filters to include in custom reports.
+
+Use Python to:
+
+Query the database.
+
+Create a summary report.
+
+Format it as HTML or PDF.
+
+Send it on a set schedule (weekly/monthly) via AWS SES or a secure mail API like SendGrid.
+
+Add logging so failed sends are tracked.
+
+8️⃣ Dashboard
+Build a modern, professional React frontend with:
+
+A light, neutral base color palette with light purple accents.
+
+A card-based layout for data sources, sync status, upload history.
+
+Basic charts & stats (integrate Chart.js or Recharts).
+
+The AI chat window.
+
+A clear notification area for sync failures, version rollback, or report scheduling.
+
+Fully responsive for desktop & mobile.
+
+9️⃣ Payments
+Integrate Stripe for user signup & subscriptions.
+
+Use Stripe’s Python SDK to:
+
+Handle sign-up, billing, and webhook events for subscription status.
+
+Gate premium features like multiple data sources, bigger storage, AI usage tiers.
+
+10️⃣ Security
+HTTPS for all connections.
+
+Store all secrets (AWS, Stripe, OpenAI API) as secure environment variables — no hardcoding.
+
+Add simple user authentication & roles (admin, user).
+
+Log file uploads, data access, and AI query history.
+
+11️⃣ Clean Project Structure
+Organize the codebase:
+
+/frontend → React components, Tailwind CSS config.
+
+/backend → Python Flask/FastAPI server, ETL modules, SQL scripts.
+
+/lambda → Example AWS Lambda handler scripts.
+
+/scripts → Python cron jobs for syncs, scheduled emails.
+
+/config → .env.example with required variables.
+
+12️⃣ Deployment
+Add a deployment plan:
+
+Use Replit’s deployment or connect to AWS Amplify for frontend hosting.
+
+Deploy backend on AWS Lambda (serverless) or a simple EC2 if needed.
+
+Use AWS RDS for PostgreSQL.
+
+Include setup for HTTPS certs.
+
+✅ Deliverables
+Starter Python backend with file validation, upload, ETL example, SQL scripts.
+
+Example Lambda handler for auto-processing.
+
+React frontend skeleton with styled components, light purple accent theme.
+
+Stripe payment integration hooks.
+
+Sample cron job for nightly sync.
+
+Sample Python for sending an email report.
+
+README with clear instructions for setting up env variables.
+
+👉 Purpose
+"Make Acre feel secure, polished, simple, and effortless — so businesses trust it with their data and use it daily without technical headaches."
