@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { logger } from "../utils/logger";
+import { logger, logAICall } from "../utils/logger";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -17,8 +17,12 @@ export async function generateDataInsight(
   question: string,
   dataSchema: any,
   sampleData: any[],
-  conversationHistory: { role: string; content: string }[] = []
+  conversationHistory: { role: string; content: string }[] = [],
+  userId?: number,
+  conversationId?: number
 ): Promise<AIResponse> {
+  const startTime = Date.now();
+  
   try {
     const systemPrompt = `You are an AI assistant specialized in business data analysis. 
     
@@ -60,22 +64,44 @@ Remember: Keep responses conversational but professional, like a helpful busines
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
     
+    // Log successful AI call
+    if (userId) {
+      logAICall(userId, 'data_insight', 'success', {
+        model: 'gpt-4o',
+        responseTime: Date.now() - startTime,
+        conversationId,
+        tokensUsed: response.usage?.total_tokens,
+      });
+    }
+    
     return {
       answer: result.answer || "I apologize, but I couldn't analyze your data properly. Could you try rephrasing your question?",
       queryUsed: result.queryUsed,
       confidence: Math.max(0, Math.min(1, result.confidence || 0.5)),
       suggestedFollowUps: result.suggestedFollowUps || []
     };
-  } catch (error) {
+  } catch (error: any) {
     logger.error("OpenAI API error", { error, question: question.substring(0, 100) });
+    
+    // Log failed AI call
+    if (userId) {
+      logAICall(userId, 'data_insight', 'failure', {
+        error: error.message,
+        responseTime: Date.now() - startTime,
+        conversationId,
+      });
+    }
+    
     throw new Error("Failed to generate insights. Please try again.");
   }
 }
 
-export async function analyzeDataSchema(data: any[]): Promise<any> {
+export async function analyzeDataSchema(data: any[], userId?: number): Promise<any> {
   if (!data || data.length === 0) {
     return {};
   }
+
+  const startTime = Date.now();
 
   try {
     const sampleData = data.slice(0, 10);

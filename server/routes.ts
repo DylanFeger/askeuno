@@ -10,7 +10,7 @@ import { insertDataSourceSchema, insertChatMessageSchema } from "@shared/schema"
 import { requireAuth, createUserRateLimit, AuthenticatedRequest } from "./middleware/auth";
 import { validateChatMessage, validateFileUpload, validateConversationId } from "./middleware/validation";
 import { requireOwnership, validateFileUploadSecurity, monitorRequestSize, ipRateLimit } from "./middleware/security";
-import { logger } from "./utils/logger";
+import { logger, logFileUpload, logETLProcess, logAICall, logPaymentEvent } from "./utils/logger";
 import authRoutes from "./routes/auth";
 
 // Extend Express Request interface for file uploads
@@ -53,18 +53,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     validateFileUpload,
     validateFileUploadSecurity,
     async (req: MulterRequest, res) => {
+    const startTime = Date.now();
+    const userId = (req as AuthenticatedRequest).user.id;
+    
     try {
       if (!req.file) {
+        logFileUpload(userId, 'unknown', 'failure', { error: 'No file uploaded' });
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      const userId = (req as AuthenticatedRequest).user.id;
       const fileExt = path.extname(req.file.originalname).substring(1);
+      logger.info('File upload started', { userId, fileName: req.file.originalname, fileSize: req.file.size });
       
-      // Process the file
+      // ETL Stage 1: File Processing
+      logETLProcess(0, 'file_processing', 'started', { fileName: req.file.originalname });
       const processedData = await processFile(req.file.path, fileExt);
+      logETLProcess(0, 'file_processing', 'completed', { 
+        rowsProcessed: processedData.rowCount,
+        duration: Date.now() - startTime 
+      });
       
-      // Create data source record
+      // ETL Stage 2: Data Storage
+      const storageStartTime = Date.now();
+      logETLProcess(0, 'data_storage', 'started');
       const dataSource = await storage.createDataSource({
         userId,
         name: req.file.originalname,
@@ -77,6 +88,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Insert data rows
       await storage.insertDataRows(dataSource.id, processedData.data);
+      logETLProcess(dataSource.id, 'data_storage', 'completed', { 
+        rowsProcessed: processedData.rowCount,
+        duration: Date.now() - storageStartTime 
+      });
+
+      // Log successful upload
+      logFileUpload(userId, req.file.originalname, 'success', {
+        fileSize: req.file.size,
+        fileType: req.file.mimetype,
+        processingTime: Date.now() - startTime,
+        rowsProcessed: processedData.rowCount,
+      });
 
       res.json({
         success: true,
@@ -89,7 +112,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error: any) {
-      console.error('Upload error:', error);
+      logger.error('Upload error:', error);
+      logFileUpload(userId, req.file?.originalname || 'unknown', 'failure', { 
+        error: error.message,
+        fileSize: req.file?.size,
+        processingTime: Date.now() - startTime,
+      });
+      logETLProcess(0, 'error', 'failed', { error: error.message });
       res.status(500).json({ error: error.message });
     }
   });
@@ -178,7 +207,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message,
         latestDataSource.schema,
         sampleData,
-        conversationHistory
+        conversationHistory,
+        userId,
+        conversation.id
       );
 
       // Save AI response

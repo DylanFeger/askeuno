@@ -35,7 +35,7 @@ const sensitiveDataFilter = winston.format((info) => {
 
 // Logger configuration
 export const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'production' ? 'warn' : 'debug',
+  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.errors({ stack: true }),
@@ -90,6 +90,124 @@ export const logSecurityEvent = (event: string, details: any) => {
     event,
     timestamp: new Date().toISOString(),
     ...details
+  });
+};
+
+// Event-specific loggers
+export const fileUploadLogger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.File({
+      filename: path.join(logsDir, 'file-uploads.log'),
+      maxsize: 5242880, // 5MB
+      maxFiles: 10,
+    })
+  ]
+});
+
+export const etlLogger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.File({
+      filename: path.join(logsDir, 'etl-processing.log'),
+      maxsize: 5242880, // 5MB
+      maxFiles: 10,
+    })
+  ]
+});
+
+export const aiLogger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.File({
+      filename: path.join(logsDir, 'ai-calls.log'),
+      maxsize: 5242880, // 5MB
+      maxFiles: 10,
+    })
+  ]
+});
+
+export const paymentLogger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.File({
+      filename: path.join(logsDir, 'payments.log'),
+      maxsize: 5242880, // 5MB
+      maxFiles: 20, // Keep more payment logs
+    })
+  ]
+});
+
+// Logging helper functions
+export const logFileUpload = (userId: number, fileName: string, status: 'success' | 'failure', details?: any) => {
+  fileUploadLogger.info('File Upload Event', {
+    userId,
+    fileName,
+    status,
+    timestamp: new Date().toISOString(),
+    fileSize: details?.fileSize,
+    fileType: details?.fileType,
+    processingTime: details?.processingTime,
+    error: details?.error,
+    rowsProcessed: details?.rowsProcessed,
+  });
+};
+
+export const logETLProcess = (dataSourceId: number, stage: string, status: 'started' | 'completed' | 'failed', details?: any) => {
+  etlLogger.info('ETL Process Event', {
+    dataSourceId,
+    stage,
+    status,
+    timestamp: new Date().toISOString(),
+    rowsProcessed: details?.rowsProcessed,
+    duration: details?.duration,
+    error: details?.error,
+    schemaDetected: details?.schemaDetected,
+  });
+};
+
+export const logAICall = (userId: number, operation: string, status: 'success' | 'failure', details?: any) => {
+  aiLogger.info('AI API Call', {
+    userId,
+    operation,
+    status,
+    timestamp: new Date().toISOString(),
+    model: details?.model || 'gpt-4o',
+    tokensUsed: details?.tokensUsed,
+    responseTime: details?.responseTime,
+    error: details?.error,
+    conversationId: details?.conversationId,
+  });
+};
+
+export const logPaymentEvent = (userId: number, event: string, amount?: number, details?: any) => {
+  paymentLogger.info('Payment Event', {
+    userId,
+    event,
+    amount,
+    timestamp: new Date().toISOString(),
+    currency: details?.currency || 'USD',
+    subscriptionTier: details?.subscriptionTier,
+    paymentMethod: details?.paymentMethod,
+    transactionId: details?.transactionId,
+    status: details?.status,
+    error: details?.error,
   });
 };
 

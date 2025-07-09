@@ -1,5 +1,9 @@
 node_modules
 dist
+logs/*.log
+uploads/*
+!uploads/.gitkeep
+!logs/.gitkeep
 .DS_Store
 server/public
 vite.config.ts.*

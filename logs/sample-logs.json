@@ -1,0 +1,125 @@
+[
+  {
+    "category": "file-upload",
+    "timestamp": "2024-01-09T15:30:45.123Z",
+    "level": "info",
+    "message": "File Upload Event",
+    "userId": 1,
+    "fileName": "sales_data_2024.csv",
+    "status": "success",
+    "fileSize": 1048576,
+    "fileType": "text/csv",
+    "processingTime": 2345,
+    "rowsProcessed": 1500
+  },
+  {
+    "category": "etl-processing",
+    "timestamp": "2024-01-09T15:30:47.456Z",
+    "level": "info",
+    "message": "ETL Process Event",
+    "dataSourceId": 42,
+    "stage": "schema_analysis",
+    "status": "completed",
+    "duration": 1200,
+    "schemaDetected": {
+      "columns": ["date", "product", "quantity", "revenue"],
+      "dataType": "sales",
+      "dateRange": "2024-01-01 to 2024-01-31"
+    }
+  },
+  {
+    "category": "ai-calls",
+    "timestamp": "2024-01-09T15:31:15.789Z",
+    "level": "info",
+    "message": "AI API Call",
+    "userId": 1,
+    "operation": "data_insight",
+    "status": "success",
+    "model": "gpt-4o",
+    "tokensUsed": 342,
+    "responseTime": 856,
+    "conversationId": 123
+  },
+  {
+    "category": "ai-calls",
+    "timestamp": "2024-01-09T15:32:45.123Z",
+    "level": "error",
+    "message": "AI API Call",
+    "userId": 2,
+    "operation": "data_insight",
+    "status": "failure",
+    "error": "Rate limit exceeded",
+    "responseTime": 125,
+    "conversationId": 124
+  },
+  {
+    "category": "payments",
+    "timestamp": "2024-01-09T15:35:22.456Z",
+    "level": "info",
+    "message": "Payment Event",
+    "userId": 3,
+    "event": "payment_success",
+    "amount": 49.00,
+    "currency": "USD",
+    "subscriptionTier": "professional",
+    "paymentMethod": "stripe",
+    "transactionId": "ch_3O5PQR2eZvKYlo2C0XjzR5nX",
+    "status": "completed"
+  },
+  {
+    "category": "security",
+    "timestamp": "2024-01-09T15:36:10.789Z",
+    "level": "warn",
+    "message": "Security Event",
+    "event": "failed_login",
+    "username": "john@example.com",
+    "ip_address": "192.168.1.100",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    "failure_reason": "Invalid password"
+  },
+  {
+    "category": "file-upload",
+    "timestamp": "2024-01-09T15:40:33.123Z",
+    "level": "error",
+    "message": "File Upload Event",
+    "userId": 4,
+    "fileName": "large_dataset.xlsx",
+    "status": "failure",
+    "fileSize": 15728640,
+    "error": "File size exceeds 10MB limit",
+    "processingTime": 145
+  },
+  {
+    "category": "etl-processing",
+    "timestamp": "2024-01-09T15:42:15.456Z",
+    "level": "error",
+    "message": "ETL Process Event",
+    "dataSourceId": 0,
+    "stage": "file_processing",
+    "status": "failed",
+    "error": "Invalid CSV format: missing required headers"
+  },
+  {
+    "category": "payments",
+    "timestamp": "2024-01-09T15:45:00.789Z",
+    "level": "info",
+    "message": "Payment Event",
+    "userId": 5,
+    "event": "subscription_cancelled",
+    "amount": 0,
+    "subscriptionTier": "starter",
+    "reason": "Too expensive"
+  },
+  {
+    "category": "ai-calls",
+    "timestamp": "2024-01-09T15:47:30.123Z",
+    "level": "info",
+    "message": "AI API Call",
+    "userId": 6,
+    "operation": "schema_analysis",
+    "status": "success",
+    "model": "gpt-4o",
+    "tokensUsed": 523,
+    "responseTime": 1245
+  }
+]
