@@ -6,12 +6,17 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { logger } from "./utils/logger";
 import { sanitizeInput } from "./middleware/validation";
+import { enforceHTTPS, httpsSecurityHeaders } from "./middleware/https";
 import { pool } from "./db";
 
 const app = express();
 
-// Trust proxy for rate limiting
+// Trust proxy for rate limiting and HTTPS detection
 app.set('trust proxy', 1);
+
+// Enforce HTTPS (must be first middleware)
+app.use(enforceHTTPS);
+app.use(httpsSecurityHeaders);
 
 // Security middleware
 app.use(helmet({
@@ -54,10 +59,11 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // Requires HTTPS in production
+    httpOnly: true, // Prevents XSS attacks
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'strict',
+    sameSite: 'strict', // CSRF protection
+    domain: process.env.COOKIE_DOMAIN || undefined, // Set for subdomain sharing
   },
 }));
 

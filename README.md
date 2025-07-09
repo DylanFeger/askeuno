@@ -12,14 +12,16 @@ A secure, easy-to-use data platform for small businesses that helps you upload, 
 
 ## Security Features
 
+- **HTTPS Enforcement**: Automatic HTTP to HTTPS redirection in production
 - **Authentication**: Secure user registration and login with bcrypt password hashing
 - **Authorization**: Resource ownership verification and role-based access control
 - **Rate Limiting**: IP-based and user-based rate limiting to prevent abuse
 - **Input Validation**: Comprehensive validation and sanitization of all user inputs
 - **File Upload Security**: Strict validation of file types, sizes, and content
-- **Session Management**: Secure session storage in PostgreSQL
+- **Session Management**: Secure session storage in PostgreSQL with HTTPS-only cookies
 - **Logging**: Comprehensive audit trails with sensitive data filtering
-- **Security Headers**: Helmet.js configuration for security headers
+- **Security Headers**: Helmet.js configuration with HSTS, CSP, and other security headers
+- **SSL/TLS**: Support for modern TLS protocols with strong cipher suites
 
 ## Getting Started
 
@@ -37,11 +39,12 @@ A secure, easy-to-use data platform for small businesses that helps you upload, 
    npm install
    ```
 
-3. Set up environment variables:
+3. Set up environment variables (copy `.env.example` to `.env` and update):
    ```bash
    DATABASE_URL=your_postgresql_connection_string
    SESSION_SECRET=your_session_secret_key
    OPENAI_API_KEY=your_openai_api_key # Optional
+   NODE_ENV=production # For production deployments
    ```
 
 4. Run database migrations:
@@ -49,12 +52,20 @@ A secure, easy-to-use data platform for small businesses that helps you upload, 
    npm run db:push
    ```
 
-5. Start the development server:
+5. For development:
    ```bash
    npm run dev
    ```
 
-The application will be available at `http://localhost:5000`
+6. For production:
+   ```bash
+   npm run build
+   npm start
+   ```
+
+The application will be available at:
+- Development: `http://localhost:5000`
+- Production: `https://yourdomain.com` (HTTPS enforced)
 
 ## API Endpoints
 
@@ -121,6 +132,27 @@ The application will be available at `http://localhost:5000`
 - **Starter** ($19/month): 3 data sources, 100 AI queries, 5GB storage
 - **Professional** ($49/month): Unlimited data sources, 500 AI queries, 50GB storage
 - **Enterprise** ($99/month): Unlimited everything, advanced features, priority support
+
+## Deployment
+
+### Quick Deployment Options
+
+1. **Replit**: Automatic SSL with zero configuration
+   - Deploy via Replit Deployments
+   - SSL certificates managed automatically
+   - Custom domains supported
+
+2. **AWS Amplify**: Managed hosting with automatic SSL
+   - Push to GitHub/GitLab
+   - Connect to Amplify
+   - SSL certificates provisioned automatically
+
+3. **AWS EC2**: Full control with Nginx
+   - Use the provided `scripts/setup-ssl.sh` for automated setup
+   - SSL certificates via Let's Encrypt
+   - Configuration files included
+
+For detailed deployment instructions, see [SSL Setup Guide](docs/SSL_SETUP.md).
 
 ## Contributing
 
