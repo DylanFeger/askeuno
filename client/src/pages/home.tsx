@@ -7,6 +7,7 @@ import ChatInterface from '@/components/ChatInterface';
 import PricingSection from '@/components/PricingSection';
 import AuthForm from '@/components/AuthForm';
 import AcreLogo from '@/components/AcreLogo';
+import Navbar from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { queryClient } from '@/lib/queryClient';
 import { useQuery } from '@tanstack/react-query';
@@ -26,6 +27,86 @@ export default function Home() {
     queryClient.invalidateQueries();
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Authenticated user view - no marketing content
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-6xl mx-auto space-y-8">
+            {/* Data Sources Overview */}
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold text-gray-900">Your Live Data Connections</h1>
+                <Link href="/connections">
+                  <Button>
+                    <Database className="w-4 h-4 mr-2" />
+                    Connect Data Source
+                  </Button>
+                </Link>
+              </div>
+              
+              {dataSources.length === 0 ? (
+                <Card className="p-8 text-center">
+                  <Wifi className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No data sources connected yet</h3>
+                  <p className="text-gray-600 mb-6">Connect to your live data sources to start getting real-time insights</p>
+                  <Link href="/connections">
+                    <Button>Connect Your First Data Source</Button>
+                  </Link>
+                </Card>
+              ) : (
+                <div className="grid md:grid-cols-2 gap-4">
+                  {dataSources.map((source) => (
+                    <Card key={source.id} className="p-4">
+                      <CardHeader className="p-0 pb-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="text-lg">{source.name}</CardTitle>
+                            <CardDescription>{source.connectionType || source.type}</CardDescription>
+                          </div>
+                          <div className={`px-2 py-1 rounded text-xs font-medium ${
+                            source.status === 'connected' ? 'bg-green-100 text-green-700' : 
+                            source.status === 'error' ? 'bg-red-100 text-red-700' : 
+                            'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {source.status || 'connected'}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-0 pt-2">
+                        <div className="text-sm text-gray-600">
+                          {source.rowCount ? `${source.rowCount.toLocaleString()} rows` : 'Syncing...'}
+                        </div>
+                        {source.lastSyncAt && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Last sync: {new Date(source.lastSyncAt).toLocaleDateString()}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <ChatInterface conversationId={conversationId} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Unauthenticated user view - show marketing landing page
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -91,76 +172,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Main Interface */}
+      {/* Auth Section */}
       <section id="auth-section" className="py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto space-y-8">
-          {isLoading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            </div>
-          ) : isAuthenticated ? (
-            <>
-              {/* Data Sources Overview */}
-              <div className="mb-8">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">Your Live Data Connections</h2>
-                  <Link href="/connections">
-                    <Button>
-                      <Database className="w-4 h-4 mr-2" />
-                      Connect Data Source
-                    </Button>
-                  </Link>
-                </div>
-                
-                {dataSources.length === 0 ? (
-                  <Card className="p-8 text-center">
-                    <Wifi className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No data sources connected yet</h3>
-                    <p className="text-gray-600 mb-6">Connect to your live data sources to start getting real-time insights</p>
-                    <Link href="/connections">
-                      <Button>Connect Your First Data Source</Button>
-                    </Link>
-                  </Card>
-                ) : (
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {dataSources.map((source) => (
-                      <Card key={source.id} className="p-4">
-                        <CardHeader className="p-0 pb-2">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <CardTitle className="text-lg">{source.name}</CardTitle>
-                              <CardDescription>{source.connectionType || source.type}</CardDescription>
-                            </div>
-                            <div className={`px-2 py-1 rounded text-xs font-medium ${
-                              source.status === 'connected' ? 'bg-green-100 text-green-700' : 
-                              source.status === 'error' ? 'bg-red-100 text-red-700' : 
-                              'bg-yellow-100 text-yellow-700'
-                            }`}>
-                              {source.status || 'connected'}
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="p-0 pt-2">
-                          <div className="text-sm text-gray-600">
-                            {source.rowCount ? `${source.rowCount.toLocaleString()} rows` : 'Syncing...'}
-                          </div>
-                          {source.lastSyncAt && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              Last sync: {new Date(source.lastSyncAt).toLocaleDateString()}
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              <ChatInterface conversationId={conversationId} />
-            </>
-          ) : (
-            <AuthForm onSuccess={handleAuthSuccess} />
-          )}
+        <div className="max-w-4xl mx-auto">
+          <AuthForm onSuccess={handleAuthSuccess} />
         </div>
       </section>
 
