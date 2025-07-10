@@ -46,13 +46,21 @@ export default function Home() {
             {/* Data Sources Overview */}
             <div>
               <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-gray-900">Your Live Data Connections</h1>
-                <Link href="/connections">
-                  <Button>
-                    <Database className="w-4 h-4 mr-2" />
-                    Connect Data Source
-                  </Button>
-                </Link>
+                <h1 className="text-3xl font-bold text-gray-900">Your Data Sources</h1>
+                <div className="flex gap-3">
+                  <Link href="/connections">
+                    <Button variant="outline">
+                      <Database className="w-4 h-4 mr-2" />
+                      Connect Live Data
+                    </Button>
+                  </Link>
+                  <Link href="/upload">
+                    <Button>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload File
+                    </Button>
+                  </Link>
+                </div>
               </div>
               
               {dataSources.length === 0 ? (

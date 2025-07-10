@@ -9,6 +9,7 @@ import Privacy from "@/pages/privacy";
 import Connections from "@/pages/connections";
 import Dashboards from "@/pages/dashboards";
 import NotFound from "@/pages/not-found";
+import UploadPage from "@/pages/upload";
 
 function Router() {
   return (
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/connections" component={Connections} />
       <Route path="/dashboards" component={Dashboards} />
+      <Route path="/upload" component={UploadPage} />
       <Route path="/privacy" component={Privacy} />
       <Route component={NotFound} />
     </Switch>
