@@ -276,6 +276,34 @@ The application follows a monorepo structure with clear separation between front
     - Credit card icon in navbar for easy subscription access
     - Subscription link appears next to username for logged-in users
     - Route added at /subscription for full management page
+✓ **COMPREHENSIVE SUBSCRIPTION SYSTEM UPGRADE** (January 10, 2025):
+  - **Monthly/Annual Toggle**: Clear toggle switch for billing cycle selection
+    - Instant price updates when toggled
+    - Annual plans show "Save 2 months" badge
+    - Displays annual savings amount in pricing cards
+  - **Free Trial System**: 30-day free trial for all tiers
+    - Trial status prominently displayed with days remaining
+    - Clear messaging about no credit card required
+    - Trial end date shown in current plan section
+    - Once-per-account-per-tier trial tracking (via trialHistory field)
+  - **Realistic Pricing Tiers**: Three tiers with meaningful differences
+    - Starter: $29/mo ($290/year) - 3 sources, 10K rows, basic features
+    - Growth: $79/mo ($790/year) - 20 sources, 100K rows, real-time sync
+    - Pro: $149/mo ($1490/year) - Unlimited everything, dedicated support
+    - "Most Popular" badge on Growth tier to guide choices
+  - **Cancel Subscription Flow**: Simple cancellation process
+    - Small "Cancel trial/subscription" link in current plan section
+    - Confirmation dialog with clear consequences
+    - Different messaging for trial vs paid cancellations
+  - **Enhanced UX**: Warm, transparent communication
+    - Clear feature comparisons with checkmarks and crossed-out items
+    - Trust signals section highlighting security and value
+    - Support email (support@acre.com) for questions
+  - **Database Schema Updates**: Added subscription tracking fields
+    - subscriptionStatus: trial, active, cancelled, expired
+    - billingCycle: monthly or annual
+    - trialStartDate, trialEndDate for trial tracking
+    - trialHistory: JSON array tracking used trials per tier
 → OpenAI API key configured and working
 → AWS S3 credentials needed for file storage functionality
 → Redis needed for background job processing (optional for development)

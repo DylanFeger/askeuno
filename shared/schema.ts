@@ -8,7 +8,14 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
-  subscriptionTier: text("subscription_tier").notNull().default("starter"), // starter, professional, enterprise
+  subscriptionTier: text("subscription_tier").notNull().default("starter"), // starter, growth, pro
+  subscriptionStatus: text("subscription_status").notNull().default("trial"), // trial, active, cancelled, expired
+  billingCycle: text("billing_cycle").notNull().default("monthly"), // monthly, annual
+  trialStartDate: timestamp("trial_start_date"),
+  trialEndDate: timestamp("trial_end_date"),
+  subscriptionStartDate: timestamp("subscription_start_date"),
+  subscriptionEndDate: timestamp("subscription_end_date"),
+  trialHistory: jsonb("trial_history").default("[]"), // Array of tiers they've tried: ["starter", "growth"]
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

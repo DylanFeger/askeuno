@@ -7,39 +7,42 @@ export default function PricingSection() {
   const plans = [
     {
       name: 'Starter',
-      price: 19,
+      price: 29,
       description: 'Perfect for small businesses',
       features: [
         'Up to 3 data sources',
-        '100 AI queries/month',
-        '5GB storage',
+        '10,000 rows per source',
+        'AI-powered chat insights',
         'Email support',
+        '30-day data history',
       ],
       popular: false,
     },
     {
-      name: 'Professional',
-      price: 49,
+      name: 'Growth',
+      price: 79,
       description: 'For growing businesses',
       features: [
-        'Unlimited data sources',
-        '500 AI queries/month',
-        '50GB storage',
+        'Up to 20 data sources',
+        '100,000 rows per source',
+        'Real-time data sync',
         'Priority support',
-        'Custom reports',
+        'Custom dashboards',
+        'API access included',
       ],
       popular: true,
     },
     {
-      name: 'Enterprise',
-      price: 99,
-      description: 'For larger organizations',
+      name: 'Pro',
+      price: 149,
+      description: 'Enterprise-grade intelligence',
       features: [
-        'Unlimited everything',
-        'Advanced AI features',
-        '500GB storage',
-        '24/7 phone support',
+        'Unlimited data sources',
+        'Unlimited rows',
+        'Advanced AI analytics',
+        'Dedicated onboarding',
         'Custom integrations',
+        'Phone & priority support',
       ],
       popular: false,
     },
@@ -89,15 +92,11 @@ export default function PricingSection() {
                 className="w-full"
                 variant={plan.popular ? 'default' : 'secondary'}
                 onClick={() => {
-                  if (plan.name === 'Enterprise') {
-                    window.location.href = 'mailto:sales@acre.com?subject=Enterprise Plan Inquiry';
-                  } else {
-                    document.getElementById('auth-section')?.scrollIntoView({ behavior: 'smooth' });
-                  }
+                  document.getElementById('auth-section')?.scrollIntoView({ behavior: 'smooth' });
                 }}
                 aria-label={`Select ${plan.name} plan - $${plan.price}/month`}
               >
-                {plan.name === 'Enterprise' ? 'Contact Sales' : 'Start Free Trial'}
+                Start Free Trial
               </Button>
             </Card>
           ))}
