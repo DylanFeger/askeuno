@@ -29,6 +29,7 @@ export interface IStorage {
   getDataSource(id: number): Promise<DataSource | undefined>;
   updateDataSource(id: number, updates: Partial<DataSource>): Promise<DataSource | undefined>;
   deleteDataSource(id: number): Promise<void>;
+  getAllActiveDataSources(): Promise<DataSource[]>; // For sync job initialization
   
   // Chat operations
   createConversation(userId: number): Promise<ChatConversation>;
@@ -42,6 +43,7 @@ export interface IStorage {
   getDataRows(dataSourceId: number, limit?: number): Promise<DataRow[]>;
   queryDataRows(dataSourceId: number, query: string): Promise<any[]>;
   clearDataRows(dataSourceId: number): Promise<void>;
+  getDataRowsWithSource(userId: number, dataSourceId?: number): Promise<{ rows: any[], source: DataSource | null }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -178,6 +180,33 @@ export class DatabaseStorage implements IStorage {
 
   async clearDataRows(dataSourceId: number): Promise<void> {
     await db.delete(dataRows).where(eq(dataRows.dataSourceId, dataSourceId));
+  }
+
+  async getAllActiveDataSources(): Promise<DataSource[]> {
+    return await db
+      .select()
+      .from(dataSources)
+      .where(eq(dataSources.status, 'active'))
+      .orderBy(desc(dataSources.createdAt));
+  }
+
+  async getDataRowsWithSource(userId: number, dataSourceId?: number): Promise<{ rows: any[], source: DataSource | null }> {
+    // Get user's data sources
+    const sources = await this.getDataSourcesByUserId(userId);
+    if (sources.length === 0) {
+      return { rows: [], source: null };
+    }
+
+    // Use specified data source or the most recent one
+    const targetSourceId = dataSourceId || sources[0].id;
+    const source = sources.find(s => s.id === targetSourceId);
+    
+    if (!source) {
+      return { rows: [], source: null };
+    }
+
+    const rows = await this.queryDataRows(source.id, '');
+    return { rows, source };
   }
 }
 

@@ -1,0 +1,61 @@
+Build Acre’s core data pipeline and user flow:
+
+1️⃣ Data Sources
+
+Support multiple data sources: live API connections (Shopify, Google Ads, Salesforce, etc.), direct database connections (MySQL, PostgreSQL, MongoDB), Google Sheets, and manual uploads of Excel/CSV files.
+
+2️⃣ Manual Uploads
+
+Allow businesses to drag-and-drop Excel/CSV files through Acre’s web UI.
+
+Store uploaded files in an AWS S3 bucket, with unique folders per business account.
+
+When a file is uploaded, automatically extract, validate, and transform the data to add it to that business’s private data store in AWS (PostgreSQL or other).
+
+3️⃣ Live / Real-Time Updates
+
+For supported live sources, design the system to use the best option:
+
+Push: Webhooks where possible (e.g., Shopify order updates).
+
+Pull: Frequent scheduled syncs for sources that don’t support push.
+
+Warn the user if their source doesn’t support live sync. Provide a guided flow for setting up a custom API if needed.
+
+4️⃣ Data Storage & Security
+
+Each business must have a private, isolated data space in AWS.
+
+Data must be securely stored and encrypted at rest and in transit.
+
+Use authentication for API connections (OAuth, API keys).
+
+Allow users to delete old data and upload or connect new sources easily from their Acre dashboard.
+
+5️⃣ AI Chat Layer
+
+Build Acre’s main user interaction as an AI chat that can:
+
+Answer short questions with concise, clear answers.
+
+Run live queries on the user’s latest data.
+
+Generate charts or deeper breakdowns if the user asks for details.
+
+6️⃣ User Experience
+
+Make the setup simple and understandable: clear instructions for connecting live data, uploading files, setting up custom APIs, or managing databases.
+
+Include feedback for users if connections fail or files are invalid.
+
+7️⃣ Pipeline & Tech Stack
+
+Use Python for data processing.
+
+Use AWS S3 for file storage, AWS RDS (PostgreSQL) for structured storage.
+
+Implement pipelines to clean, blend, and update new data in real time or near real time.
+
+Ensure robust error handling, logging, and security best practices.
+
+👉 Goal: Acre must feel simple for businesses but deliver robust, real-time insights through a secure AI-powered chat.

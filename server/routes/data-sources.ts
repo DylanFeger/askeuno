@@ -3,7 +3,7 @@ import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { storage } from '../storage';
 import { connectToDataSource } from '../services/dataConnector';
 import { logger } from '../utils/logger';
-import crypto from 'crypto';
+import { encryptConnectionData, decryptConnectionData } from '../utils/encryption';
 
 const router = Router();
 
@@ -154,42 +154,5 @@ router.delete('/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
     res.status(500).json({ error: 'Failed to delete data source' });
   }
 });
-
-// Encryption functions
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || crypto.randomBytes(32);
-const IV_LENGTH = 16;
-
-function encryptConnectionData(data: any): any {
-  const text = JSON.stringify(data);
-  const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipheriv(
-    'aes-256-cbc',
-    Buffer.from(ENCRYPTION_KEY),
-    iv
-  );
-  
-  let encrypted = cipher.update(text);
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-  
-  return {
-    iv: iv.toString('hex'),
-    data: encrypted.toString('hex')
-  };
-}
-
-function decryptConnectionData(encryptedData: any): any {
-  const iv = Buffer.from(encryptedData.iv, 'hex');
-  const encrypted = Buffer.from(encryptedData.data, 'hex');
-  const decipher = crypto.createDecipheriv(
-    'aes-256-cbc',
-    Buffer.from(ENCRYPTION_KEY),
-    iv
-  );
-  
-  let decrypted = decipher.update(encrypted);
-  decrypted = Buffer.concat([decrypted, decipher.final()]);
-  
-  return JSON.parse(decrypted.toString());
-}
 
 export default router;

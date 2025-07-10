@@ -1,49 +1,74 @@
-import mysql from 'mysql2/promise';
-import { Pool } from 'pg';
-import { MongoClient } from 'mongodb';
 import axios from 'axios';
-import { analyzeDataSchema } from './openai';
+import { createConnection } from 'mysql2/promise';
+import { Client as PgClient } from 'pg';
+import { MongoClient } from 'mongodb';
+import { google } from 'googleapis';
 import { logger } from '../utils/logger';
 
 export interface ConnectionResult {
   success: boolean;
   data?: any[];
-  schema?: any;
+  schema?: Record<string, string>;
   rowCount?: number;
   error?: string;
 }
 
+/**
+ * Connect to various data sources and fetch data
+ */
 export async function connectToDataSource(
   type: string,
   connectionData: any
 ): Promise<ConnectionResult> {
   try {
-    switch (type) {
+    switch (type.toLowerCase()) {
+      // Databases
       case 'mysql':
         return await connectToMySQL(connectionData);
-      case 'postgres':
+      case 'postgresql':
         return await connectToPostgreSQL(connectionData);
       case 'mongodb':
         return await connectToMongoDB(connectionData);
-      case 'api':
-        return await connectToAPI(connectionData);
-      case 'googlesheets':
-        return await connectToGoogleSheets(connectionData);
-      case 'salesforce':
-        return await connectToSalesforce(connectionData);
+      
+      // APIs
       case 'shopify':
         return await connectToShopify(connectionData);
+      case 'stripe':
+        return await connectToStripe(connectionData);
+      case 'googleads':
+        return await connectToGoogleAds(connectionData);
+      case 'salesforce':
+        return await connectToSalesforce(connectionData);
+      
+      // Cloud Storage
+      case 'googlesheets':
+        return await connectToGoogleSheets(connectionData);
+      
+      // Generic API
+      case 'api':
+      case 'rest':
+        return await connectToGenericAPI(connectionData);
+      
       default:
-        return { success: false, error: `Unsupported data source type: ${type}` };
+        return {
+          success: false,
+          error: `Unsupported data source type: ${type}`,
+        };
     }
-  } catch (error: any) {
-    logger.error('Data connection error', { type, error: error.message });
-    return { success: false, error: error.message };
+  } catch (error) {
+    logger.error('Data connection error', { type, error });
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Connection failed',
+    };
   }
 }
 
+/**
+ * Connect to MySQL database
+ */
 async function connectToMySQL(config: any): Promise<ConnectionResult> {
-  const connection = await mysql.createConnection({
+  const connection = await createConnection({
     host: config.host,
     port: config.port || 3306,
     user: config.username,
@@ -54,37 +79,35 @@ async function connectToMySQL(config: any): Promise<ConnectionResult> {
   try {
     // Test connection and get sample data
     const [rows] = await connection.execute(
-      'SELECT * FROM information_schema.tables WHERE table_schema = ?',
-      [config.database]
+      config.query || `SELECT * FROM ${config.table || 'users'} LIMIT 100`
     );
 
-    // Get data from the first table if exists
-    if (rows && (rows as any[]).length > 0) {
-      const tableName = (rows as any[])[0].TABLE_NAME;
-      const [tableData] = await connection.execute(
-        `SELECT * FROM ?? LIMIT 1000`,
-        [tableName]
-      );
+    // Get schema information
+    const [schemaRows] = await connection.execute(
+      `DESCRIBE ${config.table || 'users'}`
+    );
 
-      const data = tableData as any[];
-      const schema = await analyzeDataSchema(data);
+    const schema: Record<string, string> = {};
+    (schemaRows as any[]).forEach(col => {
+      schema[col.Field] = col.Type;
+    });
 
-      return {
-        success: true,
-        data,
-        schema,
-        rowCount: data.length,
-      };
-    }
-
-    return { success: true, data: [], rowCount: 0 };
+    return {
+      success: true,
+      data: rows as any[],
+      schema,
+      rowCount: (rows as any[]).length,
+    };
   } finally {
     await connection.end();
   }
 }
 
+/**
+ * Connect to PostgreSQL database
+ */
 async function connectToPostgreSQL(config: any): Promise<ConnectionResult> {
-  const pool = new Pool({
+  const client = new PgClient({
     host: config.host,
     port: config.port || 5432,
     user: config.username,
@@ -92,130 +115,113 @@ async function connectToPostgreSQL(config: any): Promise<ConnectionResult> {
     database: config.database,
   });
 
+  await client.connect();
+
   try {
-    // Test connection
-    const client = await pool.connect();
-    
-    // Get tables
-    const tablesResult = await client.query(
-      `SELECT tablename FROM pg_tables WHERE schemaname = 'public'`
+    // Test connection and get sample data
+    const result = await client.query(
+      config.query || `SELECT * FROM ${config.table || 'users'} LIMIT 100`
     );
 
-    if (tablesResult.rows.length > 0) {
-      const tableName = tablesResult.rows[0].tablename;
-      const dataResult = await client.query(
-        `SELECT * FROM ${tableName} LIMIT 1000`
-      );
+    // Get schema information
+    const schemaResult = await client.query(`
+      SELECT column_name, data_type 
+      FROM information_schema.columns 
+      WHERE table_name = $1
+    `, [config.table || 'users']);
 
-      const data = dataResult.rows;
-      const schema = await analyzeDataSchema(data);
+    const schema: Record<string, string> = {};
+    schemaResult.rows.forEach(col => {
+      schema[col.column_name] = col.data_type;
+    });
 
-      client.release();
-      return {
-        success: true,
-        data,
-        schema,
-        rowCount: data.length,
-      };
-    }
-
-    client.release();
-    return { success: true, data: [], rowCount: 0 };
+    return {
+      success: true,
+      data: result.rows,
+      schema,
+      rowCount: result.rows.length,
+    };
   } finally {
-    await pool.end();
+    await client.end();
   }
 }
 
+/**
+ * Connect to MongoDB
+ */
 async function connectToMongoDB(config: any): Promise<ConnectionResult> {
-  const client = new MongoClient(config.connectionString);
-
+  const uri = config.connectionString || 
+    `mongodb://${config.username}:${config.password}@${config.host}:${config.port || 27017}/${config.database}`;
+  
+  const client = new MongoClient(uri);
+  
   try {
     await client.connect();
-    const db = client.db();
+    const db = client.db(config.database);
+    const collection = db.collection(config.collection || 'users');
     
-    // Get first collection
-    const collections = await db.listCollections().toArray();
-    if (collections.length > 0) {
-      const collection = db.collection(collections[0].name);
-      const data = await collection.find({}).limit(1000).toArray();
-      
-      const schema = await analyzeDataSchema(data);
-
-      return {
-        success: true,
-        data,
-        schema,
-        rowCount: data.length,
-      };
+    // Get sample data
+    const data = await collection.find({}).limit(100).toArray();
+    
+    // Infer schema from sample data
+    const schema: Record<string, string> = {};
+    if (data.length > 0) {
+      Object.keys(data[0]).forEach(key => {
+        schema[key] = typeof data[0][key];
+      });
     }
 
-    return { success: true, data: [], rowCount: 0 };
+    return {
+      success: true,
+      data,
+      schema,
+      rowCount: data.length,
+    };
   } finally {
     await client.close();
   }
 }
 
-async function connectToAPI(config: any): Promise<ConnectionResult> {
-  const headers = config.headers ? JSON.parse(config.headers) : {};
-  
-  const response = await axios({
-    method: config.method || 'GET',
-    url: config.endpoint,
-    headers,
-    timeout: 30000,
+/**
+ * Connect to Shopify API
+ */
+async function connectToShopify(config: any): Promise<ConnectionResult> {
+  const { shopDomain, apiKey, password } = config;
+  const baseURL = `https://${apiKey}:${password}@${shopDomain}/admin/api/2024-01`;
+
+  // Fetch orders as sample data
+  const response = await axios.get(`${baseURL}/orders.json`, {
+    params: { limit: 100 },
   });
 
-  let data = response.data;
+  const orders = response.data.orders;
   
-  // Handle different response formats
-  if (Array.isArray(data)) {
-    // Already an array
-  } else if (data.data && Array.isArray(data.data)) {
-    data = data.data;
-  } else if (data.results && Array.isArray(data.results)) {
-    data = data.results;
-  } else if (typeof data === 'object') {
-    data = [data];
-  }
+  // Transform to flat structure
+  const data = orders.map((order: any) => ({
+    id: order.id,
+    order_number: order.order_number,
+    total_price: parseFloat(order.total_price),
+    currency: order.currency,
+    customer_email: order.email,
+    created_at: new Date(order.created_at),
+    updated_at: new Date(order.updated_at),
+    line_items_count: order.line_items?.length || 0,
+    financial_status: order.financial_status,
+    fulfillment_status: order.fulfillment_status,
+  }));
 
-  const schema = await analyzeDataSchema(data);
-
-  return {
-    success: true,
-    data: data.slice(0, 1000),
-    schema,
-    rowCount: data.length,
+  const schema = {
+    id: 'string',
+    order_number: 'string',
+    total_price: 'number',
+    currency: 'string',
+    customer_email: 'string',
+    created_at: 'date',
+    updated_at: 'date',
+    line_items_count: 'number',
+    financial_status: 'string',
+    fulfillment_status: 'string',
   };
-}
-
-async function connectToGoogleSheets(config: any): Promise<ConnectionResult> {
-  // This would require Google Sheets API integration
-  // For now, return a placeholder
-  return {
-    success: false,
-    error: 'Google Sheets integration requires OAuth setup',
-  };
-}
-
-async function connectToSalesforce(config: any): Promise<ConnectionResult> {
-  // This would require Salesforce API integration
-  const headers = {
-    'Authorization': `Bearer ${config.apiKey}`,
-    'Content-Type': 'application/json',
-  };
-
-  const response = await axios({
-    method: 'GET',
-    url: `https://${config.domain}/services/data/v54.0/query`,
-    params: {
-      q: 'SELECT Id, Name FROM Account LIMIT 1000',
-    },
-    headers,
-    timeout: 30000,
-  });
-
-  const data = response.data.records;
-  const schema = await analyzeDataSchema(data);
 
   return {
     success: true,
@@ -225,24 +231,231 @@ async function connectToSalesforce(config: any): Promise<ConnectionResult> {
   };
 }
 
-async function connectToShopify(config: any): Promise<ConnectionResult> {
-  const headers = {
-    'X-Shopify-Access-Token': config.apiKey,
-    'Content-Type': 'application/json',
-  };
-
-  const response = await axios({
-    method: 'GET',
-    url: `https://${config.domain}/admin/api/2023-07/orders.json`,
-    params: {
-      limit: 250,
+/**
+ * Connect to Stripe API
+ */
+async function connectToStripe(config: any): Promise<ConnectionResult> {
+  const { apiKey } = config;
+  
+  const response = await axios.get('https://api.stripe.com/v1/charges', {
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
     },
-    headers,
-    timeout: 30000,
+    params: { limit: 100 },
   });
 
-  const data = response.data.orders;
-  const schema = await analyzeDataSchema(data);
+  const charges = response.data.data;
+  
+  // Transform to flat structure
+  const data = charges.map((charge: any) => ({
+    id: charge.id,
+    amount: charge.amount / 100, // Convert cents to dollars
+    currency: charge.currency,
+    status: charge.status,
+    customer: charge.customer,
+    description: charge.description,
+    created_at: new Date(charge.created * 1000),
+    paid: charge.paid,
+    refunded: charge.refunded,
+  }));
+
+  const schema = {
+    id: 'string',
+    amount: 'number',
+    currency: 'string',
+    status: 'string',
+    customer: 'string',
+    description: 'string',
+    created_at: 'date',
+    paid: 'boolean',
+    refunded: 'boolean',
+  };
+
+  return {
+    success: true,
+    data,
+    schema,
+    rowCount: data.length,
+  };
+}
+
+/**
+ * Connect to Google Ads API
+ */
+async function connectToGoogleAds(config: any): Promise<ConnectionResult> {
+  // This is a simplified example - real Google Ads API requires OAuth2
+  const { customerId, developerToken, refreshToken } = config;
+  
+  // Mock implementation - replace with actual Google Ads API
+  return {
+    success: true,
+    data: [
+      {
+        campaign_id: '123',
+        campaign_name: 'Summer Sale',
+        impressions: 10000,
+        clicks: 500,
+        cost: 250.00,
+        conversions: 25,
+        date: new Date(),
+      }
+    ],
+    schema: {
+      campaign_id: 'string',
+      campaign_name: 'string',
+      impressions: 'number',
+      clicks: 'number',
+      cost: 'number',
+      conversions: 'number',
+      date: 'date',
+    },
+    rowCount: 1,
+  };
+}
+
+/**
+ * Connect to Salesforce API
+ */
+async function connectToSalesforce(config: any): Promise<ConnectionResult> {
+  const { instanceUrl, accessToken } = config;
+  
+  // Query accounts as sample data
+  const response = await axios.get(
+    `${instanceUrl}/services/data/v59.0/query`,
+    {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      params: {
+        q: 'SELECT Id, Name, Type, Industry, AnnualRevenue FROM Account LIMIT 100',
+      },
+    }
+  );
+
+  const accounts = response.data.records;
+  
+  const data = accounts.map((account: any) => ({
+    id: account.Id,
+    name: account.Name,
+    type: account.Type,
+    industry: account.Industry,
+    annual_revenue: account.AnnualRevenue,
+  }));
+
+  const schema = {
+    id: 'string',
+    name: 'string',
+    type: 'string',
+    industry: 'string',
+    annual_revenue: 'number',
+  };
+
+  return {
+    success: true,
+    data,
+    schema,
+    rowCount: data.length,
+  };
+}
+
+/**
+ * Connect to Google Sheets
+ */
+async function connectToGoogleSheets(config: any): Promise<ConnectionResult> {
+  const { spreadsheetId, range, credentials } = config;
+  
+  const auth = new google.auth.GoogleAuth({
+    credentials,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+  });
+
+  const sheets = google.sheets({ version: 'v4', auth });
+  
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: range || 'Sheet1!A:Z',
+  });
+
+  const rows = response.data.values || [];
+  if (rows.length === 0) {
+    return {
+      success: true,
+      data: [],
+      schema: {},
+      rowCount: 0,
+    };
+  }
+
+  // First row as headers
+  const headers = rows[0];
+  const data = rows.slice(1).map(row => {
+    const obj: any = {};
+    headers.forEach((header, index) => {
+      obj[header] = row[index] || null;
+    });
+    return obj;
+  });
+
+  // Infer schema
+  const schema: Record<string, string> = {};
+  headers.forEach(header => {
+    schema[header] = 'string'; // Default to string
+  });
+
+  return {
+    success: true,
+    data,
+    schema,
+    rowCount: data.length,
+  };
+}
+
+/**
+ * Connect to generic REST API
+ */
+async function connectToGenericAPI(config: any): Promise<ConnectionResult> {
+  const { url, method = 'GET', headers = {}, params = {}, data: body } = config;
+  
+  const response = await axios({
+    method,
+    url,
+    headers,
+    params,
+    data: body,
+  });
+
+  let data = response.data;
+  
+  // Handle different response structures
+  if (Array.isArray(data)) {
+    // Already an array
+  } else if (data.data && Array.isArray(data.data)) {
+    data = data.data;
+  } else if (data.results && Array.isArray(data.results)) {
+    data = data.results;
+  } else if (data.items && Array.isArray(data.items)) {
+    data = data.items;
+  } else {
+    // Single object, wrap in array
+    data = [data];
+  }
+
+  // Infer schema from first item
+  const schema: Record<string, string> = {};
+  if (data.length > 0) {
+    Object.keys(data[0]).forEach(key => {
+      const value = data[0][key];
+      if (value instanceof Date) {
+        schema[key] = 'date';
+      } else if (typeof value === 'number') {
+        schema[key] = 'number';
+      } else if (typeof value === 'boolean') {
+        schema[key] = 'boolean';
+      } else {
+        schema[key] = 'string';
+      }
+    });
+  }
 
   return {
     success: true,

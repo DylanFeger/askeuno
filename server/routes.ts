@@ -13,6 +13,8 @@ import { requireOwnership, validateFileUploadSecurity, monitorRequestSize, ipRat
 import { logger, logFileUpload, logETLProcess, logAICall, logPaymentEvent } from "./utils/logger";
 import authRoutes from "./routes/auth";
 import dataSourcesRoutes from "./routes/data-sources";
+import uploadRoutes from "./routes/uploads";
+import webhookRoutes from "./routes/webhooks";
 
 // Extend Express Request interface for file uploads
 interface MulterRequest extends Request {
@@ -73,6 +75,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Data sources routes
   app.use('/api/data-sources', dataSourcesRoutes);
+  
+  // File upload routes
+  app.use('/api/files', uploadRoutes);
+  
+  // Webhook routes - no auth required (webhooks verify themselves)
+  app.use('/api/webhooks', webhookRoutes);
 
   // Rate limiting for AI features
   const aiRateLimit = createUserRateLimit(
