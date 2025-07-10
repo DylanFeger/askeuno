@@ -32,6 +32,7 @@ export const dataSources = pgTable("data_sources", {
 export const chatConversations = pgTable("chat_conversations", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
+  dataSourceId: integer("data_source_id").references(() => dataSources.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -89,12 +90,17 @@ export const dataSourcesRelations = relations(dataSources, ({ one, many }) => ({
     references: [users.id],
   }),
   dataRows: many(dataRows),
+  conversations: many(chatConversations),
 }));
 
 export const chatConversationsRelations = relations(chatConversations, ({ one, many }) => ({
   user: one(users, {
     fields: [chatConversations.userId],
     references: [users.id],
+  }),
+  dataSource: one(dataSources, {
+    fields: [chatConversations.dataSourceId],
+    references: [dataSources.id],
   }),
   messages: many(chatMessages),
 }));

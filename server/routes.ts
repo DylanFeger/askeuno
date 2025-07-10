@@ -184,6 +184,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get conversations by data source
+  app.get('/api/data-sources/:id/conversations', requireAuth, async (req, res) => {
+    try {
+      const dataSourceId = parseInt(req.params.id);
+      
+      // Check data source ownership
+      const dataSource = await storage.getDataSource(dataSourceId);
+      if (!dataSource || dataSource.userId !== req.user.id) {
+        return res.status(403).json({ error: 'Unauthorized' });
+      }
+      
+      const conversations = await storage.getConversationsByDataSourceId(dataSourceId);
+      res.json(conversations);
+    } catch (error: any) {
+      console.error('Get conversations by data source error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Delete data source - protected with ownership check
+  app.delete('/api/data-sources/:id', requireAuth, requireOwnership('dataSource'), async (req, res) => {
+    try {
+      const dataSourceId = parseInt(req.params.id);
+      const dataSource = await storage.getDataSource(dataSourceId);
+      
+      if (!dataSource) {
+        return res.status(404).json({ error: 'Data source not found' });
+      }
+
+      // Delete S3 file if exists
+      if (dataSource.filePath && dataSource.filePath.includes('s3://')) {
+        const s3Key = dataSource.filePath.replace('s3://', '');
+        const { deleteFromS3 } = await import('./services/s3Service');
+        await deleteFromS3(s3Key);
+      }
+
+      // Delete the data source (this will cascade delete conversations, messages, and data rows)
+      await storage.deleteDataSource(dataSourceId);
+
+      res.json({ success: true, message: 'Data source deleted successfully' });
+    } catch (error: any) {
+      console.error('Delete data source error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get conversations by data source - protected with ownership check
+  app.get('/api/data-sources/:id/conversations', requireAuth, requireOwnership('dataSource'), async (req, res) => {
+    try {
+      const dataSourceId = parseInt(req.params.id);
+      const conversations = await storage.getConversationsByDataSourceId(dataSourceId);
+      res.json(conversations);
+    } catch (error: any) {
+      console.error('Get conversations error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Chat endpoint - protected with AI rate limiting
   app.post('/api/chat', requireAuth, aiRateLimit, validateChatMessage, async (req, res) => {
     try {
@@ -202,7 +260,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ error: 'Conversation not found' });
         }
       } else {
-        conversation = await storage.createConversation(userId);
+        // Get the most recent data source to link to the conversation
+        const dataSources = await storage.getDataSourcesByUserId(userId);
+        const dataSourceId = dataSources.length > 0 ? dataSources[0].id : undefined;
+        conversation = await storage.createConversation(userId, dataSourceId);
       }
 
       // Get conversation history

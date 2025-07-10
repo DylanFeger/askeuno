@@ -1,30 +1,91 @@
 import { useState } from 'react';
-import { Database, Wifi, MessageSquare, Shield, Upload } from 'lucide-react';
+import { Database, Wifi, MessageSquare, Shield, Upload, Trash2, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'wouter';
 import ChatInterface from '@/components/ChatInterface';
+import ChatHistoryModal from '@/components/ChatHistoryModal';
 import PricingSection from '@/components/PricingSection';
 import AuthForm from '@/components/AuthForm';
 import AcreLogo from '@/components/AcreLogo';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
-import { queryClient } from '@/lib/queryClient';
-import { useQuery } from '@tanstack/react-query';
+import { queryClient, apiRequest } from '@/lib/queryClient';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import type { DataSource } from '@shared/schema';
 
 export default function Home() {
   const [conversationId, setConversationId] = useState<number | undefined>();
+  const [selectedDataSource, setSelectedDataSource] = useState<DataSource | null>(null);
+  const [showChatHistory, setShowChatHistory] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<DataSource | null>(null);
   const { user, isLoading, isAuthenticated } = useAuth();
+  const { toast } = useToast();
 
   const { data: dataSources = [] } = useQuery<DataSource[]>({
     queryKey: ['/api/data-sources'],
     enabled: isAuthenticated,
   });
 
+  const deleteDataSourceMutation = useMutation({
+    mutationFn: async (dataSourceId: number) => {
+      const response = await apiRequest('DELETE', `/api/data-sources/${dataSourceId}`);
+      if (!response.ok) {
+        throw new Error('Failed to delete data source');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Database removed successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/data-sources'] });
+      setDeleteConfirmation(null);
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to remove database. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const handleAuthSuccess = () => {
     // Refresh the page to show authenticated content
     queryClient.invalidateQueries();
+  };
+
+  const handleViewChatHistory = (dataSource: DataSource) => {
+    setSelectedDataSource(dataSource);
+    setShowChatHistory(true);
+  };
+
+  const handleDeleteDataSource = (dataSource: DataSource) => {
+    setDeleteConfirmation(dataSource);
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmation) {
+      deleteDataSourceMutation.mutate(deleteConfirmation.id);
+    }
+  };
+
+  const handleSelectConversation = (conversationId: number) => {
+    setConversationId(conversationId);
+    setShowChatHistory(false);
   };
 
   if (isLoading) {
@@ -100,6 +161,25 @@ export default function Home() {
                             Last sync: {new Date(source.lastSyncAt).toLocaleDateString()}
                           </div>
                         )}
+                        <div className="flex gap-2 mt-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewChatHistory(source)}
+                          >
+                            <History className="w-4 h-4 mr-1" />
+                            Chat History
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteDataSource(source)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Remove
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -110,6 +190,41 @@ export default function Home() {
             <ChatInterface conversationId={conversationId} />
           </div>
         </div>
+
+        {/* Chat History Modal */}
+        <ChatHistoryModal
+          isOpen={showChatHistory}
+          onClose={() => setShowChatHistory(false)}
+          dataSource={selectedDataSource}
+          onSelectConversation={handleSelectConversation}
+        />
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remove Database</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to remove "{deleteConfirmation?.name}"? This will permanently delete:
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>All uploaded files and data</li>
+                  <li>All chat conversations related to this database</li>
+                  <li>All analysis and insights</li>
+                </ul>
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={confirmDelete}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Remove Database
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }

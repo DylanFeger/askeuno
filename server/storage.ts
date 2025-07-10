@@ -32,11 +32,13 @@ export interface IStorage {
   getAllActiveDataSources(): Promise<DataSource[]>; // For sync job initialization
   
   // Chat operations
-  createConversation(userId: number): Promise<ChatConversation>;
+  createConversation(userId: number, dataSourceId?: number): Promise<ChatConversation>;
   getConversation(id: number): Promise<ChatConversation | undefined>;
   getConversationsByUserId(userId: number): Promise<ChatConversation[]>;
+  getConversationsByDataSourceId(dataSourceId: number): Promise<ChatConversation[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getMessagesByConversationId(conversationId: number): Promise<ChatMessage[]>;
+  deleteConversationsByDataSourceId(dataSourceId: number): Promise<void>;
   
   // Data rows operations
   insertDataRows(dataSourceId: number, rows: any[]): Promise<void>;
@@ -106,10 +108,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Chat operations
-  async createConversation(userId: number): Promise<ChatConversation> {
+  async createConversation(userId: number, dataSourceId?: number): Promise<ChatConversation> {
     const [conversation] = await db
       .insert(chatConversations)
-      .values({ userId })
+      .values({ userId, dataSourceId })
       .returning();
     return conversation;
   }
@@ -128,6 +130,27 @@ export class DatabaseStorage implements IStorage {
       .from(chatConversations)
       .where(eq(chatConversations.userId, userId))
       .orderBy(desc(chatConversations.createdAt));
+  }
+
+  async getConversationsByDataSourceId(dataSourceId: number): Promise<ChatConversation[]> {
+    return await db
+      .select()
+      .from(chatConversations)
+      .where(eq(chatConversations.dataSourceId, dataSourceId))
+      .orderBy(desc(chatConversations.createdAt));
+  }
+
+  async deleteConversationsByDataSourceId(dataSourceId: number): Promise<void> {
+    // First get all conversations to delete their messages
+    const conversations = await this.getConversationsByDataSourceId(dataSourceId);
+    
+    // Delete all messages for these conversations
+    for (const conversation of conversations) {
+      await db.delete(chatMessages).where(eq(chatMessages.conversationId, conversation.id));
+    }
+    
+    // Delete all conversations
+    await db.delete(chatConversations).where(eq(chatConversations.dataSourceId, dataSourceId));
   }
 
   async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
@@ -172,7 +195,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteDataSource(id: number): Promise<void> {
-    // Delete associated data rows first
+    // Delete associated conversations and their messages first
+    await this.deleteConversationsByDataSourceId(id);
+    // Delete associated data rows
     await db.delete(dataRows).where(eq(dataRows.dataSourceId, id));
     // Then delete the data source
     await db.delete(dataSources).where(eq(dataSources.id, id));
