@@ -10,6 +10,7 @@ import Connections from "@/pages/connections";
 import Dashboards from "@/pages/dashboards";
 import NotFound from "@/pages/not-found";
 import UploadPage from "@/pages/upload";
+import SubscriptionPage from "@/pages/subscription";
 
 function Router() {
   return (
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/connections" component={Connections} />
       <Route path="/dashboards" component={Dashboards} />
       <Route path="/upload" component={UploadPage} />
+      <Route path="/subscription" component={SubscriptionPage} />
       <Route path="/privacy" component={Privacy} />
       <Route component={NotFound} />
     </Switch>

@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Home, Database, Settings, LogOut, BarChart } from 'lucide-react';
+import { Home, Database, Settings, LogOut, BarChart, CreditCard } from 'lucide-react';
 import AcreLogo from '@/components/AcreLogo';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -62,6 +62,15 @@ export default function Navbar() {
               <span className="text-sm text-gray-600">
                 {user.username}
               </span>
+              <Link href="/subscription">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                >
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Subscription
+                </Button>
+              </Link>
               <Button
                 variant="ghost"
                 size="sm"
