@@ -182,6 +182,13 @@ The application follows a monorepo structure with clear separation between front
   - Database schema updated with connection_type, status, sync_frequency, error_message columns
   - Excel upload functionality fixed for ES modules compatibility
   - File size limit increased to 500MB for large business datasets
+✓ **CLICKABLE LOGO NAVIGATION** (January 10, 2025):
+  - Made Acre logo clickable in all locations (header and footer)
+  - Logo click routes users back to homepage (/)
+  - Added cursor pointer and hover effects for better UX
+  - Fixed nested anchor tag warnings by using div elements inside Link
+  - Consistent styling maintained across authenticated and unauthenticated views
+  - Logo navigation works in Navbar, home page header, and footer
 → OpenAI API key configured and working
 → Waiting for AWS SES credentials to enable email functionality
 → Backend is now production-ready with enterprise-grade security and monitoring

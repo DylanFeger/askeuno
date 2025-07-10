@@ -113,10 +113,12 @@ export default function Home() {
       <header className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-b border-gray-100 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <AcreLogo className="w-8 h-8 text-primary" />
-              <span className="text-xl font-bold text-gray-900">Acre</span>
-            </div>
+            <Link href="/">
+              <div className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity">
+                <AcreLogo className="w-8 h-8 text-primary" />
+                <span className="text-xl font-bold text-gray-900">Acre</span>
+              </div>
+            </Link>
             <nav className="hidden md:flex items-center space-x-6">
               <a href="#features" className="text-gray-600 hover:text-primary transition-colors">
                 Features
@@ -228,10 +230,12 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center space-x-3 mb-4">
-                <AcreLogo className="w-8 h-8 text-white" />
-                <span className="text-xl font-bold">Acre</span>
-              </div>
+              <Link href="/">
+                <div className="flex items-center space-x-3 mb-4 cursor-pointer hover:opacity-80 transition-opacity">
+                  <AcreLogo className="w-8 h-8 text-white" />
+                  <span className="text-xl font-bold">Acre</span>
+                </div>
+              </Link>
               <p className="text-gray-400">Making business data simple and actionable for everyone.</p>
             </div>
             

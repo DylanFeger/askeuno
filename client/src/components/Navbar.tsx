@@ -30,9 +30,10 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-8">
             <Link href="/">
-              <a className="flex items-center">
-                <AcreLogo />
-              </a>
+              <div className="flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+                <AcreLogo className="w-8 h-8 text-primary" />
+                <span className="ml-3 text-xl font-bold text-gray-900">Acre</span>
+              </div>
             </Link>
             
             <div className="hidden md:flex space-x-4">
@@ -42,14 +43,14 @@ export default function Navbar() {
                 
                 return (
                   <Link key={item.path} href={item.path}>
-                    <a className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    <div className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                       isActive 
                         ? 'bg-sage-100 text-sage-700' 
                         : 'text-gray-700 hover:bg-gray-100'
                     }`}>
                       <Icon className="h-4 w-4" />
                       <span>{item.label}</span>
-                    </a>
+                    </div>
                   </Link>
                 );
               })}
