@@ -1,7 +1,6 @@
 import { readFileSync } from 'fs';
 import * as XLSX from 'xlsx';
 import { parse } from 'csv-parse/sync';
-import { analyzeDataSchema } from './openai';
 
 export interface ProcessedData {
   data: any[];
@@ -29,11 +28,35 @@ export async function processFile(filePath: string, fileType: string): Promise<P
         throw new Error(`Unsupported file type: ${fileType}`);
     }
 
-    // Analyze schema using AI
-    const schema = await analyzeDataSchema(data);
-    
-    // Get column names
+    // Get column names and create basic schema
     const columns = data.length > 0 ? Object.keys(data[0]) : [];
+    const schema: any = {};
+    
+    // Create basic schema by analyzing first few rows
+    if (data.length > 0) {
+      columns.forEach(col => {
+        // Check a few rows to determine type
+        for (let i = 0; i < Math.min(5, data.length); i++) {
+          const value = data[i][col];
+          if (value !== null && value !== undefined && value !== '') {
+            if (!isNaN(Number(value))) {
+              schema[col] = 'number';
+            } else if (value === 'true' || value === 'false') {
+              schema[col] = 'boolean';
+            } else if (!isNaN(Date.parse(String(value)))) {
+              schema[col] = 'date';
+            } else {
+              schema[col] = 'string';
+            }
+            break;
+          }
+        }
+        // Default to string if no value found
+        if (!schema[col]) {
+          schema[col] = 'string';
+        }
+      });
+    }
     
     return {
       data,

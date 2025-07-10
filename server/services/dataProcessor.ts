@@ -77,10 +77,20 @@ export async function processUploadedFile(
       }
     }
     
-    logger.error('File processing error', { error, filename });
+    const errorMessage = error instanceof Error ? error.message : 'Processing failed';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    logger.error('File processing error', { 
+      error: errorMessage, 
+      stack: errorStack,
+      filename,
+      userId,
+      mimetype,
+    });
+    
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Processing failed',
+      error: errorMessage,
     };
   }
 }
