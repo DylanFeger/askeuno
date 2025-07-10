@@ -133,24 +133,43 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getConversationsByDataSourceId(dataSourceId: number): Promise<ChatConversation[]> {
-    return await db
-      .select()
-      .from(chatConversations)
-      .where(eq(chatConversations.dataSourceId, dataSourceId))
-      .orderBy(desc(chatConversations.createdAt));
+    if (!dataSourceId) {
+      return [];
+    }
+    
+    try {
+      return await db
+        .select()
+        .from(chatConversations)
+        .where(eq(chatConversations.dataSourceId, dataSourceId))
+        .orderBy(desc(chatConversations.createdAt));
+    } catch (error) {
+      console.error('Error getting conversations by data source:', error);
+      return [];
+    }
   }
 
   async deleteConversationsByDataSourceId(dataSourceId: number): Promise<void> {
-    // First get all conversations to delete their messages
-    const conversations = await this.getConversationsByDataSourceId(dataSourceId);
-    
-    // Delete all messages for these conversations
-    for (const conversation of conversations) {
-      await db.delete(chatMessages).where(eq(chatMessages.conversationId, conversation.id));
+    try {
+      // First get all conversations to delete their messages
+      const conversations = await this.getConversationsByDataSourceId(dataSourceId);
+      
+      // Delete all messages for these conversations
+      if (conversations.length > 0) {
+        const conversationIds = conversations.map(c => c.id);
+        for (const convId of conversationIds) {
+          await db.delete(chatMessages).where(eq(chatMessages.conversationId, convId));
+        }
+      }
+      
+      // Delete all conversations - handle nullable dataSourceId
+      if (dataSourceId) {
+        await db.delete(chatConversations).where(eq(chatConversations.dataSourceId, dataSourceId));
+      }
+    } catch (error) {
+      console.error('Error deleting conversations by data source:', error);
+      // Continue with deletion even if conversations fail
     }
-    
-    // Delete all conversations
-    await db.delete(chatConversations).where(eq(chatConversations.dataSourceId, dataSourceId));
   }
 
   async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
