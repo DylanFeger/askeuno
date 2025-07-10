@@ -71,7 +71,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Authentication routes with IP rate limiting
-  app.use('/api/auth', ipRateLimit(5, 15 * 60 * 1000), authRoutes); // 5 attempts per 15 minutes
+  app.use('/api/auth', ipRateLimit(50, 15 * 60 * 1000), authRoutes); // 50 attempts per 15 minutes
   
   // Data sources routes
   app.use('/api/data-sources', dataSourcesRoutes);
