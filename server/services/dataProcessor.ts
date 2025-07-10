@@ -40,19 +40,32 @@ export async function processUploadedFile(
     // Analyze schema using AI
     const schemaAnalysis = await analyzeDataSchema(processedData.data, userId);
     
-    // Upload to S3
-    const s3Result = await uploadToS3(
-      userId,
-      filename,
-      buffer,
-      mimetype
-    );
-    
-    if (!s3Result.success) {
-      throw new Error(s3Result.error || 'S3 upload failed');
+    // Try to upload to S3, but don't fail if credentials are missing
+    let s3Key: string | undefined;
+    try {
+      const s3Result = await uploadToS3(
+        userId,
+        filename,
+        buffer,
+        mimetype
+      );
+      
+      if (s3Result.success) {
+        s3Key = s3Result.key;
+        logger.info('File uploaded to S3', { filename, s3Key });
+      } else {
+        logger.warn('S3 upload failed, continuing without cloud storage', { 
+          filename, 
+          error: s3Result.error 
+        });
+      }
+    } catch (s3Error) {
+      logger.warn('S3 upload skipped - credentials not configured', { 
+        filename,
+        error: s3Error instanceof Error ? s3Error.message : 'Unknown error' 
+      });
+      // Continue without S3 - file will be processed from local storage
     }
-    
-    const s3Key = s3Result.key;
     
     // Clean up temp file
     await fs.unlink(tempFilePath);
