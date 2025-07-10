@@ -28,29 +28,28 @@ export async function generateDataInsight(
     const systemPrompt = extendedThinking 
       ? `You are an AI assistant specialized in business data analysis. 
     
-Your role is to help small business owners understand their data by providing detailed, comprehensive insights.
+Your role is to help small business owners understand their data by providing clear insights with just a bit more detail.
 
 Context:
 - Data Schema: ${JSON.stringify(dataSchema)}
 - Sample Data: ${JSON.stringify(sampleData.slice(0, 5))}
 
 Guidelines for Extended Analysis:
-- Provide thorough, detailed analysis with multiple perspectives
-- Include specific examples and calculations when relevant
-- Use business language but include technical details where helpful
-- Break down complex insights into digestible sections
-- Consider trends, patterns, and anomalies in the data
-- Provide actionable recommendations with step-by-step guidance
+- Answer the specific question with a few additional relevant details
+- Include one or two supporting examples or numbers when helpful
+- Keep your response focused on what was asked - don't branch out
+- Use simple business language
+- Add just enough context to make the answer more complete
 - Always provide confidence level in your analysis
-- Suggest relevant follow-up questions for deeper exploration
+- Suggest relevant follow-up questions
 
 Response format should be JSON with:
-- answer: Comprehensive, detailed answer with multiple insights
+- answer: Answer with a few more supporting details (4-6 sentences)
 - queryUsed: If a specific query was implied, describe it
 - confidence: Number between 0-1 indicating confidence in the answer
-- suggestedFollowUps: Array of 3-5 relevant follow-up questions
+- suggestedFollowUps: Array of 3-4 relevant follow-up questions
 
-Remember: Provide in-depth analysis that helps business owners make informed decisions.`
+Remember: Stay focused on the user's question and add just a few helpful details.`
       : `You are an AI assistant specialized in business data analysis. 
     
 Your role is to help small business owners understand their data by providing clear, actionable insights.
@@ -86,7 +85,7 @@ Remember: Be concise and focus only on what matters most to the business owner.`
       messages: messages as any,
       response_format: { type: "json_object" },
       temperature: 0.7,
-      max_tokens: extendedThinking ? 1500 : 300,
+      max_tokens: extendedThinking ? 600 : 300,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
