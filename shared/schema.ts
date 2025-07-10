@@ -33,6 +33,7 @@ export const chatConversations = pgTable("chat_conversations", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
   dataSourceId: integer("data_source_id").references(() => dataSources.id),
+  title: text("title"), // AI-generated conversation title
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

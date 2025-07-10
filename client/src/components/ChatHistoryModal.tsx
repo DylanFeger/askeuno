@@ -74,7 +74,9 @@ export default function ChatHistoryModal({
                     >
                       <div className="flex items-center gap-2 mb-1">
                         <MessageSquare className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm font-medium">Chat #{conv.id}</span>
+                        <span className="text-sm font-medium">
+                          {conv.title || `Chat with Acre — ${format(new Date(conv.createdAt), 'MMM d')}`}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1 text-xs text-gray-500">
                         <Calendar className="w-3 h-3" />

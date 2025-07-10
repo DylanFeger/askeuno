@@ -331,6 +331,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         metadata: aiResponse,
       });
 
+      // Generate title if this is the first exchange (conversation has no title yet)
+      const currentConversation = await storage.getConversation(conversation.id);
+      if (!currentConversation?.title) {
+        // Get the messages for title generation
+        const messagesForTitle = [
+          { role: 'user', content: message },
+          { role: 'assistant', content: aiResponse.answer }
+        ];
+        
+        // Get data source name if available
+        const dataSourceName = latestDataSource?.name;
+        
+        // Import generateConversationTitle
+        const { generateConversationTitle } = await import('./services/openai');
+        
+        // Generate and save title
+        const title = await generateConversationTitle(messagesForTitle, dataSourceName);
+        await storage.updateConversation(conversation.id, { title });
+      }
+
       res.json({
         response: aiResponse,
         conversationId: conversation.id,

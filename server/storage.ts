@@ -34,6 +34,7 @@ export interface IStorage {
   // Chat operations
   createConversation(userId: number, dataSourceId?: number): Promise<ChatConversation>;
   getConversation(id: number): Promise<ChatConversation | undefined>;
+  updateConversation(id: number, updates: Partial<ChatConversation>): Promise<ChatConversation | undefined>;
   getConversationsByUserId(userId: number): Promise<ChatConversation[]>;
   getConversationsByDataSourceId(dataSourceId: number): Promise<ChatConversation[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
@@ -121,6 +122,15 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(chatConversations)
       .where(eq(chatConversations.id, id));
+    return conversation || undefined;
+  }
+
+  async updateConversation(id: number, updates: Partial<ChatConversation>): Promise<ChatConversation | undefined> {
+    const [conversation] = await db
+      .update(chatConversations)
+      .set(updates)
+      .where(eq(chatConversations.id, id))
+      .returning();
     return conversation || undefined;
   }
 

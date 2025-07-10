@@ -248,6 +248,19 @@ The application follows a monorepo structure with clear separation between front
     - Extended mode: Comprehensive analysis with multiple perspectives
     - Different system prompts optimize for each mode
     - Token limits adjusted (300 vs 1500) for appropriate response lengths
+✓ **AUTOMATIC CHAT TITLE GENERATION** (January 10, 2025):
+  - **AI-Generated Titles**: Conversations now automatically receive meaningful titles
+    - OpenAI generates titles based on the first user-AI exchange
+    - Titles are 5-8 words max, clear and business-focused
+    - Avoids generic phrases like "Chat about data"
+    - Database name included in context for better titles
+  - **Database Schema Update**: Added title field to chat_conversations table
+  - **Storage Layer Update**: Added updateConversation method to support title updates
+  - **Chat History Display**: Titles now shown in ChatHistoryModal instead of "Chat #X"
+  - **Fallback Handling**: If title generation fails, uses "Chat with Acre — [Date]"
+  - **Extended Thinking Refinement**: Reduced extended mode to add just a few details (4-6 sentences)
+    - Focused on user's specific question without branching out
+    - Token limit reduced from 1500 to 600 for more concise extended responses
 → OpenAI API key configured and working
 → AWS S3 credentials needed for file storage functionality
 → Redis needed for background job processing (optional for development)

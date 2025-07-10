@@ -162,3 +162,47 @@ export async function analyzeDataSchema(data: any[], userId?: number): Promise<a
     };
   }
 }
+
+export async function generateConversationTitle(
+  messages: { role: string; content: string }[],
+  dataSourceName?: string
+): Promise<string> {
+  try {
+    // Get only the first few messages to keep context manageable
+    const relevantMessages = messages.slice(0, Math.min(4, messages.length));
+    
+    const systemPrompt = `Generate a short, clear title for this conversation.
+    ${dataSourceName ? `Database: ${dataSourceName}` : ''}
+    
+    Guidelines:
+    - Maximum 5-8 words
+    - Focus on the main topic or question
+    - Use business-friendly language
+    - Avoid generic phrases like "Chat about data"
+    - Be specific but concise
+    
+    Provide a JSON response with:
+    - title: The generated title (string)`;
+
+    const conversationText = relevantMessages
+      .map(msg => `${msg.role}: ${msg.content.substring(0, 200)}`)
+      .join('\n');
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `Generate a title for this conversation:\n\n${conversationText}` }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+      max_tokens: 100,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{}');
+    return result.title || `Chat with Acre — ${new Date().toLocaleDateString()}`;
+  } catch (error) {
+    logger.error("Title generation error", { error });
+    return `Chat with Acre — ${new Date().toLocaleDateString()}`;
+  }
+}
