@@ -2,7 +2,7 @@ import { Zap, Database, MessageSquare, Shield, TrendingUp, Clock } from 'lucide-
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'wouter';
-import AcreLogo from '@/components/AcreLogo';
+import HyppoLogo from '@/components/HyppoLogo';
 import Footer from '@/components/Footer';
 
 export default function Features() {

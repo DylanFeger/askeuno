@@ -2,7 +2,7 @@ import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Home, Database, Settings, LogOut, BarChart, CreditCard } from 'lucide-react';
-import AcreLogo from '@/components/AcreLogo';
+import HyppoLogo from '@/components/HyppoLogo';
 import { apiRequest } from '@/lib/queryClient';
 
 export default function Navbar() {
@@ -31,8 +31,8 @@ export default function Navbar() {
           <div className="flex items-center space-x-8">
             <Link href="/">
               <div className="flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-                <AcreLogo className="w-8 h-8 text-primary" />
-                <span className="ml-3 text-xl font-bold text-gray-900">Acre</span>
+                <HyppoLogo className="w-8 h-8" />
+                <span className="ml-3 text-xl font-bold text-gray-900">Hyppo</span>
               </div>
             </Link>
             

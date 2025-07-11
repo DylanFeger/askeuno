@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import AcreLogo from './AcreLogo';
+import HyppoLogo from './HyppoLogo';
 
 export default function Footer() {
   return (
@@ -9,8 +9,8 @@ export default function Footer() {
           <div>
             <Link href="/">
               <div className="flex items-center space-x-3 mb-4 cursor-pointer hover:opacity-80 transition-opacity">
-                <AcreLogo className="w-8 h-8 text-white" />
-                <span className="text-xl font-bold">Acre</span>
+                <HyppoLogo className="w-8 h-8" />
+                <span className="text-xl font-bold">Hyppo</span>
               </div>
             </Link>
             <p className="text-gray-400">Making business data simple and actionable for everyone.</p>

@@ -2,7 +2,7 @@ import { Database, ShoppingCart, BarChart3, Mail, Cloud, FileSpreadsheet, Globe,
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'wouter';
-import AcreLogo from '@/components/AcreLogo';
+import HyppoLogo from '@/components/HyppoLogo';
 import Footer from '@/components/Footer';
 
 export default function Integrations() {

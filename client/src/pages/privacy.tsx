@@ -12,7 +12,7 @@ export default function Privacy() {
           <Link href="/">
             <Button variant="ghost" className="gap-2">
               <ArrowLeft className="w-4 h-4" />
-              Back to Acre
+              Back to Hyppo
             </Button>
           </Link>
         </div>
@@ -29,7 +29,7 @@ export default function Privacy() {
           {/* Introduction */}
           <Card className="p-8">
             <p className="text-gray-700 leading-relaxed">
-              At Acre, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect your information when you use our data analytics platform. We're committed to being transparent about our practices and giving you control over your data.
+              At Hyppo, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect your information when you use our data analytics platform. We're committed to being transparent about our practices and giving you control over your data.
             </p>
           </Card>
 
@@ -81,7 +81,7 @@ export default function Privacy() {
               </li>
               <li className="flex items-start">
                 <span className="text-primary mr-2">•</span>
-                <span>To improve Acre's features and performance</span>
+                <span>To improve Hyppo's features and performance</span>
               </li>
               <li className="flex items-start">
                 <span className="text-primary mr-2">•</span>
@@ -104,7 +104,7 @@ export default function Privacy() {
               <p>Your data security is our top priority. Here's how we protect your information:</p>
               <ul className="space-y-2 ml-4">
                 <li>• All data is stored on secure AWS servers with encryption at rest</li>
-                <li>• Every connection to Acre uses HTTPS encryption</li>
+                <li>• Every connection to Hyppo uses HTTPS encryption</li>
                 <li>• We never share or sell your data to third parties</li>
                 <li>• Only you and authorized users on your account can access your uploaded data</li>
                 <li>• We regularly review and update our security practices</li>
@@ -119,12 +119,12 @@ export default function Privacy() {
               <h2 className="text-2xl font-semibold text-gray-900">Cookie Policy</h2>
             </div>
             <div className="space-y-3 text-gray-700">
-              <p>We use cookies to make Acre work better for you:</p>
+              <p>We use cookies to make Hyppo work better for you:</p>
               <ul className="space-y-2 ml-4">
-                <li>• <strong>Session cookies</strong> keep you logged in while you use Acre</li>
+                <li>• <strong>Session cookies</strong> keep you logged in while you use Hyppo</li>
                 <li>• <strong>Analytics cookies</strong> help us understand how to improve our service</li>
               </ul>
-              <p className="mt-4">You can manage cookie preferences in your browser settings. Note that disabling cookies may affect some features of Acre.</p>
+              <p className="mt-4">You can manage cookie preferences in your browser settings. Note that disabling cookies may affect some features of Hyppo.</p>
             </div>
           </Card>
 
@@ -179,10 +179,10 @@ export default function Privacy() {
 
         {/* Footer */}
         <div className="mt-12 pt-8 border-t border-gray-200 text-center text-gray-600">
-          <p>© 2025 Acre. All rights reserved.</p>
+          <p>© 2025 Hyppo. All rights reserved.</p>
           <Link href="/">
             <Button variant="link" className="mt-2">
-              Return to Acre
+              Return to Hyppo
             </Button>
           </Link>
         </div>

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Link } from 'wouter';
-import AcreLogo from '@/components/AcreLogo';
+import HyppoLogo from '@/components/HyppoLogo';
 import Footer from '@/components/Footer';
 import { useToast } from '@/hooks/use-toast';
 

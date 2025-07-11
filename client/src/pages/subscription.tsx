@@ -145,7 +145,7 @@ export default function SubscriptionPage() {
               <CardDescription>
                 {subscriptionStatus === 'trial' 
                   ? `You're enjoying your free trial • ${daysRemaining} days remaining`
-                  : 'Manage your Acre subscription and billing'
+                  : 'Manage your Hyppo subscription and billing'
                 }
               </CardDescription>
             </CardHeader>
