@@ -19,7 +19,7 @@ export default function Navbar() {
   };
 
   const navItems = [
-    { path: '/', label: 'Home', icon: Home },
+    { path: '/dashboard', label: 'Dashboard', icon: Home },
     { path: '/connections', label: 'Data Sources', icon: Database },
     { path: '/dashboards', label: 'Dashboards', icon: BarChart },
   ];

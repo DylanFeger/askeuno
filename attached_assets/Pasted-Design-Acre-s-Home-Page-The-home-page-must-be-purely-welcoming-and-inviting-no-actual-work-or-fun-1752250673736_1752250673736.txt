@@ -1,0 +1,75 @@
+Design Acre’s Home Page
+
+The home page must be purely welcoming and inviting — no actual work or functional tools appear here. Its only purpose is to:
+
+Make new visitors feel welcome.
+
+Clearly and simply explain what Acre does.
+
+Build trust and excitement.
+
+Let logged-in users easily access links to Acre’s workflow if they want to revisit how Acre works.
+
+For visitors not logged in, show a clear, friendly suggestion to sign in or sign up to see how Acre works.
+
+Key Requirements:
+
+1️⃣ Warm, Friendly Hero Section:
+
+Include a short, clear tagline that explains Acre in one line.
+
+Example: “Your business data, simplified — insights in a chat.”
+
+Add a subheading explaining Acre’s core benefit: “Upload or connect your data — Acre handles the rest with secure, smart answers in seconds.”
+
+2️⃣ Inviting Visuals:
+
+Use Acre’s existing brand colors exactly as they are now — keep branding consistent.
+
+Clean, modern design with lots of white space and warm, welcoming elements.
+
+Add an illustration or subtle animation showing the concept of Acre — not the actual tool.
+
+3️⃣ Key Value Points:
+
+Show 3–4 simple benefit highlights:
+
+✅ Connect your data — live or manual
+
+✅ Instant AI answers
+
+✅ Secure, private space
+
+✅ Start free for 30 days
+
+4️⃣ Clear Call to Action:
+
+Add a friendly, clear CTA: “Start Free for 30 Days” or “Try Acre Now.”
+
+Make sign up/sign in the obvious next step for new visitors.
+
+5️⃣ Conditional Workflow Links:
+
+If the user is logged in, display easy-to-find links or a short visual guide to Acre’s main workflow — e.g.:
+
+“How Acre Works” → opens a short page or modal with steps:
+
+Connect/upload your data.
+
+Chat with Acre.
+
+Get clear insights.
+
+If the user is not logged in, do not show workflow links. Instead, suggest they sign up or sign in to unlock Acre’s full experience.
+
+6️⃣ Zero Work on Home Page:
+
+Absolutely no dashboards, chat box, uploads, or live features should appear here.
+
+All real work and tools only appear after the user signs in.
+
+7️⃣ Keep Acre’s Colors:
+
+Use Acre’s current color palette — do not change brand colors.
+
+👉 Goal: Make visitors feel calm, curious, and excited to sign up — with the right info, clear steps, and no complexity on the public home page.

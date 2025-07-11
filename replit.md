@@ -189,6 +189,33 @@ The application follows a monorepo structure with clear separation between front
   - Fixed nested anchor tag warnings by using div elements inside Link
   - Consistent styling maintained across authenticated and unauthenticated views
   - Logo navigation works in Navbar, home page header, and footer
+✓ **HOME PAGE REDESIGN - PURELY WELCOMING** (January 11, 2025):
+  - **Complete Separation of Marketing and Functional Areas**:
+    - Home page is now purely welcoming with zero functional tools
+    - All data sources, chat interface, and work tools moved to new /dashboard route
+    - Authentication redirects users to dashboard instead of home
+  - **Warm, Inviting Hero Section**:
+    - Tagline: "Your business data, simplified — insights in a chat"
+    - Subheading emphasizes core benefit with secure, smart answers
+    - Animated sparkle icon and gradient backgrounds for visual warmth
+  - **Conditional Content for Logged-in Users**:
+    - Personalized welcome message with username
+    - "How Acre Works" section with three clear steps
+    - Direct links to workflow pages (connections, dashboard, dashboards)
+    - Each step has numbered visual guide and action button
+  - **Four Key Benefits Highlighted**:
+    - Connect your data — live or manual
+    - Instant AI answers
+    - Secure, private space  
+    - Start free for 30 days
+  - **Clear Call to Action**:
+    - "Start Free for 30 Days" primary button
+    - Auth section positioned prominently below hero
+    - No credit card required messaging
+  - **Navigation Updates**:
+    - Navbar now shows "Dashboard" instead of "Home" for logged-in users
+    - All functional navigation leads to /dashboard
+    - Kept existing sage green color scheme throughout
 ✓ **CORE DATA PIPELINE IMPLEMENTED** (January 10, 2025):
   - **AWS S3 Integration**: Secure file storage with business isolation
     - Created S3 service with encryption at rest (AES256)
