@@ -12,6 +12,11 @@ import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 import UploadPage from "@/pages/upload";
 import SubscriptionPage from "@/pages/subscription";
+import Features from "@/pages/features";
+import Security from "@/pages/security";
+import Integrations from "@/pages/integrations";
+import Contact from "@/pages/contact";
+import Documentation from "@/pages/docs";
 
 function Router() {
   return (
@@ -23,6 +28,11 @@ function Router() {
       <Route path="/upload" component={UploadPage} />
       <Route path="/subscription" component={SubscriptionPage} />
       <Route path="/privacy" component={Privacy} />
+      <Route path="/features" component={Features} />
+      <Route path="/security" component={Security} />
+      <Route path="/integrations" component={Integrations} />
+      <Route path="/contact" component={Contact} />
+      <Route path="/docs" component={Documentation} />
       <Route component={NotFound} />
     </Switch>
   );
