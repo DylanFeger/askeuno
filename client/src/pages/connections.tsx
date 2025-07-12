@@ -10,8 +10,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Database, Cloud, Building2, ShoppingCart, BarChart3, FileSpreadsheet, Server, Wifi, AlertCircle, CheckCircle } from 'lucide-react';
+import { Database, Cloud, Building2, ShoppingCart, BarChart3, FileSpreadsheet, Server, Wifi, AlertCircle, CheckCircle, Upload, FileIcon, Trash2 } from 'lucide-react';
+import { Link } from 'wouter';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const dataSourceTypes = [
   { id: 'mysql', name: 'MySQL', icon: Database, category: 'database' },
@@ -29,6 +41,7 @@ export default function ConnectionsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedType, setSelectedType] = useState('');
   const [connectionForm, setConnectionForm] = useState<any>({});
+  const [deleteConfirmation, setDeleteConfirmation] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -54,6 +67,31 @@ export default function ConnectionsPage() {
       toast({
         title: 'Connection failed',
         description: error.message || 'Please check your connection details.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const deleteDataSourceMutation = useMutation({
+    mutationFn: async (dataSourceId: number) => {
+      const response = await apiRequest('DELETE', `/api/data-sources/${dataSourceId}`);
+      if (!response.ok) {
+        throw new Error('Failed to delete data source');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Data source removed successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/data-sources'] });
+      setDeleteConfirmation(null);
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to remove data source. Please try again.',
         variant: 'destructive',
       });
     },
@@ -289,56 +327,184 @@ export default function ConnectionsPage() {
     });
   };
 
+  const handleDeleteDataSource = (dataSource: any) => {
+    setDeleteConfirmation(dataSource);
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmation) {
+      deleteDataSourceMutation.mutate(deleteConfirmation.id);
+    }
+  };
+
+  const liveConnections = connections.filter((conn: any) => conn.connectionType === 'live');
+  const uploadedFiles = connections.filter((conn: any) => conn.connectionType === 'upload');
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 flex-1">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Data Connections</h1>
-          <p className="text-gray-600 mt-2">Connect to live data sources for real-time insights</p>
+          <h1 className="text-3xl font-bold text-gray-900">Data Sources</h1>
+          <p className="text-gray-600 mt-2">Manage your live connections and uploaded files</p>
         </div>
 
-        <Button onClick={() => setIsDialogOpen(true)} className="mb-6">
-          <Wifi className="mr-2 h-4 w-4" />
-          Connect New Data Source
-        </Button>
+        <Tabs defaultValue="live" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="live">
+              <Wifi className="w-4 h-4 mr-2" />
+              Live Connections ({liveConnections.length})
+            </TabsTrigger>
+            <TabsTrigger value="uploads">
+              <FileIcon className="w-4 h-4 mr-2" />
+              Uploaded Files ({uploadedFiles.length})
+            </TabsTrigger>
+          </TabsList>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {connections.filter((conn: any) => conn.connectionType === 'live').map((connection: any) => {
-            const sourceType = dataSourceTypes.find(ds => ds.id === connection.type);
-            const Icon = sourceType?.icon || Database;
-            
-            return (
-              <Card key={connection.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Icon className="h-5 w-5 text-primary" />
-                      <CardTitle className="text-lg">{connection.name}</CardTitle>
-                    </div>
-                    <Badge variant={connection.status === 'active' ? 'default' : 'destructive'}>
-                      {connection.status === 'active' ? <CheckCircle className="h-3 w-3 mr-1" /> : <AlertCircle className="h-3 w-3 mr-1" />}
-                      {connection.status}
-                    </Badge>
-                  </div>
-                  <CardDescription>
-                    {sourceType?.name} • {connection.rowCount || 0} rows
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-sm text-gray-600">
-                    <p>Last sync: {connection.lastSyncAt ? new Date(connection.lastSyncAt).toLocaleString() : 'Never'}</p>
-                    <p>Sync frequency: Every {connection.syncFrequency} minutes</p>
-                  </div>
-                  {connection.errorMessage && (
-                    <p className="text-sm text-red-600 mt-2">{connection.errorMessage}</p>
-                  )}
-                </CardContent>
+          <TabsContent value="live">
+            <div className="mb-6">
+              <Button onClick={() => setIsDialogOpen(true)}>
+                <Wifi className="mr-2 h-4 w-4" />
+                Connect New Data Source
+              </Button>
+            </div>
+
+            {liveConnections.length === 0 ? (
+              <Card className="p-8 text-center">
+                <Database className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No live connections yet</h3>
+                <p className="text-gray-600 mb-6">Connect to databases, APIs, and business apps for real-time data sync</p>
+                <Button onClick={() => setIsDialogOpen(true)}>
+                  <Wifi className="mr-2 h-4 w-4" />
+                  Connect Your First Data Source
+                </Button>
               </Card>
-            );
-          })}
-        </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {liveConnections.map((connection: any) => {
+                  const sourceType = dataSourceTypes.find(ds => ds.id === connection.type);
+                  const Icon = sourceType?.icon || Database;
+                  
+                  return (
+                    <Card key={connection.id}>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <Icon className="h-5 w-5 text-primary" />
+                            <CardTitle className="text-lg">{connection.name}</CardTitle>
+                          </div>
+                          <Badge variant={connection.status === 'active' ? 'default' : 'destructive'}>
+                            {connection.status === 'active' ? <CheckCircle className="h-3 w-3 mr-1" /> : <AlertCircle className="h-3 w-3 mr-1" />}
+                            {connection.status}
+                          </Badge>
+                        </div>
+                        <CardDescription>
+                          {sourceType?.name} • {connection.rowCount || 0} rows
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-sm text-gray-600">
+                          <p>Last sync: {connection.lastSyncAt ? new Date(connection.lastSyncAt).toLocaleString() : 'Never'}</p>
+                          <p>Sync frequency: Every {connection.syncFrequency} minutes</p>
+                        </div>
+                        {connection.errorMessage && (
+                          <p className="text-sm text-red-600 mt-2">{connection.errorMessage}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="uploads">
+            <div className="mb-6">
+              <Link href="/upload">
+                <Button>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload New File
+                </Button>
+              </Link>
+            </div>
+
+            {uploadedFiles.length === 0 ? (
+              <Card className="p-8 text-center">
+                <FileIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No uploaded files yet</h3>
+                <p className="text-gray-600 mb-6">Upload Excel, CSV, or JSON files for analysis</p>
+                <Link href="/upload">
+                  <Button>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Your First File
+                  </Button>
+                </Link>
+              </Card>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {uploadedFiles.map((file: any) => (
+                  <Card key={file.id}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <FileSpreadsheet className="h-5 w-5 text-primary" />
+                          <CardTitle className="text-lg">{file.name}</CardTitle>
+                        </div>
+                        <Badge variant="secondary">
+                          <FileIcon className="h-3 w-3 mr-1" />
+                          File
+                        </Badge>
+                      </div>
+                      <CardDescription>
+                        {file.rowCount ? `${file.rowCount.toLocaleString()} rows` : 'Processing...'}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-sm text-gray-600">
+                        <p>Uploaded: {file.lastSyncAt ? new Date(file.lastSyncAt).toLocaleDateString() : 'Unknown'}</p>
+                        <p>Type: {file.connectionData?.filename?.split('.').pop()?.toUpperCase() || 'Unknown'}</p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteDataSource(file)}
+                        className="mt-3 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Remove
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      <Footer />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Data Source</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove "{deleteConfirmation?.name}"? This will permanently delete all associated data and cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="max-w-2xl">
@@ -409,7 +575,6 @@ export default function ConnectionsPage() {
             </Tabs>
           </DialogContent>
         </Dialog>
-      </div>
     </div>
   );
 }

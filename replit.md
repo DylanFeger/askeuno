@@ -367,5 +367,23 @@ The application follows a monorepo structure with clear separation between front
     - Non-authenticated users see marketing home page and are redirected to login
     - Authenticated users land directly on chat page with personalized welcome
     - Quick access to connect data or upload files if no data sources exist
+✓ **DATA SOURCES ENHANCEMENT & NAVIGATION UPDATE** (January 12, 2025):
+  - **Removed Dashboards Navigation**: 
+    - Completely removed "Dashboards" section from the navigation bar
+    - Simplified navigation to focus on core features: Chat, Data Sources, Subscription
+  - **Enhanced Data Sources Page**:
+    - Added tabbed interface separating "Live Connections" and "Uploaded Files"
+    - Each tab shows count of items (e.g., "Live Connections (0)", "Uploaded Files (1)")
+    - Live connections tab shows real-time data sources with sync status
+    - Uploaded files tab displays static files with row counts and upload dates
+  - **File Upload Integration**:
+    - Added "Upload New File" button directly in the Uploaded Files tab
+    - Maintained drag-and-drop upload functionality at /upload route
+    - Upload success now redirects to /connections instead of /chat
+    - Uploaded files show file type, row count, and upload date
+  - **Delete Functionality**:
+    - Added delete button for uploaded files with confirmation dialog
+    - Warns users about permanent data deletion
+    - Automatically cleans up associated data and S3 files
 → Waiting for AWS SES credentials to enable email functionality
 → Backend is now production-ready with enterprise-grade security, monitoring, and data pipeline
