@@ -1,8 +1,8 @@
-# Acre - Data Platform for Small Businesses
+# Hyppo - Data Platform for Small Businesses
 
 ## Overview
 
-Acre is a secure, easy-to-use data platform designed to help small businesses upload, store, and analyze their data. The application provides a secure upload portal, cloud storage integration, ETL processing, and AI-powered insights through a conversational interface.
+Hyppo (formerly Acre) is a secure, easy-to-use data platform designed to help small businesses upload, store, and analyze their data. The application provides a secure upload portal, cloud storage integration, ETL processing, and AI-powered insights through a conversational interface.
 
 ## User Preferences
 
@@ -325,7 +325,7 @@ The application follows a monorepo structure with clear separation between front
   - **Enhanced UX**: Warm, transparent communication
     - Clear feature comparisons with checkmarks and crossed-out items
     - Trust signals section highlighting security and value
-    - Support email (support@acre.com) for questions
+    - Support email (support@hyppo.com) for questions
   - **Database Schema Updates**: Added subscription tracking fields
     - subscriptionStatus: trial, active, cancelled, expired
     - billingCycle: monthly or annual
@@ -334,5 +334,21 @@ The application follows a monorepo structure with clear separation between front
 → OpenAI API key configured and working
 → AWS S3 credentials needed for file storage functionality
 → Redis needed for background job processing (optional for development)
+✓ **COMPLETE REBRAND FROM ACRE TO HYPPO** (January 12, 2025):
+  - **New Brand Identity**: Complete transition from Acre to Hyppo
+    - Created new HyppoLogo component with hippo line art design
+    - Maintained existing sage green color scheme for consistency
+    - Updated all references across entire codebase
+  - **Updated Integrations Page**: Redesigned according to new requirements
+    - Hero: "Hyppo plays well with your tools"
+    - Organized by clear categories (Databases, Cloud Storage, Spreadsheets, CRM & Sales, E-commerce, Advertising & Marketing, Custom API)
+    - Shows only actual supported integrations with accurate descriptions
+    - Added search functionality to filter integrations
+    - "How It Works" section explaining security and sync options
+    - Call to action for custom integrations
+  - **Brand Consistency**: Updated all pages and components
+    - Home, Dashboard, Features, Security, Contact, Docs, Privacy, Subscription pages
+    - Footer and Navbar components now use Hyppo branding
+    - Support email updated to support@hyppo.com
 → Waiting for AWS SES credentials to enable email functionality
 → Backend is now production-ready with enterprise-grade security, monitoring, and data pipeline

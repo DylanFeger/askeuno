@@ -83,8 +83,8 @@ export default function Features() {
           <div className="flex justify-between items-center h-16">
             <Link href="/">
               <div className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity">
-                <AcreLogo className="w-8 h-8 text-primary" />
-                <span className="text-xl font-bold text-gray-900">Acre</span>
+                <HyppoLogo className="w-8 h-8" />
+                <span className="text-xl font-bold text-gray-900">Hyppo</span>
               </div>
             </Link>
             <Link href="/">
@@ -146,7 +146,7 @@ export default function Features() {
             Ready to Transform Your Data?
           </h2>
           <p className="text-xl text-gray-600 mb-8">
-            Join thousands of businesses making smarter decisions with Acre.
+            Join thousands of businesses making smarter decisions with Hyppo.
           </p>
           <Link href="/">
             <Button size="lg" className="px-8">

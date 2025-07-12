@@ -83,8 +83,8 @@ export default function Security() {
           <div className="flex justify-between items-center h-16">
             <Link href="/">
               <div className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity">
-                <AcreLogo className="w-8 h-8 text-primary" />
-                <span className="text-xl font-bold text-gray-900">Acre</span>
+                <HyppoLogo className="w-8 h-8" />
+                <span className="text-xl font-bold text-gray-900">Hyppo</span>
               </div>
             </Link>
             <Link href="/">
@@ -107,7 +107,7 @@ export default function Security() {
           </h1>
           <p className="text-xl text-gray-600 mb-8">
             We use bank-level security to protect your business data. 
-            Every aspect of Acre is designed with security and privacy in mind.
+            Every aspect of Hyppo is designed with security and privacy in mind.
           </p>
         </div>
       </section>

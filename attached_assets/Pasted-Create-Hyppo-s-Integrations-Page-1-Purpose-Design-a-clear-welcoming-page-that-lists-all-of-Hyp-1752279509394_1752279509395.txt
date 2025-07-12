@@ -1,0 +1,74 @@
+Create Hyppo’s Integrations Page
+
+1️⃣ Purpose:
+
+Design a clear, welcoming page that lists all of Hyppo’s actual supported integrations.
+
+Explain how each connection works: real-time sync, manual upload, or custom API.
+
+2️⃣ Intro Section:
+
+Add a short headline and subheading:
+
+Example: “Hyppo plays well with your tools.”
+
+Subheading: “Connect your business data in real time or manually — Hyppo keeps everything simple and secure.”
+
+3️⃣ Organize by Category:
+
+Group integrations into clear sections:
+✅ Databases: MySQL, PostgreSQL, MongoDB
+✅ Cloud Storage: AWS S3
+✅ Spreadsheets: Google Sheets, Excel uploads
+✅ CRM & Sales: Salesforce
+✅ E-commerce: Shopify
+✅ Advertising & Marketing: Google Ads
+✅ Custom API: For unique or custom-built connections
+
+4️⃣ Logo + Short Description for Each:
+
+Display a recognizable icon/logo for each integration.
+
+Add a short, friendly description for each one:
+
+“MySQL — Structured data for transactions & orders.”
+
+“PostgreSQL — Advanced database for large data sets.”
+
+“MongoDB — Flexible NoSQL document storage.”
+
+“AWS S3 — Store large files and datasets securely.”
+
+“Google Sheets — Quick spreadsheet uploads for easy updates.”
+
+“Salesforce — Sync leads, deals, and contacts.”
+
+“Shopify — Bring in orders, products, and customer info.”
+
+“Google Ads — Pull ad campaign performance data.”
+
+“Custom API — Connect your own systems your way.”
+
+5️⃣ Optional Search or Filter:
+
+If there are many integrations later, add a small search bar or filter by category.
+
+6️⃣ How It Works Section:
+
+Add a short section or link that explains:
+
+“Connect your data live or upload files manually. Hyppo keeps your connections secure and up to date.”
+
+7️⃣ Call to Action:
+
+Add a simple CTA at the end:
+
+“Ready to connect? Get started free today.”
+
+Or “Don’t see your tool? Let’s build a custom integration for you.”
+
+8️⃣ Keep Branding Consistent:
+
+Use Hyppo’s current colors, fonts, logo, and friendly voice.
+
+👉 Goal: Make the Integrations page feel clear, trustworthy, and easy to skim — new visitors should see Hyppo’s real integrations and feel confident they can connect their data quickly.

@@ -311,7 +311,7 @@ export default function SubscriptionPage() {
 
           {/* Trust Signals */}
           <div className="mt-16 text-center">
-            <h3 className="text-2xl font-bold mb-8">Why Businesses Choose Acre</h3>
+            <h3 className="text-2xl font-bold mb-8">Why Businesses Choose Hyppo</h3>
             <div className="grid md:grid-cols-3 gap-6">
               <div>
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
@@ -362,7 +362,7 @@ export default function SubscriptionPage() {
             <AlertDialogTitle>Cancel {subscriptionStatus === 'trial' ? 'Free Trial' : 'Subscription'}?</AlertDialogTitle>
             <AlertDialogDescription>
               {subscriptionStatus === 'trial' 
-                ? "We're sorry to see you go! If you cancel now, you'll lose access to all Acre features immediately. You can always start a new trial later, but it won't include the remaining days from this trial."
+                ? "We're sorry to see you go! If you cancel now, you'll lose access to all Hyppo features immediately. You can always start a new trial later, but it won't include the remaining days from this trial."
                 : "Your subscription will remain active until the end of your current billing period. After that, you'll lose access to all premium features and your data will be archived for 30 days."}
             </AlertDialogDescription>
           </AlertDialogHeader>
