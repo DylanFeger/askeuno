@@ -388,7 +388,10 @@ The application follows a monorepo structure with clear separation between front
 ✓ **CONFIDENCE PERCENTAGE TOOLTIP** (January 12, 2025):
   - **Interactive Help Information**: 
     - Added tooltip that appears when hovering over AI confidence percentage
-    - Shows "What does this mean?" explanation about AI certainty
+    - Shows confidence level ranges with clear explanations:
+      • 70-100%: AI found clear patterns and is confident
+      • 40-70%: Some patterns found, but needs more data or context
+      • 0-40%: Limited data or unclear question
     - Provides actionable tips to improve confidence:
       • Upload more complete data
       • Ask specific questions
