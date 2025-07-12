@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Home, Database, Settings, LogOut, BarChart, CreditCard } from 'lucide-react';
+import { MessageCircle, Database, Settings, LogOut, BarChart, CreditCard } from 'lucide-react';
 import HyppoLogo from '@/components/HyppoLogo';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -19,7 +19,7 @@ export default function Navbar() {
   };
 
   const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: Home },
+    { path: '/chat', label: 'Chat', icon: MessageCircle },
     { path: '/connections', label: 'Data Sources', icon: Database },
     { path: '/dashboards', label: 'Dashboards', icon: BarChart },
   ];

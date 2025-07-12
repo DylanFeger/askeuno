@@ -23,9 +23,9 @@ export default function Home() {
   const [, setLocation] = useLocation();
 
   const handleAuthSuccess = () => {
-    // Redirect to dashboard after successful auth
+    // Redirect to chat after successful auth
     queryClient.invalidateQueries();
-    setLocation('/dashboard');
+    setLocation('/chat');
   };
 
   if (isLoading) {
@@ -63,9 +63,9 @@ export default function Home() {
                 Let's continue making sense of your data together.
               </p>
               
-              <Link href="/dashboard">
+              <Link href="/chat">
                 <Button size="lg" className="px-8 py-6 text-lg">
-                  Go to Dashboard
+                  Start Chatting
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
@@ -104,7 +104,7 @@ export default function Home() {
                   <p className="text-gray-600 mb-4">
                     Ask questions in plain English. Hyppo understands your business context and provides clear answers.
                   </p>
-                  <Link href="/dashboard">
+                  <Link href="/chat">
                     <Button variant="outline" size="sm">
                       Start Chatting
                     </Button>

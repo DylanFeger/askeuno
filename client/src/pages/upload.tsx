@@ -85,7 +85,7 @@ export default function UploadPage() {
       
       // Invalidate data sources query and redirect
       queryClient.invalidateQueries({ queryKey: ['/api/data-sources'] });
-      setTimeout(() => setLocation('/'), 1500);
+      setTimeout(() => setLocation('/chat'), 1500);
     },
     onError: (error: Error) => {
       toast({
@@ -137,9 +137,9 @@ export default function UploadPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6">
-            <Link href="/">
+            <Link href="/chat">
               <Button variant="ghost" className="mb-4">
-                ← Back to Dashboard
+                ← Back to Chat
               </Button>
             </Link>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Upload Data File</h1>

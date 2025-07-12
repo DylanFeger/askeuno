@@ -192,8 +192,9 @@ The application follows a monorepo structure with clear separation between front
 ✓ **HOME PAGE REDESIGN - PURELY WELCOMING** (January 11, 2025):
   - **Complete Separation of Marketing and Functional Areas**:
     - Home page is now purely welcoming with zero functional tools
-    - All data sources, chat interface, and work tools moved to new /dashboard route
-    - Authentication redirects users to dashboard instead of home
+    - Chat interface is now the primary feature at /chat route
+    - All data sources overview maintained at /dashboard route
+    - Authentication redirects users to /chat instead of home
   - **Warm, Inviting Hero Section**:
     - Tagline: "Your business data, simplified — insights in a chat"
     - Subheading emphasizes core benefit with secure, smart answers
@@ -201,7 +202,7 @@ The application follows a monorepo structure with clear separation between front
   - **Conditional Content for Logged-in Users**:
     - Personalized welcome message with username
     - "How Acre Works" section with three clear steps
-    - Direct links to workflow pages (connections, dashboard, dashboards)
+    - Direct links to workflow pages (connections, chat, dashboards)
     - Each step has numbered visual guide and action button
   - **Four Key Benefits Highlighted**:
     - Connect your data — live or manual
@@ -213,8 +214,9 @@ The application follows a monorepo structure with clear separation between front
     - Auth section positioned prominently below hero
     - No credit card required messaging
   - **Navigation Updates**:
-    - Navbar now shows "Dashboard" instead of "Home" for logged-in users
-    - All functional navigation leads to /dashboard
+    - Navbar now shows "Chat" as the primary navigation item for logged-in users
+    - Chat page (/chat) is the default landing page after authentication
+    - Data sources overview available at /dashboard as secondary page
     - Kept existing sage green color scheme throughout
 ✓ **CORE DATA PIPELINE IMPLEMENTED** (January 10, 2025):
   - **AWS S3 Integration**: Secure file storage with business isolation
@@ -350,5 +352,20 @@ The application follows a monorepo structure with clear separation between front
     - Home, Dashboard, Features, Security, Contact, Docs, Privacy, Subscription pages
     - Footer and Navbar components now use Hyppo branding
     - Support email updated to support@hyppo.com
+✓ **CHAT AS PRIMARY FEATURE** (January 12, 2025):
+  - **Navigation Updates**: 
+    - Removed "Dashboard" from navigation bar and replaced with "Chat"
+    - Chat page (/chat) is now the default landing page for authenticated users
+    - All authentication redirects now go to /chat instead of /dashboard
+    - Upload success redirects to /chat for immediate interaction
+  - **Chat-First Experience**:
+    - Created dedicated chat.tsx page with welcoming message
+    - Chat interface is prominently featured as the main interaction point
+    - Data sources overview moved to secondary /dashboard page
+    - "Start Chatting" button on home page leads directly to chat
+  - **User Flow**:
+    - Non-authenticated users see marketing home page and are redirected to login
+    - Authenticated users land directly on chat page with personalized welcome
+    - Quick access to connect data or upload files if no data sources exist
 → Waiting for AWS SES credentials to enable email functionality
 → Backend is now production-ready with enterprise-grade security, monitoring, and data pipeline
