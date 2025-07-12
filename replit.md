@@ -385,5 +385,18 @@ The application follows a monorepo structure with clear separation between front
     - Added delete button for uploaded files with confirmation dialog
     - Warns users about permanent data deletion
     - Automatically cleans up associated data and S3 files
-→ Waiting for AWS SES credentials to enable email functionality
+✓ **CONFIDENCE PERCENTAGE TOOLTIP** (January 12, 2025):
+  - **Interactive Help Information**: 
+    - Added tooltip that appears when hovering over AI confidence percentage
+    - Shows "What does this mean?" explanation about AI certainty
+    - Provides actionable tips to improve confidence:
+      • Upload more complete data
+      • Ask specific questions
+      • Provide date ranges or filters
+      • Ensure data has clear patterns
+  - **Visual Enhancements**:
+    - Added help cursor (cursor-help) to indicate interactive element
+    - Tooltip styled with max width for readability
+    - Clear section headers and bullet points for easy scanning
+→ Waiting for AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, S3_BUCKET_NAME) to enable file storage functionality
 → Backend is now production-ready with enterprise-grade security, monitoring, and data pipeline

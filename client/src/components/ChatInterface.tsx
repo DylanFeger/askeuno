@@ -6,6 +6,12 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -140,9 +146,28 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
               
               {msg.role === 'assistant' && msg.metadata?.confidence && (
                 <div className="mt-2 flex items-center space-x-2">
-                  <Badge variant="outline" className="text-xs">
-                    {Math.round(msg.metadata.confidence * 100)}% confident
-                  </Badge>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge variant="outline" className="text-xs cursor-help">
+                          {Math.round(msg.metadata.confidence * 100)}% confident
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <div className="space-y-2 text-sm">
+                          <p className="font-semibold">What does this mean?</p>
+                          <p>The AI's confidence shows how certain it is about this answer based on your data.</p>
+                          <p className="font-semibold mt-2">To improve confidence:</p>
+                          <ul className="list-disc list-inside space-y-1">
+                            <li>Upload more complete data</li>
+                            <li>Ask specific questions</li>
+                            <li>Provide date ranges or filters</li>
+                            <li>Ensure data has clear patterns</li>
+                          </ul>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               )}
               
