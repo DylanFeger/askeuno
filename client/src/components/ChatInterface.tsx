@@ -146,14 +146,16 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
               
               {msg.role === 'assistant' && msg.metadata?.confidence && (
                 <div className="mt-2 flex items-center space-x-2">
-                  <TooltipProvider>
+                  <TooltipProvider delayDuration={0}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Badge variant="outline" className="text-xs cursor-help">
-                          {Math.round(msg.metadata.confidence * 100)}% confident
-                        </Badge>
+                        <div>
+                          <Badge variant="outline" className="text-xs cursor-help">
+                            {Math.round(msg.metadata.confidence * 100)}% confident
+                          </Badge>
+                        </div>
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
+                      <TooltipContent className="max-w-sm bg-white border shadow-lg p-3 z-50">
                         <div className="space-y-2 text-sm">
                           <p className="font-semibold">Confidence Levels:</p>
                           <ul className="space-y-1">
