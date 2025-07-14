@@ -31,7 +31,7 @@ export default function Navbar() {
             <Link href="/">
               <div className="flex items-center cursor-pointer hover:opacity-80 transition-opacity">
                 <HyppoLogo className="w-8 h-8" />
-                <span className="ml-3 text-xl font-bold text-gray-900">Hyppo</span>
+                <span className="ml-3 text-xl font-bold text-gray-900">Euno</span>
               </div>
             </Link>
             

@@ -84,7 +84,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   return (
     <Card className="p-8">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold text-gray-900">Ask Your AI Assistant</h2>
+        <h2 className="text-2xl font-semibold text-gray-900">Chat with Euno</h2>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <Brain className="w-4 h-4 text-gray-500" />
@@ -114,7 +114,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             </div>
             <div className="bg-gray-50 rounded-lg p-4 max-w-md">
               <p className="text-gray-800">
-                Hello! I'm your AI assistant. Upload your data and I'll help you get insights instantly. Try asking me things like:
+                Hello! I'm Euno, your AI assistant. Upload your data and I'll help you get insights instantly. Try asking me things like:
               </p>
               <ul className="mt-2 text-sm text-gray-600">
                 <li>• "What were our best selling products last month?"</li>
@@ -251,7 +251,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
         <div className="flex-1 relative">
           <Input
             type="text"
-            placeholder="Ask me anything about your data..."
+            placeholder="Ask Euno anything..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}

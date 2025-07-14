@@ -311,7 +311,7 @@ export default function SubscriptionPage() {
 
           {/* Trust Signals */}
           <div className="mt-16 text-center">
-            <h3 className="text-2xl font-bold mb-8">Why Businesses Choose Hyppo</h3>
+            <h3 className="text-2xl font-bold mb-8">Why Businesses Choose Euno</h3>
             <div className="grid md:grid-cols-3 gap-6">
               <div>
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
@@ -348,7 +348,7 @@ export default function SubscriptionPage() {
               <p className="text-sm text-gray-600">
                 <AlertCircle className="w-4 h-4 inline mr-1" />
                 Questions about pricing? Email us at{' '}
-                <a href="mailto:support@acre.com" className="text-primary hover:underline">support@acre.com</a>
+                <a href="mailto:support@euno.com" className="text-primary hover:underline">support@euno.com</a>
               </p>
             </div>
           </div>

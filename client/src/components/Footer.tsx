@@ -10,7 +10,7 @@ export default function Footer() {
             <Link href="/">
               <div className="flex items-center space-x-3 mb-4 cursor-pointer hover:opacity-80 transition-opacity">
                 <HyppoLogo className="w-8 h-8" />
-                <span className="text-xl font-bold">Hyppo</span>
+                <span className="text-xl font-bold">Euno</span>
               </div>
             </Link>
             <p className="text-gray-400">Making business data simple and actionable for everyone.</p>
@@ -45,7 +45,7 @@ export default function Footer() {
         </div>
         
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2024 Acre. All rights reserved.</p>
+          <p>&copy; 2024 Euno. All rights reserved.</p>
         </div>
       </div>
     </footer>

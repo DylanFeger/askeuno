@@ -56,7 +56,7 @@ export default function Home() {
               </div>
               
               <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-                Welcome back to Hyppo, {user?.username}!
+                Welcome back to Euno, {user?.username}!
               </h1>
               <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
                 Your business data, simplified — insights in a chat. 
@@ -72,11 +72,11 @@ export default function Home() {
             </div>
           </section>
 
-          {/* How Hyppo Works Section */}
+          {/* How Euno Works Section */}
           <section className="py-16 px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">How Hyppo Works</h2>
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">How Euno Works</h2>
                 <p className="text-lg text-gray-600">Three simple steps to unlock your data insights</p>
               </div>
               
@@ -100,9 +100,9 @@ export default function Home() {
                   <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-2xl font-bold text-primary">2</span>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Chat with Hyppo</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Chat with Euno</h3>
                   <p className="text-gray-600 mb-4">
-                    Ask questions in plain English. Hyppo understands your business context and provides clear answers.
+                    Ask questions in plain English. Euno understands your business context and provides clear answers.
                   </p>
                   <Link href="/chat">
                     <Button variant="outline" size="sm">
@@ -145,7 +145,7 @@ export default function Home() {
             <Link href="/">
               <div className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity">
                 <HyppoLogo className="w-8 h-8" />
-                <span className="text-xl font-bold text-gray-900">Hyppo</span>
+                <span className="text-xl font-bold text-gray-900">Euno</span>
               </div>
             </Link>
             <nav className="hidden md:flex items-center space-x-6">
@@ -182,7 +182,7 @@ export default function Home() {
             <span className="text-primary">insights in a chat</span>
           </h1>
           <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
-            Upload or connect your data — Hyppo handles the rest with secure, smart answers in seconds. 
+            Upload or connect your data — Euno handles the rest with secure, smart answers in seconds. 
             No complex dashboards. Just clear insights when you need them.
           </p>
           
@@ -208,7 +208,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Ready to simplify your data?</h2>
-            <p className="text-lg text-gray-600">Sign up or sign in to unlock Hyppo's full experience</p>
+            <p className="text-lg text-gray-600">Sign up or sign in to unlock Euno's full experience</p>
           </div>
           <AuthForm onSuccess={handleAuthSuccess} />
         </div>
@@ -218,7 +218,7 @@ export default function Home() {
       <section id="benefits" className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why businesses choose Hyppo</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Why businesses choose Euno</h2>
             <p className="text-xl text-gray-600">Simple, powerful, and built for your success</p>
           </div>
           

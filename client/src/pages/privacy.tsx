@@ -12,7 +12,7 @@ export default function Privacy() {
           <Link href="/">
             <Button variant="ghost" className="gap-2">
               <ArrowLeft className="w-4 h-4" />
-              Back to Hyppo
+              Back to Euno
             </Button>
           </Link>
         </div>
@@ -29,7 +29,7 @@ export default function Privacy() {
           {/* Introduction */}
           <Card className="p-8">
             <p className="text-gray-700 leading-relaxed">
-              At Hyppo, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect your information when you use our data analytics platform. We're committed to being transparent about our practices and giving you control over your data.
+              At Euno, we take your privacy seriously. This Privacy Policy explains how we collect, use, and protect your information when you use our data analytics platform. We're committed to being transparent about our practices and giving you control over your data.
             </p>
           </Card>
 
@@ -119,12 +119,12 @@ export default function Privacy() {
               <h2 className="text-2xl font-semibold text-gray-900">Cookie Policy</h2>
             </div>
             <div className="space-y-3 text-gray-700">
-              <p>We use cookies to make Hyppo work better for you:</p>
+              <p>We use cookies to make Euno work better for you:</p>
               <ul className="space-y-2 ml-4">
-                <li>• <strong>Session cookies</strong> keep you logged in while you use Hyppo</li>
+                <li>• <strong>Session cookies</strong> keep you logged in while you use Euno</li>
                 <li>• <strong>Analytics cookies</strong> help us understand how to improve our service</li>
               </ul>
-              <p className="mt-4">You can manage cookie preferences in your browser settings. Note that disabling cookies may affect some features of Hyppo.</p>
+              <p className="mt-4">You can manage cookie preferences in your browser settings. Note that disabling cookies may affect some features of Euno.</p>
             </div>
           </Card>
 
@@ -139,7 +139,7 @@ export default function Privacy() {
               </div>
               <div>
                 <h3 className="font-medium mb-2">Account Deletion</h3>
-                <p>To delete your account and all associated data, please contact us at support@[mydomain].com. We'll process your request within 30 days.</p>
+                <p>To delete your account and all associated data, please contact us at support@euno.com. We'll process your request within 30 days.</p>
               </div>
               <div>
                 <h3 className="font-medium mb-2">Privacy Concerns</h3>
@@ -159,8 +159,8 @@ export default function Privacy() {
               <p>We're here to help!</p>
               <div className="mt-4">
                 <p className="font-medium">Email us at:</p>
-                <a href="mailto:support@[mydomain].com" className="text-primary hover:underline text-lg">
-                  support@[mydomain].com
+                <a href="mailto:support@euno.com" className="text-primary hover:underline text-lg">
+                  support@euno.com
                 </a>
               </div>
               <p className="text-sm mt-4">We typically respond within 24 business hours.</p>
@@ -179,10 +179,10 @@ export default function Privacy() {
 
         {/* Footer */}
         <div className="mt-12 pt-8 border-t border-gray-200 text-center text-gray-600">
-          <p>© 2025 Hyppo. All rights reserved.</p>
+          <p>© 2025 Euno. All rights reserved.</p>
           <Link href="/">
             <Button variant="link" className="mt-2">
-              Return to Hyppo
+              Return to Euno
             </Button>
           </Link>
         </div>

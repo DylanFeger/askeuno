@@ -1,8 +1,8 @@
-# Hyppo - Data Platform for Small Businesses
+# Euno - Data Platform for Small Businesses
 
 ## Overview
 
-Hyppo (formerly Acre) is a secure, easy-to-use data platform designed to help small businesses upload, store, and analyze their data. The application provides a secure upload portal, cloud storage integration, ETL processing, and AI-powered insights through a conversational interface.
+Euno (formerly Hyppo/Acre) is a secure, easy-to-use data platform designed to help small businesses upload, store, and analyze their data. The application provides a secure upload portal, cloud storage integration, ETL processing, and AI-powered insights through a conversational interface.
 
 ## User Preferences
 
@@ -327,7 +327,7 @@ The application follows a monorepo structure with clear separation between front
   - **Enhanced UX**: Warm, transparent communication
     - Clear feature comparisons with checkmarks and crossed-out items
     - Trust signals section highlighting security and value
-    - Support email (support@hyppo.com) for questions
+    - Support email (support@euno.com) for questions
   - **Database Schema Updates**: Added subscription tracking fields
     - subscriptionStatus: trial, active, cancelled, expired
     - billingCycle: monthly or annual
@@ -352,6 +352,19 @@ The application follows a monorepo structure with clear separation between front
     - Home, Dashboard, Features, Security, Contact, Docs, Privacy, Subscription pages
     - Footer and Navbar components now use Hyppo branding
     - Support email updated to support@hyppo.com
+✓ **COMPLETE REBRAND FROM HYPPO TO EUNO** (January 14, 2025):
+  - **New Brand Identity**: Complete transition from Hyppo to Euno
+    - Kept existing HyppoLogo component unchanged as requested
+    - Updated all text references to "Euno" across entire codebase
+    - Domain set to "askeuno.com"
+  - **Enhanced Chat Experience**: Updated to encourage "Ask Euno" interactions
+    - Chat header now shows "Chat with Euno"
+    - Welcome message says "Hello! I'm Euno, your AI assistant"
+    - Input placeholder updated to "Ask Euno anything..."
+  - **Brand Consistency**: Updated all pages and components
+    - Site title and metadata now reference Euno
+    - Support email updated to support@euno.com
+    - All pages, footers, navigation, and privacy policy updated
 ✓ **CHAT AS PRIMARY FEATURE** (January 12, 2025):
   - **Navigation Updates**: 
     - Removed "Dashboard" from navigation bar and replaced with "Chat"
