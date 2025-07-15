@@ -81,7 +81,7 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: MulterReq
     // Transform data based on detected schema
     const transformedData = transformData(result.data.rows, result.data.schema);
 
-    // Create data source record
+    // Create data source record with initial status as processing
     const dataSource = await storage.createDataSource({
       userId: req.user.id,
       name: dataSourceName || originalname,
@@ -93,15 +93,35 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: MulterReq
         uploadDate: new Date().toISOString(),
       },
       schema: result.data.schema,
-      rowCount: transformedData.length,
-      status: 'active',
+      rowCount: 0, // Start with 0, update after successful insert
+      status: 'processing',
       description: description || result.data.summary,
       lastSyncAt: new Date(),
     });
 
     // Store processed data
-    if (transformedData.length > 0) {
-      await storage.insertDataRows(dataSource.id, transformedData);
+    try {
+      if (transformedData.length > 0) {
+        await storage.insertDataRows(dataSource.id, transformedData);
+        
+        // Update data source with actual row count after successful insert
+        await storage.updateDataSource(dataSource.id, {
+          rowCount: transformedData.length,
+          status: 'active',
+        });
+      } else {
+        // No data to insert, mark as active
+        await storage.updateDataSource(dataSource.id, {
+          status: 'active',
+        });
+      }
+    } catch (insertError) {
+      // Update data source to show error status
+      await storage.updateDataSource(dataSource.id, {
+        status: 'error',
+        errorMessage: `Failed to store data: ${insertError.message}`,
+      });
+      throw insertError; // Re-throw to trigger the error response
     }
 
     logger.info('File upload completed', {

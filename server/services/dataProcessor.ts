@@ -111,6 +111,18 @@ export async function processUploadedFile(
 export function transformData(rows: any[], schema: any): any[] {
   if (!rows || rows.length === 0) return [];
   
+  // Convert schema array to object for easier lookup
+  const schemaMap: Record<string, string> = {};
+  if (Array.isArray(schema)) {
+    schema.forEach((col: any) => {
+      if (col.name && col.type) {
+        schemaMap[col.name] = col.type;
+      }
+    });
+  } else if (typeof schema === 'object') {
+    Object.assign(schemaMap, schema);
+  }
+  
   return rows.map((row) => {
     const transformed: any = {};
     
@@ -122,24 +134,23 @@ export function transformData(rows: any[], schema: any): any[] {
       const cleanKey = String(key).trim();
       if (!cleanKey) continue;
       
-      const schemaType = schema[cleanKey] || 'string';
+      const schemaType = schemaMap[cleanKey] || 'string';
       
       switch (schemaType) {
         case 'number':
         case 'integer':
-          transformed[cleanKey] = value !== null && value !== undefined && value !== '' 
-            ? parseFloat(String(value)) 
-            : null;
+          const numValue = parseFloat(String(value));
+          transformed[cleanKey] = !isNaN(numValue) ? numValue : null;
           break;
         case 'boolean':
-          transformed[key] = value === true || value === 'true' || value === 1;
+          transformed[cleanKey] = value === true || value === 'true' || value === 1;
           break;
         case 'date':
         case 'datetime':
-          transformed[key] = value ? new Date(String(value)).toISOString() : null;
+          transformed[cleanKey] = value ? new Date(String(value)).toISOString() : null;
           break;
         default:
-          transformed[key] = value !== null && value !== undefined ? String(value) : null;
+          transformed[cleanKey] = value !== null && value !== undefined ? String(value) : null;
       }
     }
     
@@ -171,8 +182,15 @@ export function validateData(rows: any[], schema: any): ValidationResult {
   
   // Check for missing required columns
   const firstRow = rows[0];
-  const expectedColumns = Object.keys(schema);
   const actualColumns = Object.keys(firstRow);
+  
+  // Handle schema as array or object
+  let expectedColumns: string[] = [];
+  if (Array.isArray(schema)) {
+    expectedColumns = schema.map((col: any) => col.name).filter((name: any) => name);
+  } else if (typeof schema === 'object') {
+    expectedColumns = Object.keys(schema);
+  }
   
   // Skip validation if schema has numeric column names (likely from Excel processing)
   const hasNumericColumns = expectedColumns.some(col => !isNaN(Number(col)));
@@ -193,7 +211,14 @@ export function validateData(rows: any[], schema: any): ValidationResult {
     for (const [key, value] of Object.entries(row)) {
       if (value === null || value === undefined || value === '') continue;
       
-      const expectedType = schema[key];
+      // Get expected type from schema (handle array or object format)
+      let expectedType: string | undefined;
+      if (Array.isArray(schema)) {
+        const schemaCol = schema.find((col: any) => col.name === key);
+        expectedType = schemaCol?.type;
+      } else {
+        expectedType = schema[key];
+      }
       if (!expectedType) continue;
       
       let isValid = true;
