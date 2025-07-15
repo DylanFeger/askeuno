@@ -334,7 +334,15 @@ The application follows a monorepo structure with clear separation between front
     - trialStartDate, trialEndDate for trial tracking
     - trialHistory: JSON array tracking used trials per tier
 → OpenAI API key configured and working
-→ AWS S3 credentials needed for file storage functionality
+✓ **AWS INTEGRATION SETUP** (January 15, 2025):
+  - **AWS Credentials Configured**: All required AWS environment variables added
+    - AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION (us-east-2), S3_BUCKET_NAME (euno-user-uploads)
+    - User has limited permissions - cannot create buckets but can upload/download files
+  - **S3 Bucket Requirements**: 
+    - Bucket "euno-user-uploads" needs to be created by AWS admin
+    - Once created, application will have full file upload/download functionality
+  - **SES Configuration**: Email service ready for welcome emails and notifications
+→ S3 bucket "euno-user-uploads" needs to be created by AWS admin user
 → Redis needed for background job processing (optional for development)
 ✓ **COMPLETE REBRAND FROM ACRE TO HYPPO** (January 12, 2025):
   - **New Brand Identity**: Complete transition from Acre to Hyppo
