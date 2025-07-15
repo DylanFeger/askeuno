@@ -91,23 +91,53 @@ async function processExcelFile(filePath: string): Promise<any[]> {
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];
   
-  const data = XLSX.utils.sheet_to_json(worksheet, {
-    header: 1,
+  // First try to read with automatic header detection
+  let data = XLSX.utils.sheet_to_json(worksheet, {
     raw: false,
     dateNF: 'yyyy-mm-dd'
   });
   
-  if (data.length === 0) return [];
-  
-  const headers = data[0] as string[];
-  const rows = data.slice(1);
-  
-  return rows.map(row => {
-    const obj: any = {};
-    headers.forEach((header, index) => {
-      obj[header] = (row as any[])[index] || null;
+  // If data is empty or has numeric keys, try alternative approach
+  if (data.length === 0 || (data.length > 0 && Object.keys(data[0]).some(key => !isNaN(Number(key))))) {
+    // Read as array of arrays
+    const arrayData = XLSX.utils.sheet_to_json(worksheet, {
+      header: 1,
+      raw: false,
+      dateNF: 'yyyy-mm-dd'
     });
-    return obj;
+    
+    if (arrayData.length === 0) return [];
+    
+    // Extract headers from first row
+    const headers = (arrayData[0] as any[]).map((header, index) => {
+      // If header is empty or numeric, create a default column name
+      if (!header || header === '' || !isNaN(Number(header))) {
+        return `Column_${index + 1}`;
+      }
+      // Clean header name - remove special characters and spaces
+      return String(header).replace(/[^a-zA-Z0-9_]/g, '_').replace(/^_+|_+$/g, '');
+    });
+    
+    const rows = arrayData.slice(1);
+    
+    data = rows.map(row => {
+      const obj: any = {};
+      headers.forEach((header, index) => {
+        obj[header] = (row as any[])[index] || null;
+      });
+      return obj;
+    });
+  }
+  
+  // Clean column names in the data
+  return data.map(row => {
+    const cleanedRow: any = {};
+    Object.keys(row).forEach(key => {
+      // Clean the key name
+      const cleanKey = key.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^_+|_+$/g, '') || `Column_${Object.keys(cleanedRow).length + 1}`;
+      cleanedRow[cleanKey] = row[key];
+    });
+    return cleanedRow;
   });
 }
 

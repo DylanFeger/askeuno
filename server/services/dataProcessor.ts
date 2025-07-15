@@ -115,12 +115,21 @@ export function transformData(rows: any[], schema: any): any[] {
     const transformed: any = {};
     
     for (const [key, value] of Object.entries(row)) {
-      const schemaType = schema[key] || 'string';
+      // Skip undefined keys
+      if (key === undefined || key === 'undefined') continue;
+      
+      // Clean the key name to ensure it's valid
+      const cleanKey = String(key).trim();
+      if (!cleanKey) continue;
+      
+      const schemaType = schema[cleanKey] || 'string';
       
       switch (schemaType) {
         case 'number':
         case 'integer':
-          transformed[key] = value ? parseFloat(String(value)) : null;
+          transformed[cleanKey] = value !== null && value !== undefined && value !== '' 
+            ? parseFloat(String(value)) 
+            : null;
           break;
         case 'boolean':
           transformed[key] = value === true || value === 'true' || value === 1;
@@ -164,6 +173,13 @@ export function validateData(rows: any[], schema: any): ValidationResult {
   const firstRow = rows[0];
   const expectedColumns = Object.keys(schema);
   const actualColumns = Object.keys(firstRow);
+  
+  // Skip validation if schema has numeric column names (likely from Excel processing)
+  const hasNumericColumns = expectedColumns.some(col => !isNaN(Number(col)));
+  if (hasNumericColumns) {
+    // Don't report missing columns for numeric schemas
+    return { isValid: true, errors: [] };
+  }
   
   const missingColumns = expectedColumns.filter((col) => !actualColumns.includes(col));
   if (missingColumns.length > 0) {

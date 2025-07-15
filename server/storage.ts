@@ -200,12 +200,29 @@ export class DatabaseStorage implements IStorage {
 
   // Data rows operations
   async insertDataRows(dataSourceId: number, rows: any[]): Promise<void> {
-    const dataRowsToInsert = rows.map(row => ({
-      dataSourceId,
-      rowData: row
-    }));
+    if (rows.length === 0) return;
     
-    await db.insert(dataRows).values(dataRowsToInsert);
+    // Insert in batches to avoid protocol errors
+    const BATCH_SIZE = 100;
+    
+    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+      const batch = rows.slice(i, i + BATCH_SIZE);
+      const dataRowsToInsert = batch.map(row => {
+        // Clean the row data to ensure valid JSON
+        const cleanedRow = JSON.parse(JSON.stringify(row));
+        return {
+          dataSourceId,
+          rowData: cleanedRow
+        };
+      });
+      
+      try {
+        await db.insert(dataRows).values(dataRowsToInsert);
+      } catch (error) {
+        console.error(`Error inserting batch ${i / BATCH_SIZE + 1}:`, error);
+        throw new Error(`Failed to insert data rows at batch ${i / BATCH_SIZE + 1}: ${error.message}`);
+      }
+    }
   }
 
   async getDataRows(dataSourceId: number, limit: number = 100): Promise<DataRow[]> {
