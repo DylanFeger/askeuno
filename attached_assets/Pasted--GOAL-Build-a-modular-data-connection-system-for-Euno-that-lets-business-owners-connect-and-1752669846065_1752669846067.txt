@@ -1,0 +1,109 @@
+// 🎯 GOAL:
+// Build a modular data connection system for Euno that lets business owners connect and manage their data sources.
+// Support these sources: MySQL, PostgreSQL, MongoDB, Google Sheets (via CSV/XLSX upload), AWS S3, Salesforce, Shopify, Google Ads, and Custom API.
+
+// 📦 STACK:
+// - Node.js + Express for backend
+// - React (or Vanilla JS) frontend
+// - TailwindCSS for styling
+// - Replit DB or PostgreSQL to store connection metadata
+// - Use mock connections where live credentials aren't supplied
+
+// 🧩 CONNECTION UI STRUCTURE:
+/*
+1. Connection Name (user-defined)
+2. Source Type (dropdown: MySQL, PostgreSQL, etc.)
+3. Source-Specific Fields (host, user, password, file upload, API keys)
+4. Sync Frequency (dropdown: 5, 15, 30, 60 min)
+5. Submit button
+*/
+
+// 📁 File Structure:
+/project
+  /routes
+    connections.js
+  /controllers
+    connectors.js
+  /utils
+    mysql.js
+    postgres.js
+    mongo.js
+    s3.js
+    sheets.js
+    salesforce.js
+    shopify.js
+    googleAds.js
+    customApi.js
+  /public
+    index.html
+    style.css
+    script.js
+  server.js
+
+// 🗃 DB Schema (Replit DB or SQL):
+/*
+{
+  id: "uuid",
+  userId: "user123",
+  connectionName: "My Inventory",
+  type: "Shopify",
+  config: {
+    host: "host.com",
+    username: "shop_user",
+    password: "********",
+    bucket: "euno-data",
+    apiKey: "xxx",
+    secret: "yyy",
+    sheetId: "",
+    apiUrl: "",
+  },
+  syncFrequency: 15,
+  lastSynced: null
+}
+*/
+
+// 🔌 ROUTES TO IMPLEMENT:
+// POST /connect - save new connection
+// GET /connections/:userId - get all user connections
+// POST /sync/:connectionId - manually trigger sync
+// GET /data/:connectionId - return latest cached data for analysis
+
+// 🧠 Backend Logic (in connectors.js):
+// When a connection is saved:
+// - Validate the config fields
+// - Store securely
+// - Run a test connection or file preview
+// - Schedule sync with setInterval using syncFrequency (or cron-like logic)
+
+// ✅ For Sheet Uploads (No OAuth):
+// - Accept CSV/XLSX file
+// - Store file locally or temporarily in memory
+// - Parse using `papaparse` or `xlsx`
+// - Analyze data immediately and show results
+
+// ✅ For AWS S3:
+// - User enters accessKey, secretKey, bucket name
+// - Fetch JSON/CSV files using AWS SDK
+// - Parse and return result
+
+// ✅ For Google Ads / Salesforce / Shopify:
+// - Simulate with mock endpoints and dummy data in MVP
+// - Include placeholder fields for access_token, store_url, etc.
+
+// ✅ For Custom API:
+// - Accept a user-defined endpoint
+// - Support GET (optionally POST with headers/body)
+// - Fetch JSON data, save result for analysis
+
+// 🧠 Final Notes:
+// - Auto-refresh data based on sync frequency
+// - Show status on dashboard (Last Synced, Active/Failed, etc.)
+// - Allow users to delete or update connections
+// - Focus on modular, testable code for each source
+
+// 🏁 Prompt Replit AI to:
+// [1] Scaffold the backend and frontend folder structure above
+// [2] Build a basic UI for selecting and submitting data connection info
+// [3] Create a reusable connector handler per source type
+// [4] Simulate working connections with mock data for now if credentials aren't entered
+// [5] Allow test syncing immediately after connection

@@ -61,9 +61,9 @@ export default function Integrations() {
         {
           name: 'Google Sheets',
           icon: SiGooglesheets,
-          description: 'Quick spreadsheet uploads for easy updates.',
+          description: 'Connect via CSV/Excel upload - no complex auth needed.',
           status: 'available',
-          syncType: 'Real-time sync'
+          syncType: 'Manual upload'
         },
         {
           name: 'Excel Uploads',

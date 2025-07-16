@@ -359,71 +359,16 @@ async function connectToSalesforce(config: any): Promise<ConnectionResult> {
 }
 
 /**
- * Connect to Google Sheets
+ * Google Sheets - Handled via file upload for simplicity
+ * Users download their sheets as CSV/Excel and upload them
  */
 async function connectToGoogleSheets(config: any): Promise<ConnectionResult> {
-  const { spreadsheetId, sheetName } = config;
-  
-  // For now, Google Sheets requires OAuth authentication which is complex to set up
-  // Return a helpful error message
-  if (!spreadsheetId) {
-    return {
-      success: false,
-      error: 'Please provide a valid Google Sheets ID',
-    };
-  }
-
-  // Temporary implementation notice
+  // Google Sheets is handled via file upload to avoid OAuth complexity
+  // This provides a simpler user experience for small businesses
   return {
     success: false,
-    error: 'Google Sheets integration requires Google OAuth setup. For now, please download your sheet as CSV or Excel and upload it instead. Full Google Sheets integration is coming soon!',
+    error: 'Google Sheets connections work through file upload. Please download your sheet as CSV or Excel and upload it in the "Upload Files" tab.',
   };
-
-  // Future implementation will use proper OAuth flow
-  // const auth = new google.auth.GoogleAuth({
-  //   credentials,
-  //   scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-  // });
-
-  // const sheets = google.sheets({ version: 'v4', auth });
-  
-  // const response = await sheets.spreadsheets.values.get({
-  //   spreadsheetId,
-  //   range: `${sheetName || 'Sheet1'}!A:Z`,
-  // });
-
-  // const rows = response.data.values || [];
-  // if (rows.length === 0) {
-  //   return {
-  //     success: true,
-  //     data: [],
-  //     schema: {},
-  //     rowCount: 0,
-  //   };
-  // }
-
-  // // First row as headers
-  // const headers = rows[0];
-  // const data = rows.slice(1).map(row => {
-  //   const obj: any = {};
-  //   headers.forEach((header, index) => {
-  //     obj[header] = row[index] || null;
-  //   });
-  //   return obj;
-  // });
-
-  // // Infer schema
-  // const schema: Record<string, string> = {};
-  // headers.forEach(header => {
-  //   schema[header] = 'string'; // Default to string
-  // });
-
-  // return {
-  //   success: true,
-  //   data,
-  //   schema,
-  //   rowCount: data.length,
-  // };
 }
 
 /**

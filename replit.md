@@ -403,6 +403,15 @@ The application follows a monorepo structure with clear separation between front
     - Site title and metadata now reference Euno
     - Support email updated to support@euno.com
     - All pages, footers, navigation, and privacy policy updated
+✓ **GOOGLE SHEETS SIMPLIFIED** (January 16, 2025):
+  - **Removed OAuth Complexity**: Google Sheets now works via CSV/Excel upload
+    - No OAuth authentication required - aligns with extreme simplicity principle
+    - Clear step-by-step instructions guide users to download and upload
+    - Backend returns helpful message instead of connection errors
+  - **Updated UI**: Connection dialog shows friendly upload instructions
+    - Added emoji and clear numbered steps
+    - Button to redirect to Upload Files tab
+    - Integrations page updated to show "Manual upload" sync type
 ✓ **CHAT AS PRIMARY FEATURE** (January 12, 2025):
   - **Navigation Updates**: 
     - Removed "Dashboard" from navigation bar and replaced with "Chat"

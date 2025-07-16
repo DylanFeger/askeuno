@@ -177,30 +177,36 @@ export default function ConnectionsPage() {
       case 'googlesheets':
         return (
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="spreadsheetId">Spreadsheet ID</Label>
-              <Input
-                id="spreadsheetId"
-                placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
-                value={connectionForm.spreadsheetId || ''}
-                onChange={(e) => setConnectionForm({ ...connectionForm, spreadsheetId: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="sheetName">Sheet Name (Optional)</Label>
-              <Input
-                id="sheetName"
-                placeholder="Sheet1"
-                value={connectionForm.sheetName || ''}
-                onChange={(e) => setConnectionForm({ ...connectionForm, sheetName: e.target.value })}
-              />
-            </div>
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
+            <Alert className="mb-4">
+              <FileSpreadsheet className="h-4 w-4" />
               <AlertDescription>
-                Google Sheets integration is coming soon! For now, please download your sheet as CSV or Excel and upload it using the "Upload Files" tab.
+                <strong>Simple Google Sheets Integration</strong><br />
+                Download your Google Sheet as CSV or Excel, then upload it using the "Upload Files" tab. This keeps things simple - no complex authentication needed!
               </AlertDescription>
             </Alert>
+            <div className="space-y-3 text-sm text-muted-foreground">
+              <p>📥 <strong>How to connect your Google Sheets:</strong></p>
+              <ol className="list-decimal list-inside space-y-2 ml-4">
+                <li>Open your Google Sheet</li>
+                <li>Go to File → Download → Microsoft Excel (.xlsx)</li>
+                <li>Switch to the "Upload Files" tab above</li>
+                <li>Drag and drop your downloaded file</li>
+              </ol>
+              <p className="mt-4">✨ Your data will be instantly available for AI analysis!</p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full mt-4"
+              onClick={() => {
+                setIsDialogOpen(false);
+                // Reset form
+                setSelectedType('');
+                setConnectionForm({});
+              }}
+            >
+              Go to Upload Files Tab
+            </Button>
           </div>
         );
 
