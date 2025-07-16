@@ -429,14 +429,16 @@ export default function SubscriptionPage() {
 
       {/* Subscribe Modal */}
       {showSubscribeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <Subscribe 
-              tier={selectedTier}
-              billingCycle={billingCycle}
-              onSuccess={handleSubscribeSuccess}
-              onCancel={handleSubscribeCancel}
-            />
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-full p-4">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full my-8">
+              <Subscribe 
+                tier={selectedTier}
+                billingCycle={billingCycle}
+                onSuccess={handleSubscribeSuccess}
+                onCancel={handleSubscribeCancel}
+              />
+            </div>
           </div>
         </div>
       )}
