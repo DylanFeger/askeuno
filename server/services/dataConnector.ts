@@ -362,52 +362,68 @@ async function connectToSalesforce(config: any): Promise<ConnectionResult> {
  * Connect to Google Sheets
  */
 async function connectToGoogleSheets(config: any): Promise<ConnectionResult> {
-  const { spreadsheetId, range, credentials } = config;
+  const { spreadsheetId, sheetName } = config;
   
-  const auth = new google.auth.GoogleAuth({
-    credentials,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-  });
-
-  const sheets = google.sheets({ version: 'v4', auth });
-  
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId,
-    range: range || 'Sheet1!A:Z',
-  });
-
-  const rows = response.data.values || [];
-  if (rows.length === 0) {
+  // For now, Google Sheets requires OAuth authentication which is complex to set up
+  // Return a helpful error message
+  if (!spreadsheetId) {
     return {
-      success: true,
-      data: [],
-      schema: {},
-      rowCount: 0,
+      success: false,
+      error: 'Please provide a valid Google Sheets ID',
     };
   }
 
-  // First row as headers
-  const headers = rows[0];
-  const data = rows.slice(1).map(row => {
-    const obj: any = {};
-    headers.forEach((header, index) => {
-      obj[header] = row[index] || null;
-    });
-    return obj;
-  });
-
-  // Infer schema
-  const schema: Record<string, string> = {};
-  headers.forEach(header => {
-    schema[header] = 'string'; // Default to string
-  });
-
+  // Temporary implementation notice
   return {
-    success: true,
-    data,
-    schema,
-    rowCount: data.length,
+    success: false,
+    error: 'Google Sheets integration requires Google OAuth setup. For now, please download your sheet as CSV or Excel and upload it instead. Full Google Sheets integration is coming soon!',
   };
+
+  // Future implementation will use proper OAuth flow
+  // const auth = new google.auth.GoogleAuth({
+  //   credentials,
+  //   scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+  // });
+
+  // const sheets = google.sheets({ version: 'v4', auth });
+  
+  // const response = await sheets.spreadsheets.values.get({
+  //   spreadsheetId,
+  //   range: `${sheetName || 'Sheet1'}!A:Z`,
+  // });
+
+  // const rows = response.data.values || [];
+  // if (rows.length === 0) {
+  //   return {
+  //     success: true,
+  //     data: [],
+  //     schema: {},
+  //     rowCount: 0,
+  //   };
+  // }
+
+  // // First row as headers
+  // const headers = rows[0];
+  // const data = rows.slice(1).map(row => {
+  //   const obj: any = {};
+  //   headers.forEach((header, index) => {
+  //     obj[header] = row[index] || null;
+  //   });
+  //   return obj;
+  // });
+
+  // // Infer schema
+  // const schema: Record<string, string> = {};
+  // headers.forEach(header => {
+  //   schema[header] = 'string'; // Default to string
+  // });
+
+  // return {
+  //   success: true,
+  //   data,
+  //   schema,
+  //   rowCount: data.length,
+  // };
 }
 
 /**

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Database, Cloud, Building2, ShoppingCart, BarChart3, FileSpreadsheet, Server, Wifi, AlertCircle, CheckCircle, Upload, FileIcon, Trash2 } from 'lucide-react';
 import { Link } from 'wouter';
 import Navbar from '@/components/Navbar';
@@ -186,7 +187,7 @@ export default function ConnectionsPage() {
               />
             </div>
             <div>
-              <Label htmlFor="sheetName">Sheet Name</Label>
+              <Label htmlFor="sheetName">Sheet Name (Optional)</Label>
               <Input
                 id="sheetName"
                 placeholder="Sheet1"
@@ -194,9 +195,12 @@ export default function ConnectionsPage() {
                 onChange={(e) => setConnectionForm({ ...connectionForm, sheetName: e.target.value })}
               />
             </div>
-            <p className="text-sm text-muted-foreground">
-              You'll need to authenticate with Google to access your sheets.
-            </p>
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Google Sheets integration is coming soon! For now, please download your sheet as CSV or Excel and upload it using the "Upload Files" tab.
+              </AlertDescription>
+            </Alert>
           </div>
         );
 
