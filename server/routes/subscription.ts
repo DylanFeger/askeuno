@@ -87,7 +87,6 @@ router.post('/get-or-create-subscription', requireAuth, async (req: Authenticate
       },
       product_data: {
         name: `Euno ${tier.charAt(0).toUpperCase() + tier.slice(1)} Plan`,
-        description: `${tier.charAt(0).toUpperCase() + tier.slice(1)} tier subscription for Euno`,
       },
     });
 
@@ -233,7 +232,6 @@ router.post('/update-tier', requireAuth, async (req: AuthenticatedRequest, res) 
       },
       product_data: {
         name: `Euno ${tier.charAt(0).toUpperCase() + tier.slice(1)} Plan`,
-        description: `${tier.charAt(0).toUpperCase() + tier.slice(1)} tier subscription for Euno`,
       },
     });
 
