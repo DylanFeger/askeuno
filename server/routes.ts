@@ -15,6 +15,7 @@ import authRoutes from "./routes/auth";
 import dataSourcesRoutes from "./routes/data-sources";
 import uploadRoutes from "./routes/uploads";
 import webhookRoutes from "./routes/webhooks";
+import subscriptionRoutes from "./routes/subscription";
 
 // Extend Express Request interface for file uploads
 interface MulterRequest extends Request {
@@ -72,6 +73,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication routes with IP rate limiting
   app.use('/api/auth', ipRateLimit(50, 15 * 60 * 1000), authRoutes); // 50 attempts per 15 minutes
+  
+  // Subscription routes
+  app.use('/api/subscription', subscriptionRoutes);
   
   // Data sources routes
   app.use('/api/data-sources', dataSourcesRoutes);

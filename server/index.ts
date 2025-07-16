@@ -18,19 +18,19 @@ app.set('trust proxy', 1);
 app.use(enforceHTTPS);
 app.use(httpsSecurityHeaders);
 
-// Security middleware
+// Security middleware with Stripe.js support
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'"],
+      connectSrc: ["'self'", "ws:", "wss:", "https://api.stripe.com", "https://ws.stripe.com"],
+      fontSrc: ["'self'", "https:", "data:"],
       objectSrc: ["'none'"],
+      frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
       mediaSrc: ["'self'"],
-      frameSrc: ["'none'"],
     },
   },
   crossOriginEmbedderPolicy: false,

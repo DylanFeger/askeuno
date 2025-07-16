@@ -6,10 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Check, X, CreditCard, Shield, TrendingUp, Sparkles, AlertCircle } from 'lucide-react';
+import { Check, X, CreditCard, Shield, TrendingUp, Sparkles, AlertCircle, Loader2 } from 'lucide-react';
 import { Link } from 'wouter';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import Subscribe from './subscribe';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -92,9 +95,13 @@ const plans = [
 ];
 
 export default function SubscriptionPage() {
-  const { user } = useAuth();
+  const { user, refetch } = useAuth();
+  const { toast } = useToast();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [selectedTier, setSelectedTier] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   if (!user) {
     return (
@@ -121,15 +128,49 @@ export default function SubscriptionPage() {
   trialEndDate.setDate(trialEndDate.getDate() + 25); // Mock: 25 days left
   const daysRemaining = Math.ceil((trialEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
-  const handleCancelSubscription = () => {
-    // TODO: Implement actual cancellation logic
-    console.log('Cancelling subscription...');
-    setShowCancelDialog(false);
+  const handleCancelSubscription = async () => {
+    setIsProcessing(true);
+    try {
+      const response = await apiRequest('POST', '/api/subscription/cancel');
+      if (response.ok) {
+        const data = await response.json();
+        toast({
+          title: "Subscription Cancelled",
+          description: data.message,
+        });
+        refetch(); // Refresh user data
+      } else {
+        throw new Error('Failed to cancel subscription');
+      }
+    } catch (error) {
+      toast({
+        title: "Cancellation Failed",
+        description: error instanceof Error ? error.message : "Failed to cancel subscription",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+      setShowCancelDialog(false);
+    }
   };
 
-  const handleUpgrade = (planId: string) => {
-    // TODO: Implement actual upgrade logic
-    console.log('Upgrading to', planId);
+  const handleSubscribe = (tier: string) => {
+    setSelectedTier(tier);
+    setShowSubscribeModal(true);
+  };
+
+  const handleSubscribeSuccess = () => {
+    setShowSubscribeModal(false);
+    refetch(); // Refresh user data
+    toast({
+      title: "Subscription Active",
+      description: "Your subscription has been activated successfully!",
+    });
+  };
+
+  const handleSubscribeCancel = () => {
+    setShowSubscribeModal(false);
+    setSelectedTier('');
   };
 
   return (
@@ -288,7 +329,7 @@ export default function SubscriptionPage() {
                           <Button 
                             className="w-full" 
                             variant={plan.popular ? 'default' : 'outline'}
-                            onClick={() => handleUpgrade(plan.id)}
+                            onClick={() => handleSubscribe(plan.id)}
                           >
                             {subscriptionStatus === 'trial' ? 'Select Plan' : 
                              plan.monthlyPrice < plans.find(p => p.id === currentPlan)!.monthlyPrice ? 'Downgrade' : 'Upgrade'}
@@ -371,12 +412,34 @@ export default function SubscriptionPage() {
             <AlertDialogAction 
               onClick={handleCancelSubscription}
               className="bg-red-600 hover:bg-red-700"
+              disabled={isProcessing}
             >
-              Yes, Cancel
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Cancelling...
+                </>
+              ) : (
+                'Yes, Cancel'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Subscribe Modal */}
+      {showSubscribeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <Subscribe 
+              tier={selectedTier}
+              billingCycle={billingCycle}
+              onSuccess={handleSubscribeSuccess}
+              onCancel={handleSubscribeCancel}
+            />
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>
