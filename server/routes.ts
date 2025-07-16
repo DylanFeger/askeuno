@@ -16,6 +16,7 @@ import dataSourcesRoutes from "./routes/data-sources";
 import uploadRoutes from "./routes/uploads";
 import webhookRoutes from "./routes/webhooks";
 import subscriptionRoutes from "./routes/subscription";
+import pipelineTestRoutes from "./routes/pipeline-test";
 
 // Extend Express Request interface for file uploads
 interface MulterRequest extends Request {
@@ -85,6 +86,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Webhook routes - no auth required (webhooks verify themselves)
   app.use('/api/webhooks', webhookRoutes);
+  
+  // Pipeline test routes
+  app.use('/api/pipeline', pipelineTestRoutes);
 
   // Rate limiting for AI features
   const aiRateLimit = createUserRateLimit(

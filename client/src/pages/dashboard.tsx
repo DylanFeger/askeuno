@@ -28,6 +28,8 @@ export default function Dashboard() {
   const [selectedDataSource, setSelectedDataSource] = useState<DataSource | null>(null);
   const [showChatHistory, setShowChatHistory] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<DataSource | null>(null);
+  const [isPipelineTesting, setIsPipelineTesting] = useState(false);
+  const [pipelineTestResult, setPipelineTestResult] = useState<any>(null);
   const { user, isLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
 
@@ -81,6 +83,41 @@ export default function Dashboard() {
     setShowChatHistory(false);
   };
 
+  const handleTestPipeline = async () => {
+    setIsPipelineTesting(true);
+    setPipelineTestResult(null);
+    
+    try {
+      const response = await apiRequest('POST', '/api/pipeline/test-pipeline', {});
+      const result = await response.json();
+      
+      setPipelineTestResult(result);
+      
+      if (result.status.includes('✅')) {
+        toast({
+          title: 'Pipeline Test Successful',
+          description: `Top product: ${result.analysis?.top_product} with revenue $${result.analysis?.top_revenue?.toFixed(2)}`,
+          duration: 5000,
+        });
+      } else {
+        toast({
+          title: 'Pipeline Test Failed',
+          description: result.error?.message || 'Unknown error occurred',
+          variant: 'destructive',
+          duration: 5000,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Pipeline Test Error',
+        description: error.message || 'Failed to run pipeline test',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsPipelineTesting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -117,6 +154,23 @@ export default function Dashboard() {
                     Upload File
                   </Button>
                 </Link>
+                <Button 
+                  variant="secondary"
+                  onClick={handleTestPipeline}
+                  disabled={isPipelineTesting}
+                >
+                  {isPipelineTesting ? (
+                    <>
+                      <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full mr-2" />
+                      Testing...
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="w-4 h-4 mr-2" />
+                      Test Pipeline
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
             
@@ -223,6 +277,63 @@ export default function Dashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Pipeline Test Results */}
+      {pipelineTestResult && (
+        <div className="fixed bottom-4 right-4 max-w-md">
+          <Card className="shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center justify-between">
+                Pipeline Test Results
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setPipelineTestResult(null)}
+                  className="h-6 w-6 p-0"
+                >
+                  ×
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="font-medium">Status:</span>
+                <span className={pipelineTestResult.status.includes('✅') ? 'text-green-600' : 'text-red-600'}>
+                  {pipelineTestResult.status}
+                </span>
+              </div>
+              {pipelineTestResult.analysis && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Top Product:</span>
+                    <span>{pipelineTestResult.analysis.top_product}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Revenue:</span>
+                    <span>${pipelineTestResult.analysis.top_revenue?.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Total Rows:</span>
+                    <span>{pipelineTestResult.analysis.rows}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Execution Time:</span>
+                    <span>{pipelineTestResult.executionTime}ms</span>
+                  </div>
+                </>
+              )}
+              {pipelineTestResult.error && (
+                <div className="text-red-600">
+                  <span className="font-medium">Error:</span> {pipelineTestResult.error.message}
+                </div>
+              )}
+              <div className="text-xs text-gray-500 pt-2">
+                Last test: {new Date(pipelineTestResult.timestamp).toLocaleString()}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

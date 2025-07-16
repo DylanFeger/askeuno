@@ -1,0 +1,71 @@
+// 🧠 GOAL:
+// Perform a full pipeline test of the Euno app to ensure all components are functioning correctly — including file uploads, backend data handling, Python-based analysis, and response output.
+
+// 🧩 COMPONENTS TO TEST:
+1. ✅ File upload handling (CSV or XLSX)
+2. ✅ Backend parsing (JS or Python)
+3. ✅ Python runtime + pandas execution
+4. ✅ AI or analysis response generation
+5. ✅ Console logs at each checkpoint
+6. ✅ Return structured test result
+
+// 🛠 INSTRUCTIONS TO REPLIT AI:
+// Create the following test components:
+
+// 🔹 [1] FRONTEND:
+// - Add a temporary "Test Pipeline" button on the dashboard
+// - On click, trigger a file upload (test_sales.csv with 3–5 rows of mock sales data)
+
+// 🔹 [2] BACKEND ENDPOINT:
+// - Create a new API route: POST /test-pipeline
+// - Accept file upload (CSV)
+// - Parse file into JSON (either in Node using `csv-parser`, or pass to Python for parsing)
+
+// 🔹 [3] PYTHON ANALYSIS:
+// - In a separate Python file (e.g., /python/test_pipeline.py), write a function that:
+//   - Accepts the parsed data (as a list of dicts or CSV file path)
+//   - Loads into pandas
+//   - Returns the top-selling product (by revenue), total rows, and column names
+// Example Python function:
+"""
+import pandas as pd
+
+def analyze_data(file_path):
+    df = pd.read_csv(file_path)
+    top = df.loc[df['Revenue'].idxmax()]
+    return {
+        "top_product": top['Product'],
+        "top_revenue": float(top['Revenue']),
+        "columns": df.columns.tolist(),
+        "rows": len(df)
+    }
+"""
+
+// 🔹 [4] NODE ↔ PYTHON BRIDGE:
+// - Use Node.js `child_process` to call the Python script with the uploaded file path
+// - Capture the returned JSON from Python and send it as the API response
+
+// 🔹 [5] RESPONSE LOG:
+// Return a JSON object:
+{
+  "status": "✅ Pipeline test passed",
+  "top_product": "Widget B",
+  "revenue": 2450.25,
+  "columns": ["Date", "Product", "Revenue"],
+  "rows": 10
+}
+
+// 🔹 [6] ERROR HANDLING:
+// If any step fails (upload, Python call, parse error), return:
+{
+  "status": "❌ Pipeline test failed",
+  "step": "Upload / Python / Parse",
+  "error": "Detailed error message"
+}
+
+// ✅ DO NOT modify existing logic or app behavior
+// This is a standalone test to ensure that:
+// - File upload → Python → Analysis → Return all work correctly in Replit
+
+// ✅ OPTIONAL IMPROVEMENT:
+// - Log "Last pipeline test: [timestamp]" somewhere on the dev dashboard
