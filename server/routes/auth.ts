@@ -132,7 +132,7 @@ router.post('/login', loginValidation, async (req, res) => {
         ip: req.ip,
         userAgent: req.get('User-Agent')
       });
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(401).json({ error: 'Username not found. Please check your username and try again.' });
     }
     
     // Verify password
@@ -144,7 +144,7 @@ router.post('/login', loginValidation, async (req, res) => {
         ip: req.ip,
         userAgent: req.get('User-Agent')
       });
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(401).json({ error: 'Incorrect password. Please try again.' });
     }
     
     // Create session

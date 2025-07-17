@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import type { DataSource } from '@shared/schema';
+import SystemHealth from '@/components/SystemHealth';
 
 export default function Dashboard() {
   const [conversationId, setConversationId] = useState<number | undefined>();
@@ -137,6 +138,9 @@ export default function Dashboard() {
       
       <div className="container mx-auto px-4 py-8 flex-1">
         <div className="max-w-6xl mx-auto space-y-8">
+          {/* System Health Dashboard */}
+          <SystemHealth />
+          
           {/* Data Sources Overview */}
           <div>
             <div className="flex justify-between items-center mb-6">

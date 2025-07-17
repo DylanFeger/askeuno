@@ -61,6 +61,15 @@ export default function Navbar() {
               <span className="text-sm text-gray-600">
                 {user.username}
               </span>
+              <Link href="/settings">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </Button>
+              </Link>
               <Link href="/subscription">
                 <Button
                   variant="ghost"

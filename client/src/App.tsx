@@ -19,6 +19,7 @@ import Security from "@/pages/security";
 import Integrations from "@/pages/integrations";
 import Contact from "@/pages/contact";
 import Documentation from "@/pages/docs";
+import Settings from "@/pages/settings";
 
 function Router() {
   return (
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/integrations" component={Integrations} />
       <Route path="/contact" component={Contact} />
       <Route path="/docs" component={Documentation} />
+      <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
   );

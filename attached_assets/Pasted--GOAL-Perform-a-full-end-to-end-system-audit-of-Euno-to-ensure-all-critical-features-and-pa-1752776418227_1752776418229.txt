@@ -1,0 +1,82 @@
+// 🧠 GOAL:
+// Perform a full end-to-end system audit of Euno to ensure all critical features and pages are working as expected.
+// Validate user experience, file/data flow, and backend processing. If anything is missing, broken, or confusing, build or fix it with a focus on user-friendliness.
+
+// ✅ TASKS FOR REPLIT AI:
+
+// 🔐 [1] AUTHENTICATION FLOW
+// - Confirm users can:
+//   🔹 Sign up with valid credentials
+//   🔹 Log in securely (email/password)
+//   🔹 Log out and return to the login screen
+//   🔹 See a welcome dashboard after login
+// - Add friendly error messages for login failures (e.g. invalid password, email not found)
+
+// 📁 [2] MANUAL FILE UPLOADS (CSV/XLSX/JSON)
+// - Test upload form on the dashboard or upload page
+// - Upload a sample CSV (5–10 rows)
+// - Confirm file is:
+//   🔹 Parsed correctly (e.g. with `papaparse` or `xlsx`)
+//   🔹 Stored in memory or Replit DB/Postgres
+//   🔹 Analyzed (basic stats, AI summary, etc.)
+// - Show data preview to user immediately after upload
+
+// 🌐 [3] REAL-TIME DATA CONNECTIONS
+// - Confirm Euno supports real-time or scheduled sync from:
+//   🔹 Google Sheets (via upload or simulated sync)
+//   🔹 MySQL / PostgreSQL / MongoDB (test connections and fetch)
+//   🔹 AWS S3 (test file pull and parse)
+//   🔹 Custom API or webhook (POST endpoint working)
+// - For each, ensure:
+//   🔹 Connection setup form is working
+//   🔹 Fields are validated
+//   🔹 Data is fetched and analyzed on sync
+//   🔹 Friendly success/failure feedback is shown
+
+// 📄 [4] CORE PAGES CHECK
+// - Validate the following views are working and loading expected content:
+//   🔹 Login page
+//   🔹 Signup page
+//   🔹 Dashboard (with recent uploads, sync status)
+//   🔹 Data Upload page
+//   🔹 AI Question or Analysis page
+//   🔹 Settings page (account, plan, sync frequency)
+//   🔹 Profile or user preferences
+//   🔹 Error/404 page fallback
+
+// 🧠 [5] AI INTEGRATION (Optional)
+// - Test that users can ask questions like “What are my top 3 selling products?”
+// - Ensure:
+//   🔹 User question is routed to AI handler
+   🔹 Data context is correctly loaded
+   🔹 Response is accurate and visible
+
+// 📊 [6] DASHBOARD STATUS
+// - Add “System Health” box for dev/debugging:
+//   🔹 Logged in as: [user email]
+//   🔹 Last sync: [timestamp]
+//   🔹 Last upload: [timestamp]
+//   🔹 # of data sources connected: [count]
+//   🔹 Data volume processed today: [rows]
+
+// 🧾 [7] UX / MISSING FEATURES CHECK
+// - Ensure every page has:
+//   🔹 Clear header and purpose
+   🔹 Return to dashboard or navigation bar
+   🔹 Help link or tooltip for important actions
+   🔹 Error handling for invalid actions (bad file, bad connection)
+
+// ✅ [8] LOGS AND CONSOLE OUTPUT
+// - Log each critical step server-side:
+//   "User login success"
+//   "File uploaded and parsed"
+//   "AI response returned"
+//   "DB sync completed"
+// - Log any error with location: "Upload failed at step: fileParse"
+
+// 🚫 [9] DO NOT:
+// - Change core logic unless something is broken
+- Wipe existing user data or schemas
+
+// 🎯 OBJECTIVE:
+// Confirm Euno is production-ready, frictionless for non-technical users, and gracefully handles edge cases or errors. If anything is unclear or unresponsive, fix it in the simplest, most intuitive way possible.

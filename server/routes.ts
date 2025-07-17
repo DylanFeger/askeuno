@@ -18,6 +18,7 @@ import webhookRoutes from "./routes/webhooks";
 import subscriptionRoutes from "./routes/subscription";
 import pipelineTestRoutes from "./routes/pipeline-test";
 import apiPushRoutes from "./routes/api-push";
+import healthRoutes from "./routes/health";
 import { initializeScheduler, shutdownScheduler } from "./services/scheduler";
 
 // Extend Express Request interface for file uploads
@@ -94,6 +95,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // API Push routes for user-specific data endpoints
   app.use('/api/push', apiPushRoutes);
+  
+  // Health check routes
+  app.use('/api/health', healthRoutes);
 
   // Rate limiting for AI features
   const aiRateLimit = createUserRateLimit(
