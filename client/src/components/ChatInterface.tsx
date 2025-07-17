@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, ChevronDown, ChevronUp, Mic, Brain } from 'lucide-react';
+import { Send, Bot, User, ChevronDown, ChevronUp, Mic, Brain, FileText, Database, AlertCircle, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -7,13 +7,21 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import type { DataSource } from '@shared/schema';
 
 interface ChatMessage {
   id: number;
@@ -35,18 +43,54 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [currentConversationId, setCurrentConversationId] = useState(conversationId);
   const [expandedFollowUps, setExpandedFollowUps] = useState<Set<number>>(new Set());
   const [extendedThinking, setExtendedThinking] = useState(false);
+  const [selectedDataSourceId, setSelectedDataSourceId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch available data sources
+  const { data: dataSources = [] } = useQuery<DataSource[]>({
+    queryKey: ['/api/data-sources'],
+  });
+
+  // Get conversation details to find linked data source
+  const { data: conversation } = useQuery({
+    queryKey: ['/api/conversations', currentConversationId],
+    enabled: !!currentConversationId,
+  });
 
   const { data: messages, refetch } = useQuery({
     queryKey: ['/api/conversations', currentConversationId, 'messages'],
     enabled: !!currentConversationId,
   });
 
+  // Set selected data source when conversation loads
+  useEffect(() => {
+    if (conversation?.dataSourceId) {
+      setSelectedDataSourceId(conversation.dataSourceId);
+    } else if (dataSources.length > 0 && !selectedDataSourceId) {
+      // Default to the most recent data source
+      setSelectedDataSourceId(dataSources[0].id);
+    }
+  }, [conversation, dataSources, selectedDataSourceId]);
+
+  // Handle data source change
+  const handleDataSourceChange = (value: string) => {
+    const newDataSourceId = parseInt(value);
+    const newDataSource = dataSources.find(ds => ds.id === newDataSourceId);
+    
+    if (newDataSource && newDataSourceId !== selectedDataSourceId) {
+      setSelectedDataSourceId(newDataSourceId);
+      // Clear current conversation when switching datasets
+      setCurrentConversationId(undefined);
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+    }
+  };
+
   const sendMessageMutation = useMutation({
     mutationFn: async (messageContent: string) => {
       const response = await apiRequest('POST', '/api/chat', {
         message: messageContent,
         conversationId: currentConversationId,
+        dataSourceId: selectedDataSourceId,
         extendedThinking,
       });
       return response.json();
@@ -81,8 +125,70 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     scrollToBottom();
   }, [messages]);
 
+  const selectedDataSource = dataSources.find(ds => ds.id === selectedDataSourceId);
+
   return (
     <Card className="p-8">
+      {/* Data Source Info Bar */}
+      <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center space-x-2 flex-wrap">
+            {selectedDataSource ? (
+              <>
+                {selectedDataSource.connectionType === 'upload' ? (
+                  <FileText className="w-4 h-4 text-gray-600" />
+                ) : (
+                  <Database className="w-4 h-4 text-gray-600" />
+                )}
+                <span className="text-sm font-medium text-gray-700">
+                  Currently analyzing: 
+                </span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {selectedDataSource.name}
+                </span>
+                {selectedDataSource.rowCount > 0 && (
+                  <span className="text-xs text-gray-500">
+                    ({selectedDataSource.rowCount.toLocaleString()} rows)
+                  </span>
+                )}
+              </>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-amber-600" />
+                <span className="text-sm text-gray-600">
+                  No dataset selected. Please upload or connect a source.
+                </span>
+              </div>
+            )}
+          </div>
+          
+          {dataSources.length > 1 && (
+            <Select 
+              value={selectedDataSourceId?.toString() || ''} 
+              onValueChange={handleDataSourceChange}
+            >
+              <SelectTrigger className="w-full sm:w-48 h-8 text-xs">
+                <SelectValue placeholder="Switch dataset" />
+              </SelectTrigger>
+              <SelectContent>
+                {dataSources.map((ds) => (
+                  <SelectItem key={ds.id} value={ds.id.toString()}>
+                    <div className="flex items-center space-x-2">
+                      {ds.connectionType === 'upload' ? (
+                        <FileText className="w-3 h-3" />
+                      ) : (
+                        <Database className="w-3 h-3" />
+                      )}
+                      <span>{ds.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+      </div>
+
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-semibold text-gray-900">Chat with Euno</h2>
         <div className="flex items-center space-x-4">

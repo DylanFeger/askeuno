@@ -262,7 +262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat endpoint - protected with AI rate limiting
   app.post('/api/chat', requireAuth, aiRateLimit, validateChatMessage, async (req, res) => {
     try {
-      const { message, conversationId, extendedThinking = false } = req.body;
+      const { message, conversationId, dataSourceId, extendedThinking = false } = req.body;
       const userId = (req as AuthenticatedRequest).user.id;
       
       if (!message) {
@@ -277,10 +277,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ error: 'Conversation not found' });
         }
       } else {
-        // Get the most recent data source to link to the conversation
-        const dataSources = await storage.getDataSourcesByUserId(userId);
-        const dataSourceId = dataSources.length > 0 ? dataSources[0].id : undefined;
-        conversation = await storage.createConversation(userId, dataSourceId);
+        // Use provided dataSourceId or get the most recent
+        let selectedDataSourceId = dataSourceId;
+        if (!selectedDataSourceId) {
+          const dataSources = await storage.getDataSourcesByUserId(userId);
+          selectedDataSourceId = dataSources.length > 0 ? dataSources[0].id : undefined;
+        }
+        conversation = await storage.createConversation(userId, selectedDataSourceId);
       }
 
       // Get conversation history
@@ -297,10 +300,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: message,
       });
 
-      // Get user's data sources for context
-      const dataSources = await storage.getDataSourcesByUserId(userId);
+      // Get the data source for this conversation
+      let dataSource;
+      if (conversation.dataSourceId) {
+        dataSource = await storage.getDataSource(conversation.dataSourceId);
+      } else if (dataSourceId) {
+        // Use the provided data source ID from the request
+        dataSource = await storage.getDataSource(dataSourceId);
+      }
       
-      if (dataSources.length === 0) {
+      if (!dataSource) {
         const aiResponse = {
           answer: "I'd love to help you analyze your data! Please upload a file first (CSV, Excel, or JSON) so I can provide insights about your business.",
           confidence: 1.0,
@@ -325,14 +334,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get sample data from the most recent data source
-      const latestDataSource = dataSources[0];
-      const sampleData = await storage.queryDataRows(latestDataSource.id, '');
+      // Verify ownership of the data source
+      if (dataSource.userId !== userId) {
+        return res.status(403).json({ error: 'Unauthorized access to data source' });
+      }
+
+      // Get sample data from the specific data source
+      const sampleData = await storage.queryDataRows(dataSource.id, '');
 
       // Generate AI response
       const aiResponse = await generateDataInsight(
         message,
-        latestDataSource.schema,
+        dataSource.schema,
         sampleData,
         conversationHistory,
         userId,
@@ -358,7 +371,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ];
         
         // Get data source name if available
-        const dataSourceName = latestDataSource?.name;
+        const dataSourceName = dataSource?.name;
         
         // Import generateConversationTitle
         const { generateConversationTitle } = await import('./services/openai');
@@ -398,6 +411,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(conversations);
     } catch (error: any) {
       console.error('Conversations error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get single conversation - protected with ownership check
+  app.get('/api/conversations/:id', requireAuth, validateConversationId, requireOwnership('conversation'), async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const conversation = await storage.getConversation(conversationId);
+      res.json(conversation);
+    } catch (error: any) {
+      console.error('Get conversation error:', error);
       res.status(500).json({ error: error.message });
     }
   });

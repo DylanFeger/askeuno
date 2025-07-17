@@ -34,6 +34,10 @@ export const validateChatMessage = [
     .optional()
     .isInt({ min: 1 })
     .withMessage('Conversation ID must be a positive integer'),
+  body('dataSourceId')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Data Source ID must be a positive integer'),
   handleValidationErrors
 ];
 
