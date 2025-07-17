@@ -41,7 +41,7 @@ export default function Chat() {
           {/* Welcome message and quick actions */}
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome back, {user?.username}! 👋
+              Welcome back, {user?.username}!
             </h1>
             <p className="text-gray-600 mb-6">
               Ask me anything about your business data
