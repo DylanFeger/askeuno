@@ -192,7 +192,7 @@ export default function ConnectionsPage() {
                 <li>Switch to the "Upload Files" tab above</li>
                 <li>Drag and drop your downloaded file</li>
               </ol>
-              <p className="mt-4">✨ Your data will be instantly available for AI analysis!</p>
+              <p className="mt-4">Your data will be instantly available for AI analysis!</p>
             </div>
             <Button
               type="button"
@@ -416,7 +416,7 @@ export default function ConnectionsPage() {
                           </Badge>
                         </div>
                         <CardDescription>
-                          {sourceType?.name} • {connection.rowCount || 0} rows
+                          {sourceType?.name} - {connection.rowCount || 0} rows
                         </CardDescription>
                       </CardHeader>
                       <CardContent>

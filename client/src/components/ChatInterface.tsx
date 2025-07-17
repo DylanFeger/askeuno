@@ -117,9 +117,9 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 Hello! I'm Euno, your AI assistant. Upload your data and I'll help you get insights instantly. Try asking me things like:
               </p>
               <ul className="mt-2 text-sm text-gray-600">
-                <li>• "What were our best selling products last month?"</li>
-                <li>• "Show me our revenue trends"</li>
-                <li>• "Which customers spend the most?"</li>
+                <li>- "What were our best selling products last month?"</li>
+                <li>- "Show me our revenue trends"</li>
+                <li>- "Which customers spend the most?"</li>
               </ul>
             </div>
           </div>

@@ -185,7 +185,7 @@ export default function SubscriptionPage() {
               <CardTitle>Your Current Plan</CardTitle>
               <CardDescription>
                 {subscriptionStatus === 'trial' 
-                  ? `You're enjoying your free trial • ${daysRemaining} days remaining`
+                  ? `You're enjoying your free trial - ${daysRemaining} days remaining`
                   : 'Manage your Hyppo subscription and billing'
                 }
               </CardDescription>
@@ -210,7 +210,7 @@ export default function SubscriptionPage() {
                     </h3>
                     <p className="text-gray-600 mt-1">
                       {subscriptionStatus === 'active' 
-                        ? `Billed ${user.billingCycle || 'monthly'} • Next billing date: ${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}`
+                        ? `Billed ${user.billingCycle || 'monthly'} - Next billing date: ${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}`
                         : 'Trial period - no billing yet'
                       }
                     </p>

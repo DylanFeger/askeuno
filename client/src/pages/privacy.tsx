@@ -42,23 +42,23 @@ export default function Privacy() {
             <div className="space-y-4 text-gray-700">
               <div>
                 <h3 className="font-medium mb-2">Business Data Files</h3>
-                <p>• Uploaded files in CSV, Excel, and JSON formats</p>
-                <p>• Connected account data from services like Google Sheets and QuickBooks (coming soon)</p>
+                <p>- Uploaded files in CSV, Excel, and JSON formats</p>
+                <p>- Connected account data from services like Google Sheets and QuickBooks (coming soon)</p>
               </div>
               <div>
                 <h3 className="font-medium mb-2">Account Information</h3>
-                <p>• Your name and email address</p>
-                <p>• Username and encrypted password</p>
+                <p>- Your name and email address</p>
+                <p>- Username and encrypted password</p>
               </div>
               <div>
                 <h3 className="font-medium mb-2">Payment Information</h3>
-                <p>• Payment details are processed securely by Stripe</p>
-                <p>• We never store your credit card numbers directly</p>
+                <p>- Payment details are processed securely by Stripe</p>
+                <p>- We never store your credit card numbers directly</p>
               </div>
               <div>
                 <h3 className="font-medium mb-2">AI Chat Logs</h3>
-                <p>• Questions you ask and conversations with our AI assistant</p>
-                <p>• This helps us provide context-aware answers and improve our service</p>
+                <p>- Questions you ask and conversations with our AI assistant</p>
+                <p>- This helps us provide context-aware answers and improve our service</p>
               </div>
             </div>
           </Card>
@@ -68,27 +68,27 @@ export default function Privacy() {
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">How We Use Your Data</h2>
             <ul className="space-y-3 text-gray-700">
               <li className="flex items-start">
-                <span className="text-primary mr-2">•</span>
+                <span className="text-primary mr-2">-</span>
                 <span>To securely store, process, and analyze your business data</span>
               </li>
               <li className="flex items-start">
-                <span className="text-primary mr-2">•</span>
+                <span className="text-primary mr-2">-</span>
                 <span>To provide real-time AI-powered answers about your data</span>
               </li>
               <li className="flex items-start">
-                <span className="text-primary mr-2">•</span>
+                <span className="text-primary mr-2">-</span>
                 <span>To send scheduled reports and insights</span>
               </li>
               <li className="flex items-start">
-                <span className="text-primary mr-2">•</span>
+                <span className="text-primary mr-2">-</span>
                 <span>To improve Hyppo's features and performance</span>
               </li>
               <li className="flex items-start">
-                <span className="text-primary mr-2">•</span>
+                <span className="text-primary mr-2">-</span>
                 <span>To send important account notifications and updates</span>
               </li>
               <li className="flex items-start">
-                <span className="text-primary mr-2">•</span>
+                <span className="text-primary mr-2">-</span>
                 <span>To process payments through our secure partner, Stripe</span>
               </li>
             </ul>
@@ -103,11 +103,11 @@ export default function Privacy() {
             <div className="space-y-3 text-gray-700">
               <p>Your data security is our top priority. Here's how we protect your information:</p>
               <ul className="space-y-2 ml-4">
-                <li>• All data is stored on secure AWS servers with encryption at rest</li>
-                <li>• Every connection to Hyppo uses HTTPS encryption</li>
-                <li>• We never share or sell your data to third parties</li>
-                <li>• Only you and authorized users on your account can access your uploaded data</li>
-                <li>• We regularly review and update our security practices</li>
+                <li>- All data is stored on secure AWS servers with encryption at rest</li>
+                <li>- Every connection to Hyppo uses HTTPS encryption</li>
+                <li>- We never share or sell your data to third parties</li>
+                <li>- Only you and authorized users on your account can access your uploaded data</li>
+                <li>- We regularly review and update our security practices</li>
               </ul>
             </div>
           </Card>
@@ -121,8 +121,8 @@ export default function Privacy() {
             <div className="space-y-3 text-gray-700">
               <p>We use cookies to make Euno work better for you:</p>
               <ul className="space-y-2 ml-4">
-                <li>• <strong>Session cookies</strong> keep you logged in while you use Euno</li>
-                <li>• <strong>Analytics cookies</strong> help us understand how to improve our service</li>
+                <li>- <strong>Session cookies</strong> keep you logged in while you use Euno</li>
+                <li>- <strong>Analytics cookies</strong> help us understand how to improve our service</li>
               </ul>
               <p className="mt-4">You can manage cookie preferences in your browser settings. Note that disabling cookies may affect some features of Euno.</p>
             </div>

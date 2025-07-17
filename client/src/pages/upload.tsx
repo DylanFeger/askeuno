@@ -274,11 +274,11 @@ export default function UploadPage() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li>• Ensure your CSV files have headers in the first row</li>
-                <li>• For Excel files, data will be imported from the first sheet</li>
-                <li>• Dates should be in a standard format (YYYY-MM-DD recommended)</li>
-                <li>• Remove any sensitive information you don't want analyzed</li>
-                <li>• Large files may take a few moments to process</li>
+                <li>- Ensure your CSV files have headers in the first row</li>
+                <li>- For Excel files, data will be imported from the first sheet</li>
+                <li>- Dates should be in a standard format (YYYY-MM-DD recommended)</li>
+                <li>- Remove any sensitive information you don't want analyzed</li>
+                <li>- Large files may take a few moments to process</li>
               </ul>
             </CardContent>
           </Card>

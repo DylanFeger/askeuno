@@ -117,14 +117,14 @@ The application follows a monorepo structure with clear separation between front
 
 ## Recent Changes
 
-✓ Fixed TypeScript errors in routes.ts with proper type definitions
-✓ Added multer types for file uploads
-✓ Updated database schema to include missing fields
-✓ Generated and applied database migrations
-✓ Implemented expandable follow-up questions in chat interface
-✓ Added clickable suggested questions for better user experience
-✓ Set up PostgreSQL database with proper environment configuration
-✓ **SECURITY HARDENING COMPLETED** - Comprehensive backend security implementation:
+- Fixed TypeScript errors in routes.ts with proper type definitions
+- Added multer types for file uploads
+- Updated database schema to include missing fields
+- Generated and applied database migrations
+- Implemented expandable follow-up questions in chat interface
+- Added clickable suggested questions for better user experience
+- Set up PostgreSQL database with proper environment configuration
+- **SECURITY HARDENING COMPLETED** - Comprehensive backend security implementation:
   - Authentication system with bcrypt password hashing
   - Session management with PostgreSQL session store
   - Rate limiting (global IP-based and per-user for AI features)
@@ -135,45 +135,45 @@ The application follows a monorepo structure with clear separation between front
   - File upload security validation
   - Request size monitoring
   - Security event logging for audit trails
-✓ **COMPREHENSIVE LOGGING SYSTEM IMPLEMENTED** (January 9, 2025):
+- **COMPREHENSIVE LOGGING SYSTEM IMPLEMENTED** (January 9, 2025):
   - Event-specific loggers for file uploads, ETL processes, AI calls, and payments
   - Structured JSON logging with automatic rotation (5MB files, 10-20 backups)
   - CloudWatch integration configuration for AWS deployments
   - Security-focused logging with sensitive data redaction
   - Python logging example for comparison/integration
   - Log files organized by category with retention policies
-✓ **HEALTH CHECK ENDPOINT ADDED** (January 9, 2025):
+- **HEALTH CHECK ENDPOINT ADDED** (January 9, 2025):
   - /health endpoint for deployment monitoring
   - Database connectivity check with response time metrics
   - Health check script for automated monitoring
   - Comprehensive deployment documentation for Replit and AWS
-✓ **FILE SIZE LIMIT INCREASED** (January 9, 2025):
+- **FILE SIZE LIMIT INCREASED** (January 9, 2025):
   - Increased upload limit from 10MB to 500MB for large business datasets
   - Updated frontend validation and display text
   - Updated backend multer, security, and validation middleware
   - Businesses can now upload years of historical data
-✓ **UI THEME UPDATE COMPLETED** (January 9, 2025):
+- **UI THEME UPDATE COMPLETED** (January 9, 2025):
   - Replaced logo with glasses icon
   - Changed color theme from purple to sage green (hsl(142, 25%, 45%))
   - Updated all UI components to use new color scheme
-✓ **EMAIL SERVICE MIGRATION** (January 9, 2025):
+- **EMAIL SERVICE MIGRATION** (January 9, 2025):
   - Replaced SendGrid with AWS SES (Simple Email Service)
   - Implemented welcome emails, password reset, and weekly reports using AWS SES
   - Created comprehensive AWS SES setup documentation
   - Added TypeScript implementation with proper error handling and retry logic
-✓ **EXTENDED THINKING TOGGLE** (January 9, 2025):
+- **EXTENDED THINKING TOGGLE** (January 9, 2025):
   - Implemented toggle switch in chat interface for extended AI responses
   - Brief mode (default): 2-3 sentence responses focused on key insights
   - Extended mode: Detailed analysis with multiple perspectives and calculations
   - Adjusts OpenAI token limits based on mode (300 vs 1500 tokens)
   - UI toggle clearly visible next to chat status indicator
-✓ **PRIVACY POLICY PAGE ADDED** (January 9, 2025):
+- **PRIVACY POLICY PAGE ADDED** (January 9, 2025):
   - Created comprehensive Privacy Policy page at /privacy route
   - Covers data collection, usage, security, cookie policy, and user rights
   - Professional yet friendly tone with clear sections and icons
   - Includes contact information (support@[mydomain].com placeholder)
   - Linked from footer of home page for easy access
-✓ **MAJOR ARCHITECTURAL PIVOT TO LIVE DATA** (January 9, 2025):
+- **MAJOR ARCHITECTURAL PIVOT TO LIVE DATA** (January 9, 2025):
   - Transformed from file upload system to live data integration platform
   - Home page now shows connected live data sources with real-time status
   - Updated hero section: "Live Business Intelligence Made Simple"
@@ -182,14 +182,14 @@ The application follows a monorepo structure with clear separation between front
   - Database schema updated with connection_type, status, sync_frequency, error_message columns
   - Excel upload functionality fixed for ES modules compatibility
   - File size limit increased to 500MB for large business datasets
-✓ **CLICKABLE LOGO NAVIGATION** (January 10, 2025):
+- **CLICKABLE LOGO NAVIGATION** (January 10, 2025):
   - Made Acre logo clickable in all locations (header and footer)
   - Logo click routes users back to homepage (/)
   - Added cursor pointer and hover effects for better UX
   - Fixed nested anchor tag warnings by using div elements inside Link
   - Consistent styling maintained across authenticated and unauthenticated views
   - Logo navigation works in Navbar, home page header, and footer
-✓ **HOME PAGE REDESIGN - PURELY WELCOMING** (January 11, 2025):
+- **HOME PAGE REDESIGN - PURELY WELCOMING** (January 11, 2025):
   - **Complete Separation of Marketing and Functional Areas**:
     - Home page is now purely welcoming with zero functional tools
     - Chat interface is now the primary feature at /chat route
@@ -218,7 +218,7 @@ The application follows a monorepo structure with clear separation between front
     - Chat page (/chat) is the default landing page after authentication
     - Data sources overview available at /dashboard as secondary page
     - Kept existing sage green color scheme throughout
-✓ **CORE DATA PIPELINE IMPLEMENTED** (January 10, 2025):
+- **CORE DATA PIPELINE IMPLEMENTED** (January 10, 2025):
   - **AWS S3 Integration**: Secure file storage with business isolation
     - Created S3 service with encryption at rest (AES256)
     - Unique folder structure per business (business-{userId}/)
@@ -260,7 +260,7 @@ The application follows a monorepo structure with clear separation between front
     - Support for brief and extended analysis modes
     - Automatic data source selection
     - Real-time data insights generation
-✓ **THREE NEW DATA MANAGEMENT FEATURES** (January 10, 2025):
+- **THREE NEW DATA MANAGEMENT FEATURES** (January 10, 2025):
   - **Chat History by Database**: View previous conversations organized by data source
     - Created ChatHistoryModal component to display conversations per database
     - Shows timestamps and message previews for each conversation
@@ -277,7 +277,7 @@ The application follows a monorepo structure with clear separation between front
     - Extended mode: Comprehensive analysis with multiple perspectives
     - Different system prompts optimize for each mode
     - Token limits adjusted (300 vs 1500) for appropriate response lengths
-✓ **AUTOMATIC CHAT TITLE GENERATION** (January 10, 2025):
+- **AUTOMATIC CHAT TITLE GENERATION** (January 10, 2025):
   - **AI-Generated Titles**: Conversations now automatically receive meaningful titles
     - OpenAI generates titles based on the first user-AI exchange
     - Titles are 5-8 words max, clear and business-focused
@@ -290,7 +290,7 @@ The application follows a monorepo structure with clear separation between front
   - **Extended Thinking Refinement**: Reduced extended mode to add just a few details (4-6 sentences)
     - Focused on user's specific question without branching out
     - Token limit reduced from 1500 to 600 for more concise extended responses
-✓ **FOOTER AND SUBSCRIPTION MANAGEMENT** (January 10, 2025):
+- **FOOTER AND SUBSCRIPTION MANAGEMENT** (January 10, 2025):
   - **Unified Footer Component**: Created reusable Footer component for consistency
     - Footer now appears on both authenticated and unauthenticated views
     - Includes product links, company info, support links, and privacy link
@@ -305,7 +305,7 @@ The application follows a monorepo structure with clear separation between front
     - Credit card icon in navbar for easy subscription access
     - Subscription link appears next to username for logged-in users
     - Route added at /subscription for full management page
-✓ **COMPREHENSIVE SUBSCRIPTION SYSTEM UPGRADE** (January 10, 2025):
+- **COMPREHENSIVE SUBSCRIPTION SYSTEM UPGRADE** (January 10, 2025):
   - **Monthly/Annual Toggle**: Clear toggle switch for billing cycle selection
     - Instant price updates when toggled
     - Annual plans show "Save 2 months" badge
@@ -333,8 +333,8 @@ The application follows a monorepo structure with clear separation between front
     - billingCycle: monthly or annual
     - trialStartDate, trialEndDate for trial tracking
     - trialHistory: JSON array tracking used trials per tier
-→ OpenAI API key configured and working
-✓ **AWS INTEGRATION SETUP** (January 15, 2025):
+- OpenAI API key configured and working
+- **AWS INTEGRATION SETUP** (January 15, 2025):
   - **AWS Credentials Configured**: All required AWS environment variables added
     - AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION (us-east-2), S3_BUCKET_NAME (euno-user-uploads)
     - User has limited permissions - cannot create buckets but can upload/download files
@@ -342,7 +342,7 @@ The application follows a monorepo structure with clear separation between front
     - Bucket "euno-user-uploads" needs to be created by AWS admin
     - Once created, application will have full file upload/download functionality
   - **SES Configuration**: Email service ready for welcome emails and notifications
-✓ **STRIPE SUBSCRIPTION SYSTEM IMPLEMENTED** (January 16, 2025):
+- **STRIPE SUBSCRIPTION SYSTEM IMPLEMENTED** (January 16, 2025):
   - **Complete Payment Integration**: Full Stripe payment system with secure backend API
     - Subscription creation, management, and cancellation endpoints
     - Monthly/annual billing cycles with proper pricing ($29, $79, $149)
@@ -355,9 +355,9 @@ The application follows a monorepo structure with clear separation between front
     - Configured Content Security Policy to support Stripe domains
     - Payment form validation and error handling
     - Subscription status management and trial tracking
-→ S3 bucket "euno-user-uploads" needs to be created by AWS admin user
-→ Redis needed for background job processing (optional for development)
-✓ **COMPLETE REBRAND FROM ACRE TO HYPPO** (January 12, 2025):
+- S3 bucket "euno-user-uploads" needs to be created by AWS admin user
+- Redis needed for background job processing (optional for development)
+- **COMPLETE REBRAND FROM ACRE TO HYPPO** (January 12, 2025):
   - **New Brand Identity**: Complete transition from Acre to Hyppo
     - Created new HyppoLogo component with hippo line art design
     - Maintained existing sage green color scheme for consistency
@@ -373,7 +373,7 @@ The application follows a monorepo structure with clear separation between front
     - Home, Dashboard, Features, Security, Contact, Docs, Privacy, Subscription pages
     - Footer and Navbar components now use Hyppo branding
     - Support email updated to support@hyppo.com
-✓ **EXCEL FILE UPLOAD FIXED** (January 15, 2025):
+- **EXCEL FILE UPLOAD FIXED** (January 15, 2025):
   - **Column Header Processing**: Fixed handling of Excel files with missing or numeric headers
     - Automatically generates column names (Column_1, Column_2, etc.) when headers are missing
     - Cleans special characters from column names to prevent database errors
@@ -390,7 +390,7 @@ The application follows a monorepo structure with clear separation between front
   - **Data Validation**: Fixed validation to handle various Excel formats
     - Skips validation for numeric column schemas
     - Handles empty rows and missing columns gracefully
-✓ **COMPLETE REBRAND FROM HYPPO TO EUNO** (January 14, 2025):
+- **COMPLETE REBRAND FROM HYPPO TO EUNO** (January 14, 2025):
   - **New Brand Identity**: Complete transition from Hyppo to Euno
     - Kept existing HyppoLogo component unchanged as requested
     - Updated all text references to "Euno" across entire codebase
@@ -403,7 +403,7 @@ The application follows a monorepo structure with clear separation between front
     - Site title and metadata now reference Euno
     - Support email updated to support@euno.com
     - All pages, footers, navigation, and privacy policy updated
-✓ **GOOGLE SHEETS SIMPLIFIED** (January 16, 2025):
+- **GOOGLE SHEETS SIMPLIFIED** (January 16, 2025):
   - **Removed OAuth Complexity**: Google Sheets now works via CSV/Excel upload
     - No OAuth authentication required - aligns with extreme simplicity principle
     - Clear step-by-step instructions guide users to download and upload
@@ -412,7 +412,7 @@ The application follows a monorepo structure with clear separation between front
     - Added emoji and clear numbered steps
     - Button to redirect to Upload Files tab
     - Integrations page updated to show "Manual upload" sync type
-✓ **CHAT AS PRIMARY FEATURE** (January 12, 2025):
+- **CHAT AS PRIMARY FEATURE** (January 12, 2025):
   - **Navigation Updates**: 
     - Removed "Dashboard" from navigation bar and replaced with "Chat"
     - Chat page (/chat) is now the default landing page for authenticated users
@@ -427,7 +427,7 @@ The application follows a monorepo structure with clear separation between front
     - Non-authenticated users see marketing home page and are redirected to login
     - Authenticated users land directly on chat page with personalized welcome
     - Quick access to connect data or upload files if no data sources exist
-✓ **COMPREHENSIVE SYSTEM AUDIT COMPLETED** (January 17, 2025):
+- **COMPREHENSIVE SYSTEM AUDIT COMPLETED** (January 17, 2025):
   - **Authentication & Security**: 
     - User-friendly error messages for login failures
     - All endpoints properly protected with rate limiting
@@ -461,7 +461,7 @@ The application follows a monorepo structure with clear separation between front
     - Only pending item: AWS S3 bucket creation by admin
     - All critical features and paths functioning properly
     - System ready for production deployment
-✓ **DATA SOURCES ENHANCEMENT & NAVIGATION UPDATE** (January 12, 2025):
+- **DATA SOURCES ENHANCEMENT & NAVIGATION UPDATE** (January 12, 2025):
   - **Removed Dashboards Navigation**: 
     - Completely removed "Dashboards" section from the navigation bar
     - Simplified navigation to focus on core features: Chat, Data Sources, Subscription
@@ -479,21 +479,32 @@ The application follows a monorepo structure with clear separation between front
     - Added delete button for uploaded files with confirmation dialog
     - Warns users about permanent data deletion
     - Automatically cleans up associated data and S3 files
-✓ **CONFIDENCE PERCENTAGE TOOLTIP** (January 12, 2025):
+- **CONFIDENCE PERCENTAGE TOOLTIP** (January 12, 2025):
   - **Interactive Help Information**: 
     - Added tooltip that appears when hovering over AI confidence percentage
     - Shows confidence level ranges with clear explanations:
-      • 70-100%: AI found clear patterns and is confident
-      • 40-70%: Some patterns found, but needs more data or context
-      • 0-40%: Limited data or unclear question
+      - 70-100%: AI found clear patterns and is confident
+      - 40-70%: Some patterns found, but needs more data or context
+      - 0-40%: Limited data or unclear question
     - Provides actionable tips to improve confidence:
-      • Upload more complete data
-      • Ask specific questions
-      • Provide date ranges or filters
-      • Ensure data has clear patterns
+      - Upload more complete data
+      - Ask specific questions
+      - Provide date ranges or filters
+      - Ensure data has clear patterns
   - **Visual Enhancements**:
     - Added help cursor (cursor-help) to indicate interactive element
     - Tooltip styled with max width for readability
     - Clear section headers and bullet points for easy scanning
-→ Waiting for AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, S3_BUCKET_NAME) to enable file storage functionality
-→ Backend is now production-ready with enterprise-grade security, monitoring, and data pipeline
+- **EMOJI REMOVAL COMPLETED** (January 17, 2025):
+  - **System-Wide UI Cleanup**: Removed all emojis for professional appearance
+    - Replaced all bullet points, checkmarks, sparkles, and decorative emojis with plain text
+    - Updated ChatInterface, privacy, subscription, audit summary, upload, and connections pages
+    - Changed bullet points to dashes (-) throughout the application
+    - Removed sparkle emoji from home page hero section
+    - Cleaned up integration instructions and system messages
+  - **Documentation Update**: Updated replit.md to remove all checkmarks and arrows
+    - Replaced checkmarks with dashes in Recent Changes section
+    - Removed all arrows and bullet points from documentation
+    - Maintained functionality while improving visual consistency
+- Waiting for AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, S3_BUCKET_NAME) to enable file storage functionality
+- Backend is now production-ready with enterprise-grade security, monitoring, and data pipeline

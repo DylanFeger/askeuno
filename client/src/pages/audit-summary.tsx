@@ -185,19 +185,19 @@ export default function AuditSummary() {
             <CardContent>
               <ul className="space-y-2">
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600 mt-1">•</span>
+                  <span className="text-blue-600 mt-1">-</span>
                   <p>Complete AWS S3 bucket setup by having admin create "euno-user-uploads" bucket</p>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600 mt-1">•</span>
+                  <span className="text-blue-600 mt-1">-</span>
                   <p>Test live data connectors with real database connections</p>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600 mt-1">•</span>
+                  <span className="text-blue-600 mt-1">-</span>
                   <p>Configure Redis for background job processing in production</p>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600 mt-1">•</span>
+                  <span className="text-blue-600 mt-1">-</span>
                   <p>Test Stripe subscription flow with real payment processing</p>
                 </li>
               </ul>

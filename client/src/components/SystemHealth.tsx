@@ -119,7 +119,7 @@ export default function SystemHealth() {
           <div className="flex-1">
             <p className="text-sm font-medium">Logged in as: {status.user.email}</p>
             <p className="text-xs text-gray-600">
-              {status.user.subscriptionTier} plan • {status.user.subscriptionStatus} status
+              {status.user.subscriptionTier} plan - {status.user.subscriptionStatus} status
             </p>
           </div>
         </div>
