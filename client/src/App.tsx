@@ -12,6 +12,7 @@ import Dashboard from "@/pages/dashboard";
 import Chat from "@/pages/chat";
 import NotFound from "@/pages/not-found";
 import UploadPage from "@/pages/upload";
+import ImportWizard from "@/pages/import-wizard";
 import SubscriptionPage from "@/pages/subscription";
 import Features from "@/pages/features";
 import Security from "@/pages/security";
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/connections" component={Connections} />
       <Route path="/dashboards" component={Dashboards} />
       <Route path="/upload" component={UploadPage} />
+      <Route path="/import-wizard" component={ImportWizard} />
       <Route path="/subscription" component={SubscriptionPage} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/features" component={Features} />

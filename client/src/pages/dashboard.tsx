@@ -142,6 +142,12 @@ export default function Dashboard() {
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-3xl font-bold text-gray-900">Your Data Sources</h1>
               <div className="flex gap-3">
+                <Link href="/import-wizard">
+                  <Button>
+                    <Shield className="w-4 h-4 mr-2" />
+                    Import Wizard
+                  </Button>
+                </Link>
                 <Link href="/connections">
                   <Button variant="outline">
                     <Database className="w-4 h-4 mr-2" />
@@ -149,7 +155,7 @@ export default function Dashboard() {
                   </Button>
                 </Link>
                 <Link href="/upload">
-                  <Button>
+                  <Button variant="outline">
                     <Upload className="w-4 h-4 mr-2" />
                     Upload File
                   </Button>

@@ -1,0 +1,83 @@
+// 🧠 GOAL:
+// Check if Euno supports all major data intake methods used by platforms like Zoho Analytics,
+// and if not, implement them in a way that is user-friendly and works out of the box for small business owners.
+
+// ✅ TASK 1: AUDIT EXISTING FUNCTIONS
+// Check if Euno currently supports each of the following methods for receiving user data:
+// 1. Manual upload of CSV, Excel, JSON
+// 2. Google Sheets (via upload or sync)
+// 3. Scheduled imports (user-defined frequency)
+// 4. Live database connections (MySQL, PostgreSQL, MongoDB)
+// 5. API-based push (users send data to Euno via HTTP POST)
+// 6. Built-in connectors for Shopify, Stripe, Salesforce, Google Ads
+// 7. Email-in CSV capability
+// 8. User-friendly import UI (step-by-step wizard)
+
+// ✅ For each item:
+// - If supported, test it works end-to-end (file/connection > parse > preview > analysis)
+// - If missing, build the missing function with a focus on:
+    // 🔹 Ease of use
+    // 🔹 Clear instructions
+    // 🔹 Progress feedback
+    // 🔹 Immediate feedback after sync/upload
+
+// ✅ TASK 2: IF MISSING, ADD THE FOLLOWING MODULES
+
+// [1] 📂 File Uploads (CSV/XLSX/JSON)
+// - Drag-and-drop zone + file input
+// - Auto-detect file type
+// - Show table preview (first 10 rows)
+// - On upload, trigger backend parse → validate columns → store in memory or DB
+
+// [2] 📊 Google Sheets (Upload Fallback)
+// - Guide users to download from Google Sheets as Excel or CSV
+// - Upload as a regular file with auto-analysis
+// - Later: add optional OAuth sync feature
+
+// [3] 🔁 Scheduled Imports
+// - Add UI to set sync frequency (dropdown: Manual, Every 15 min, Hourly, Daily)
+// - Store sync schedule in user config
+// - Use setInterval or cron job to re-pull data and re-analyze
+// - Show last sync time on dashboard
+
+// [4] 🧩 Live Database Connection
+// - UI form: host, port, db name, username, password
+// - Connection test on submit
+// - Fetch tables and let user select which to analyze
+// - Store config securely
+
+// [5] 🌐 Custom API Push Endpoint
+// - Auto-generate a custom endpoint per user (e.g. /api/data/:userid)
+// - Accept JSON via POST
+// - Parse and store in appropriate table
+// - Return success message with schema preview
+
+// [6] 🔌 Built-in Connectors (mock MVP)
+// - Create connector UIs for Shopify, Stripe, Salesforce, Google Ads
+// - Use mock auth fields (API key, secret, store ID)
+// - Simulate fetch and parsing of mock data
+// - Show data preview
+
+// [7] 📧 Email-In CSV
+// - Create a unique email like data@euno.com or similar
+// - Temporarily simulate this with a manual upload form that says: “Forward CSVs here or drop them below”
+// - Long-term: integrate with an IMAP inbox watcher
+
+// [8] 🧭 Import Wizard (All Types)
+// - Create a step-by-step UI for importing data:
+    // Step 1: Choose source type
+    // Step 2: Connect or upload
+    // Step 3: Preview & map columns (optional)
+    // Step 4: Confirm and Analyze
+// - Add tooltips, default mappings, and a “Need help?” sidebar link
+
+// 🧪 TASK 3: FINAL PIPELINE TEST
+// - Upload or connect at least one test data source per type
+// - Confirm:
+    // ✅ Data is received and parsed correctly
+    // ✅ Analysis function runs
+    // ✅ AI or summary is returned to the frontend
+    // ✅ User sees friendly feedback (e.g. “Success! Your data has been analyzed”)
+
+// 🛑 NOTE:
+// DO NOT remove or break existing functionality. All enhancements should be additive, modular, and backward-compatible.

@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Database, Cloud, Building2, ShoppingCart, BarChart3, FileSpreadsheet, Server, Wifi, AlertCircle, CheckCircle, Upload, FileIcon, Trash2 } from 'lucide-react';
+import { Database, Cloud, Building2, ShoppingCart, BarChart3, FileSpreadsheet, Server, Wifi, AlertCircle, CheckCircle, Upload, FileIcon, Trash2, Shield } from 'lucide-react';
 import { Link } from 'wouter';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -373,7 +373,13 @@ export default function ConnectionsPage() {
           </TabsList>
 
           <TabsContent value="live">
-            <div className="mb-6">
+            <div className="mb-6 flex gap-3">
+              <Link href="/import-wizard">
+                <Button variant="outline">
+                  <Shield className="mr-2 h-4 w-4" />
+                  Import Wizard
+                </Button>
+              </Link>
               <Button onClick={() => setIsDialogOpen(true)}>
                 <Wifi className="mr-2 h-4 w-4" />
                 Connect New Data Source

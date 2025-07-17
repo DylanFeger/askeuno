@@ -18,6 +18,7 @@ export const users = pgTable("users", {
   trialHistory: jsonb("trial_history").default("[]"), // Array of tiers they've tried: ["starter", "growth"]
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
+  apiToken: text("api_token").unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

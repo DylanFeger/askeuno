@@ -21,6 +21,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByApiToken(token: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
   
@@ -28,6 +29,7 @@ export interface IStorage {
   createDataSource(dataSource: InsertDataSource & { userId: number }): Promise<DataSource>;
   getDataSourcesByUserId(userId: number): Promise<DataSource[]>;
   getDataSource(id: number): Promise<DataSource | undefined>;
+  getDataSourceByNameAndUser(name: string, userId: number): Promise<DataSource | undefined>;
   updateDataSource(id: number, updates: Partial<DataSource>): Promise<DataSource | undefined>;
   deleteDataSource(id: number): Promise<void>;
   getAllActiveDataSources(): Promise<DataSource[]>; // For sync job initialization
@@ -64,6 +66,11 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async getUserByApiToken(token: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.apiToken, token));
     return user || undefined;
   }
 
@@ -106,6 +113,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(dataSources)
       .where(eq(dataSources.id, id));
+    return source || undefined;
+  }
+
+  async getDataSourceByNameAndUser(name: string, userId: number): Promise<DataSource | undefined> {
+    const [source] = await db
+      .select()
+      .from(dataSources)
+      .where(and(eq(dataSources.name, name), eq(dataSources.userId, userId)));
     return source || undefined;
   }
 
