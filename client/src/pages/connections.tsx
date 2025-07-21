@@ -15,6 +15,7 @@ import { Database, Cloud, Building2, ShoppingCart, BarChart3, FileSpreadsheet, S
 import { Link } from 'wouter';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +39,13 @@ const dataSourceTypes = [
   { id: 'api', name: 'Custom API', icon: Server, category: 'api' },
 ];
 
+// Define data source limits per tier
+const DATA_SOURCE_LIMITS = {
+  starter: 1,
+  growth: 3,  
+  pro: 10
+};
+
 export default function ConnectionsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedType, setSelectedType] = useState('');
@@ -45,10 +53,16 @@ export default function ConnectionsPage() {
   const [deleteConfirmation, setDeleteConfirmation] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: connections = [] } = useQuery({
     queryKey: ['/api/data-sources'],
   });
+  
+  // Calculate current usage and limit
+  const userTier = user?.subscriptionTier || 'starter';
+  const dataSourceLimit = DATA_SOURCE_LIMITS[userTier as keyof typeof DATA_SOURCE_LIMITS] || DATA_SOURCE_LIMITS.starter;
+  const canAddMore = connections.length < dataSourceLimit;
 
   const createConnectionMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -358,6 +372,19 @@ export default function ConnectionsPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Data Sources</h1>
           <p className="text-gray-600 mt-2">Manage your live connections and uploaded files</p>
+          <div className="mt-4 flex items-center gap-4">
+            <Badge variant="outline" className="px-3 py-1">
+              {connections.length} / {dataSourceLimit} connections used
+            </Badge>
+            {!canAddMore && (
+              <Alert className="py-2 px-4 inline-flex items-center">
+                <AlertCircle className="h-4 w-4 mr-2" />
+                <AlertDescription className="text-sm">
+                  You've reached your plan limit. <Link href="/subscription" className="underline">Upgrade</Link> to add more connections.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
         </div>
 
         <Tabs defaultValue="live" className="w-full">
@@ -373,17 +400,31 @@ export default function ConnectionsPage() {
           </TabsList>
 
           <TabsContent value="live">
-            <div className="mb-6 flex gap-3">
-              <Link href="/import-wizard">
-                <Button variant="outline">
-                  <Shield className="mr-2 h-4 w-4" />
-                  Import Wizard
+            <div className="mb-6">
+              {userTier === 'starter' && (
+                <Alert className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Live database connections are available on Professional and Enterprise plans. 
+                    <Link href="/subscription" className="underline ml-1">Upgrade now</Link> to connect live data sources.
+                  </AlertDescription>
+                </Alert>
+              )}
+              <div className="flex gap-3">
+                <Link href="/import-wizard">
+                  <Button variant="outline">
+                    <Shield className="mr-2 h-4 w-4" />
+                    Import Wizard
+                  </Button>
+                </Link>
+                <Button 
+                  onClick={() => setIsDialogOpen(true)}
+                  disabled={!canAddMore || userTier === 'starter'}
+                >
+                  <Wifi className="mr-2 h-4 w-4" />
+                  Connect New Data Source
                 </Button>
-              </Link>
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Wifi className="mr-2 h-4 w-4" />
-                Connect New Data Source
-              </Button>
+              </div>
             </div>
 
             {liveConnections.length === 0 ? (
@@ -391,7 +432,10 @@ export default function ConnectionsPage() {
                 <Database className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No live connections yet</h3>
                 <p className="text-gray-600 mb-6">Connect to databases, APIs, and business apps for real-time data sync</p>
-                <Button onClick={() => setIsDialogOpen(true)}>
+                <Button 
+                  onClick={() => setIsDialogOpen(true)}
+                  disabled={!canAddMore || userTier === 'starter'}
+                >
                   <Wifi className="mr-2 h-4 w-4" />
                   Connect Your First Data Source
                 </Button>
@@ -438,7 +482,7 @@ export default function ConnectionsPage() {
           <TabsContent value="uploads">
             <div className="mb-6">
               <Link href="/upload">
-                <Button>
+                <Button disabled={!canAddMore}>
                   <Upload className="mr-2 h-4 w-4" />
                   Upload New File
                 </Button>
@@ -451,7 +495,7 @@ export default function ConnectionsPage() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No uploaded files yet</h3>
                 <p className="text-gray-600 mb-6">Upload Excel, CSV, or JSON files for analysis</p>
                 <Link href="/upload">
-                  <Button>
+                  <Button disabled={!canAddMore}>
                     <Upload className="mr-2 h-4 w-4" />
                     Upload Your First File
                   </Button>

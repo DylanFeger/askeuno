@@ -19,6 +19,13 @@ router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
 });
 
 // Connect to a new live data source
+// Define data source limits per tier
+const DATA_SOURCE_LIMITS = {
+  starter: 1,
+  growth: 3,
+  pro: 10
+};
+
 router.post('/connect', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { name, type, connectionType, connectionData, syncFrequency } = req.body;
@@ -26,6 +33,33 @@ router.post('/connect', requireAuth, async (req: AuthenticatedRequest, res) => {
     // Validate required fields
     if (!name || !type || !connectionType) {
       return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    // Get user to check tier
+    const user = await storage.getUser(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Check if starter tier is trying to use live connections
+    if (user.subscriptionTier === 'starter' && connectionType === 'live') {
+      return res.status(403).json({ 
+        error: 'Live database connections are not available on the Starter plan. Please upgrade to Professional or Enterprise to use live connections.',
+        tier: user.subscriptionTier
+      });
+    }
+    
+    // Check data source limits
+    const currentDataSources = await storage.getDataSourcesByUserId(req.user.id);
+    const dataSourceLimit = DATA_SOURCE_LIMITS[user.subscriptionTier as keyof typeof DATA_SOURCE_LIMITS] || DATA_SOURCE_LIMITS.starter;
+    
+    if (currentDataSources.length >= dataSourceLimit) {
+      return res.status(429).json({ 
+        error: `You've reached your limit of ${dataSourceLimit} database connection${dataSourceLimit === 1 ? '' : 's'}. Please upgrade your plan or remove an existing connection.`,
+        currentCount: currentDataSources.length,
+        limit: dataSourceLimit,
+        tier: user.subscriptionTier
+      });
     }
 
     // Test the connection first

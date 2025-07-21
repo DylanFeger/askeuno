@@ -80,6 +80,31 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: MulterReq
 
     // Transform data based on detected schema
     const transformedData = transformData(result.data.rows, result.data.schema);
+    
+    // Check user's tier and data source limits
+    const user = await storage.getUser(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Define data source limits per tier
+    const DATA_SOURCE_LIMITS = {
+      starter: 1,
+      growth: 3,
+      pro: 10
+    };
+    
+    const currentDataSources = await storage.getDataSourcesByUserId(req.user.id);
+    const dataSourceLimit = DATA_SOURCE_LIMITS[user.subscriptionTier as keyof typeof DATA_SOURCE_LIMITS] || DATA_SOURCE_LIMITS.starter;
+    
+    if (currentDataSources.length >= dataSourceLimit) {
+      return res.status(429).json({ 
+        error: `You've reached your limit of ${dataSourceLimit} database connection${dataSourceLimit === 1 ? '' : 's'}. Please upgrade your plan or remove an existing connection.`,
+        currentCount: currentDataSources.length,
+        limit: dataSourceLimit,
+        tier: user.subscriptionTier
+      });
+    }
 
     // Create data source record with initial status as processing
     const dataSource = await storage.createDataSource({

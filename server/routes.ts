@@ -139,6 +139,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         duration: Date.now() - startTime 
       });
       
+      // Check user's tier and data source limits
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const currentDataSources = await storage.getDataSourcesByUserId(userId);
+      const dataSourceLimit = DATA_SOURCE_LIMITS[user.subscriptionTier as keyof typeof DATA_SOURCE_LIMITS] || DATA_SOURCE_LIMITS.starter;
+      
+      if (currentDataSources.length >= dataSourceLimit) {
+        logFileUpload(userId, req.file.originalname, 'failure', { error: 'Data source limit exceeded' });
+        return res.status(429).json({ 
+          error: `You've reached your limit of ${dataSourceLimit} database connection${dataSourceLimit === 1 ? '' : 's'}. Please upgrade your plan or remove an existing connection.`,
+          currentCount: currentDataSources.length,
+          limit: dataSourceLimit,
+          tier: user.subscriptionTier
+        });
+      }
+
       // ETL Stage 2: Data Storage
       const storageStartTime = Date.now();
       logETLProcess(0, 'data_storage', 'started');
@@ -264,6 +283,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     starter: 5,
     growth: 20,
     pro: 50
+  };
+
+  // Define data source limits per tier
+  const DATA_SOURCE_LIMITS = {
+    starter: 1,
+    growth: 3,
+    pro: 10
   };
 
   // Chat endpoint - protected with AI rate limiting

@@ -114,6 +114,33 @@ router.post(
       // Check if data source exists
       let dataSource = await storage.getDataSourceByNameAndUser(name, userId);
       
+      if (!dataSource) {
+        // Check user's tier and data source limits before creating new data source
+        const user = await storage.getUser(userId);
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+        
+        // Define data source limits per tier
+        const DATA_SOURCE_LIMITS = {
+          starter: 1,
+          growth: 3,
+          pro: 10
+        };
+        
+        const currentDataSources = await storage.getDataSourcesByUserId(userId);
+        const dataSourceLimit = DATA_SOURCE_LIMITS[user.subscriptionTier as keyof typeof DATA_SOURCE_LIMITS] || DATA_SOURCE_LIMITS.starter;
+        
+        if (currentDataSources.length >= dataSourceLimit) {
+          return res.status(429).json({ 
+            error: `You've reached your limit of ${dataSourceLimit} database connection${dataSourceLimit === 1 ? '' : 's'}. Please upgrade your plan or remove an existing connection.`,
+            currentCount: currentDataSources.length,
+            limit: dataSourceLimit,
+            tier: user.subscriptionTier
+          });
+        }
+      }
+      
       if (dataSource) {
         // Update existing data source
         await storage.clearDataRows(dataSource.id);
