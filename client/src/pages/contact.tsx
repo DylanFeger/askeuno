@@ -45,7 +45,7 @@ export default function Contact() {
             <Link href="/">
               <div className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity">
                 <HyppoLogo className="w-8 h-8" />
-                <span className="text-xl font-bold text-gray-900">Hyppo</span>
+                <span className="text-xl font-bold text-gray-900">Euno</span>
               </div>
             </Link>
             <Link href="/">

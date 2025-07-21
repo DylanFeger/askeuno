@@ -46,20 +46,7 @@ const importMethods = [
     icon: Link,
     color: 'text-orange-500',
   },
-  {
-    id: 'email',
-    title: 'Email CSV',
-    description: 'Send files to your unique email',
-    icon: Mail,
-    color: 'text-red-500',
-  },
-  {
-    id: 'schedule',
-    title: 'Scheduled Import',
-    description: 'Set up recurring data syncs',
-    icon: Calendar,
-    color: 'text-indigo-500',
-  },
+
 ];
 
 export default function ImportWizard() {

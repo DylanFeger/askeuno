@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { Link } from 'wouter';
 
 interface FileUploadProps {
   onUploadSuccess?: (dataSource: any) => void;
@@ -93,41 +94,14 @@ export default function FileUpload({ onUploadSuccess }: FileUploadProps) {
       )}
 
       <div className="mt-6">
-        <p className="text-sm text-gray-600 text-center mb-4">Or connect your data sources:</p>
-        <div className="flex flex-wrap gap-3 justify-center">
-          <Button 
-            variant="outline" 
-            className="flex items-center space-x-2"
-            onClick={() => toast({
-              title: "Coming Soon",
-              description: "Google Sheets integration will be available soon!",
-            })}
-          >
-            <Database className="w-4 h-4" />
-            <span>Google Sheets</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            className="flex items-center space-x-2"
-            onClick={() => toast({
-              title: "Coming Soon",
-              description: "QuickBooks integration will be available soon!",
-            })}
-          >
-            <Calculator className="w-4 h-4" />
-            <span>QuickBooks</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            className="flex items-center space-x-2"
-            onClick={() => toast({
-              title: "Coming Soon",
-              description: "Excel Online integration will be available soon!",
-            })}
-          >
-            <FileText className="w-4 h-4" />
-            <span>Excel Online</span>
-          </Button>
+        <p className="text-sm text-gray-600 text-center mb-4">Or try the Import Wizard for more options:</p>
+        <div className="flex justify-center">
+          <Link href="/import-wizard">
+            <Button variant="outline" className="flex items-center space-x-2">
+              <Database className="w-4 h-4" />
+              <span>Connect Data Sources</span>
+            </Button>
+          </Link>
         </div>
       </div>
     </Card>

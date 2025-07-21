@@ -13,7 +13,7 @@ export default function Documentation() {
       items: [
         {
           title: 'Quick Start Guide',
-          description: 'Get up and running with Acre in under 5 minutes',
+          description: 'Get up and running with Euno in under 5 minutes',
           link: '#quick-start'
         },
         {

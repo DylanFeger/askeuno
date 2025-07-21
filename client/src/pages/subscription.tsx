@@ -242,7 +242,7 @@ export default function SubscriptionPage() {
                       style={{ width: `${Math.min(((user?.monthlyQueryCount || 0) / (plans.find(p => p.id === currentPlan)?.queryLimit || 5)) * 100, 100)}%` }}
                     />
                   </div>
-                  {user.monthlyQueryCount >= (plans.find(p => p.id === currentPlan)?.queryLimit || 5) && (
+                  {(user.monthlyQueryCount || 0) >= (plans.find(p => p.id === currentPlan)?.queryLimit || 5) && (
                     <Alert className="mt-3 bg-yellow-50 border-yellow-200">
                       <AlertCircle className="h-4 w-4 text-yellow-600" />
                       <AlertDescription className="text-yellow-900">

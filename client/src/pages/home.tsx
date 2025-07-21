@@ -276,7 +276,7 @@ export default function Home() {
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">Start free for 30 days</h3>
                   <p className="text-gray-600">
-                    Try Hyppo risk-free. No credit card required. 
+                    Try Euno risk-free. No credit card required. 
                     Choose the plan that fits your business when you're ready.
                   </p>
                 </div>

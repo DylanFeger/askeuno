@@ -23,21 +23,21 @@ export default function Integrations() {
           icon: SiMysql,
           description: 'Structured data for transactions & orders.',
           status: 'available',
-          syncType: 'Real-time sync'
+          syncType: 'Direct connection'
         },
         {
           name: 'PostgreSQL',
           icon: SiPostgresql,
           description: 'Advanced database for large data sets.',
           status: 'available',
-          syncType: 'Real-time sync'
+          syncType: 'Direct connection'
         },
         {
           name: 'MongoDB',
           icon: SiMongodb,
           description: 'Flexible NoSQL document storage.',
           status: 'available',
-          syncType: 'Real-time sync'
+          syncType: 'Direct connection'
         }
       ]
     },
@@ -74,19 +74,7 @@ export default function Integrations() {
         }
       ]
     },
-    {
-      category: 'CRM & Sales',
-      icon: Users,
-      items: [
-        {
-          name: 'Salesforce',
-          icon: SiSalesforce,
-          description: 'Sync leads, deals, and contacts.',
-          status: 'available',
-          syncType: 'Real-time sync'
-        }
-      ]
-    },
+
     {
       category: 'E-commerce',
       icon: ShoppingCart,
@@ -96,23 +84,11 @@ export default function Integrations() {
           icon: SiShopify,
           description: 'Bring in orders, products, and customer info.',
           status: 'available',
-          syncType: 'Real-time sync'
+          syncType: 'API connection'
         }
       ]
     },
-    {
-      category: 'Advertising & Marketing',
-      icon: BarChart3,
-      items: [
-        {
-          name: 'Google Ads',
-          icon: SiGoogleads,
-          description: 'Pull ad campaign performance data.',
-          status: 'available',
-          syncType: 'API sync'
-        }
-      ]
-    },
+
     {
       category: 'Custom API',
       icon: Code,

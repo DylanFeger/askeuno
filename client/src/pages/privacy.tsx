@@ -43,7 +43,7 @@ export default function Privacy() {
               <div>
                 <h3 className="font-medium mb-2">Business Data Files</h3>
                 <p>- Uploaded files in CSV, Excel, and JSON formats</p>
-                <p>- Connected account data from services like Google Sheets and QuickBooks (coming soon)</p>
+                <p>- Data connections from external sources</p>
               </div>
               <div>
                 <h3 className="font-medium mb-2">Account Information</h3>
@@ -81,7 +81,7 @@ export default function Privacy() {
               </li>
               <li className="flex items-start">
                 <span className="text-primary mr-2">-</span>
-                <span>To improve Hyppo's features and performance</span>
+                <span>To improve Euno's features and performance</span>
               </li>
               <li className="flex items-start">
                 <span className="text-primary mr-2">-</span>
@@ -103,8 +103,8 @@ export default function Privacy() {
             <div className="space-y-3 text-gray-700">
               <p>Your data security is our top priority. Here's how we protect your information:</p>
               <ul className="space-y-2 ml-4">
-                <li>- All data is stored on secure AWS servers with encryption at rest</li>
-                <li>- Every connection to Hyppo uses HTTPS encryption</li>
+                <li>- All data is stored on secure servers</li>
+                <li>- Every connection to Euno uses HTTPS encryption</li>
                 <li>- We never share or sell your data to third parties</li>
                 <li>- Only you and authorized users on your account can access your uploaded data</li>
                 <li>- We regularly review and update our security practices</li>

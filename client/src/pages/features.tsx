@@ -13,9 +13,9 @@ export default function Features() {
       description: 'Connect directly to your databases, cloud storage, and business apps. Real-time sync keeps your insights current with automatic updates.',
       details: [
         'MySQL, PostgreSQL, MongoDB support',
-        'Google Sheets integration',
-        'AWS S3 and cloud storage',
-        'Webhook support for instant updates'
+        'Database connections',
+        'API integrations',
+        'File uploads for Google Sheets'
       ]
     },
     {
@@ -45,10 +45,10 @@ export default function Features() {
       title: 'Real-Time Insights',
       description: 'Get up-to-date analysis based on your latest data. Spot trends, identify opportunities, and make informed decisions faster.',
       details: [
-        'Automatic trend detection',
-        'Anomaly alerts',
-        'Performance metrics',
-        'Custom KPI tracking'
+        'Data analysis and insights',
+        'Business recommendations',
+        'Query your data naturally',
+        'Export results as needed'
       ]
     },
     {
@@ -59,7 +59,7 @@ export default function Features() {
         '30-day free trial',
         'No credit card required',
         'Guided setup wizard',
-        'Sample data to explore'
+        'Email support included'
       ]
     },
     {
