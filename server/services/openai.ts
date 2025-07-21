@@ -54,12 +54,18 @@ Guidelines for Extended Analysis:
 - Add just enough context to make the answer more complete
 - Always provide confidence level in your analysis
 - Suggest relevant follow-up questions
+${isEnterprise ? '- Include visualData when the question asks for charts, graphs, or visualization' : ''}
 
 Response format should be JSON with:
 - answer: Answer with a few more supporting details (4-6 sentences)
 - queryUsed: If a specific query was implied, describe it
 - confidence: Number between 0-1 indicating confidence in the answer
 - suggestedFollowUps: Array of 3-4 relevant follow-up questions
+${isEnterprise ? `- visualData: {
+    type: 'bar' | 'line' | 'pie',
+    data: array of objects with consistent keys,
+    config: { xAxis: field name, yAxis: field name }
+  } (only when visualization is requested)` : ''}
 
 Remember: Stay focused on the user's question and add just a few helpful details.`
       : isStarter 
@@ -89,30 +95,32 @@ Remember: Be extremely concise. Users can upgrade for more detailed insights.`
       : isEnterprise 
       ? `You are an AI assistant specialized in business data analysis. 
     
-Your role is to help enterprise business owners understand their data with comprehensive insights and recommendations.
+Your role is to help enterprise business owners understand their data.
 
 Context:
 - Data Schema: ${JSON.stringify(dataSchema)}
 - Sample Data: ${JSON.stringify(sampleData.slice(0, 5))}
 
-Guidelines for Enterprise Tier (Comprehensive Analysis with Recommendations):
-- Provide detailed insights with clear explanations
-- Include specific business recommendations
-- Use numbers and examples to support your analysis
-- Identify trends and patterns in the data
-- Suggest actionable next steps
-- Prepare data for potential visualizations
+Guidelines for Enterprise Tier (Brief Analysis):
+- Keep answers clear and focused (2-3 sentences)
+- Use simple business language, avoid technical jargon
+- Focus on the most important insights
+- Include visualData when the question asks for charts, graphs, or visualization
 - Always provide confidence level in your analysis
 - Suggest relevant follow-up questions
 
 Response format should be JSON with:
-- answer: Comprehensive answer with recommendations (5-8 sentences)
-- queryUsed: If a specific query was implied, describe it
+- answer: Clear, direct answer to the question (2-3 sentences)
+- queryUsed: If a specific query was implied, describe it briefly
 - confidence: Number between 0-1 indicating confidence in the answer
-- suggestedFollowUps: Array of 3-4 strategic follow-up questions
-- visualData: Object with data prepared for graphs/charts (if applicable)
+- suggestedFollowUps: Array of 2-3 relevant follow-up questions
+- visualData: {
+    type: 'bar' | 'line' | 'pie',
+    data: array of objects with consistent keys,
+    config: { xAxis: field name, yAxis: field name }
+  } (only when visualization is requested)
 
-Remember: Provide actionable recommendations based on the data patterns.`
+Remember: Be clear and focus on what matters most to the business owner.`
       : `You are an AI assistant specialized in business data analysis. 
     
 Your role is to help small business owners understand their data by providing clear, actionable insights.
@@ -143,8 +151,8 @@ Remember: Be clear and focus on what matters most to the business owner.`;
       { role: "user", content: question }
     ];
 
-    // Set token limits based on tier
-    const maxTokens = isStarter ? 150 : (isEnterprise ? 800 : (shouldProvideExtended ? 600 : 300));
+    // Set token limits based on tier and extended thinking
+    const maxTokens = isStarter ? 150 : (shouldProvideExtended ? 600 : 300);
     
     const response = await openai.chat.completions.create({
       model: "gpt-4o",

@@ -507,6 +507,14 @@ The application follows a monorepo structure with clear separation between front
     - Updated ChatMessage interface to include visualData in metadata
     - Charts render below AI text responses when visualData is present
     - AI prompts updated to prepare data for visualization when appropriate
+  - **Generate Chart Button**: Added dedicated chart generation button for Enterprise users
+    - Button appears next to send button with bar chart icon
+    - Automatically prepends "Create a chart or graph for:" to user's message
+    - Only visible for Enterprise tier users (subscriptionTier === 'pro')
+  - **Response Length Fixes**: 
+    - Fixed issue where Enterprise users received long responses by default
+    - All users now get short responses (2-3 sentences) unless extended thinking is enabled
+    - Token limits normalized: 150 for Starter, 300 for standard, 600 for extended thinking
 - **DATA SOURCES ENHANCEMENT & NAVIGATION UPDATE** (January 12, 2025):
   - **Removed Dashboards Navigation**: 
     - Completely removed "Dashboards" section from the navigation bar

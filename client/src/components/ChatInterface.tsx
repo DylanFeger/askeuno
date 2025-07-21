@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, ChevronDown, ChevronUp, Mic, Brain, FileText, Database, AlertCircle, ChevronRight } from 'lucide-react';
+import { Send, Bot, User, ChevronDown, ChevronUp, Mic, Brain, FileText, Database, AlertCircle, ChevronRight, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -176,6 +176,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [expandedFollowUps, setExpandedFollowUps] = useState<Set<number>>(new Set());
   const [extendedThinking, setExtendedThinking] = useState(false);
   const [selectedDataSourceId, setSelectedDataSourceId] = useState<number | null>(null);
+  const [includeChart, setIncludeChart] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
@@ -219,9 +220,10 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   };
 
   const sendMessageMutation = useMutation({
-    mutationFn: async (messageContent: string) => {
+    mutationFn: async ({ messageContent, forceChart = false }: { messageContent: string; forceChart?: boolean }) => {
+      const finalMessage = forceChart ? `Create a chart or graph for: ${messageContent}` : messageContent;
       const response = await apiRequest('POST', '/api/chat', {
-        message: messageContent,
+        message: finalMessage,
         conversationId: currentConversationId,
         dataSourceId: selectedDataSourceId,
         extendedThinking,
@@ -231,16 +233,17 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
     onSuccess: (data) => {
       setCurrentConversationId(data.conversationId);
       refetch();
+      setIncludeChart(false);
     },
   });
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = async (forceChart: boolean = false) => {
     if (!message.trim()) return;
     
     const messageContent = message;
     setMessage('');
     
-    sendMessageMutation.mutate(messageContent);
+    sendMessageMutation.mutate({ messageContent, forceChart: forceChart || includeChart });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -452,7 +455,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                           key={index}
                           onClick={() => {
                             setMessage(followUp);
-                            handleSendMessage();
+                            handleSendMessage(false);
                           }}
                           className="block w-full text-left text-sm bg-primary/10 hover:bg-primary/20 text-primary p-2 rounded border border-primary/30 transition-colors"
                         >
@@ -512,8 +515,18 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             <Mic className="w-4 h-4" />
           </Button>
         </div>
+        {user?.subscriptionTier === 'pro' && (
+          <Button
+            onClick={() => handleSendMessage(true)}
+            disabled={!message.trim() || sendMessageMutation.isPending}
+            variant="outline"
+            title="Generate Chart"
+          >
+            <BarChart2 className="w-4 h-4" />
+          </Button>
+        )}
         <Button
-          onClick={handleSendMessage}
+          onClick={() => handleSendMessage(false)}
           disabled={!message.trim() || sendMessageMutation.isPending}
           className=""
         >
