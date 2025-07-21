@@ -208,7 +208,7 @@ export default function SubscriptionPage() {
                   <Alert className="bg-blue-50 border-blue-200">
                     <Sparkles className="h-4 w-4 text-blue-600" />
                     <AlertDescription className="text-blue-900">
-                      <strong>Free Trial Active!</strong> You have full access to the {currentPlan === 'starter' ? 'Starter' : currentPlan === 'growth' ? 'Growth' : 'Pro'} plan features. 
+                      <strong>Free Trial Active!</strong> You have full access to the {currentPlan === 'starter' ? 'Starter' : currentPlan === 'growth' ? 'Professional' : 'Enterprise'} plan features. 
                       Your trial ends on {trialEndDate.toLocaleDateString()}. No credit card required until you're ready to continue.
                     </AlertDescription>
                   </Alert>
