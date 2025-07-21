@@ -64,13 +64,13 @@ export default function Features() {
     },
     {
       icon: Shield,
-      title: 'Enterprise Security',
-      description: 'Your data is protected with bank-level security. We use encryption, isolated storage, and strict access controls.',
+      title: 'Security for All',
+      description: 'Every user gets the same strong security. We use encryption, isolated storage, and strict access controls.',
       details: [
-        'End-to-end encryption',
-        'SOC 2 compliance',
+        'HTTPS encryption for all connections',
+        'Password hashing with bcrypt',
         'Data isolation per business',
-        'Regular security audits'
+        'Session-based authentication'
       ]
     }
   ];

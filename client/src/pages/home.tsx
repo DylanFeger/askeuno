@@ -262,7 +262,7 @@ export default function Home() {
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">Secure, private space</h3>
                   <p className="text-gray-600">
                     Your data is encrypted and isolated. We never share or sell your information. 
-                    Enterprise-grade security you can trust.
+                    Strong security for every user.
                   </p>
                 </div>
               </div>

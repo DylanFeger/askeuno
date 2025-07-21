@@ -9,13 +9,13 @@ export default function Security() {
   const securityFeatures = [
     {
       icon: Lock,
-      title: 'End-to-End Encryption',
-      description: 'All data is encrypted in transit and at rest using industry-standard AES-256 encryption.',
+      title: 'Secure Data Transmission',
+      description: 'All data is encrypted in transit using HTTPS/TLS protocols.',
       details: [
-        'TLS 1.3 for all connections',
-        'Encrypted database storage',
+        'HTTPS for all connections',
         'Secure API communications',
-        'Protected file uploads'
+        'Protected file uploads',
+        'PostgreSQL database security'
       ]
     },
     {
@@ -48,18 +48,18 @@ export default function Security() {
         'Separate data containers',
         'No cross-business access',
         'Isolated processing queues',
-        'Individual encryption keys'
+        'User-specific data queries'
       ]
     },
     {
       icon: Shield,
-      title: 'Compliance & Standards',
-      description: 'We follow industry best practices and compliance standards to protect your data.',
+      title: 'Best Practices',
+      description: 'We follow industry best practices to protect your data.',
       details: [
-        'SOC 2 Type II compliant',
-        'GDPR compliant',
-        'Regular security audits',
-        'Penetration testing'
+        'Regular security updates',
+        'Code security reviews',
+        'Secure development practices',
+        'Security monitoring'
       ]
     },
     {
