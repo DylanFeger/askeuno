@@ -492,6 +492,21 @@ The application follows a monorepo structure with clear separation between front
     - Frontend shows usage badge and disables buttons when at limit
     - Clear upgrade messages when limits are reached
   - **Updated Home Page Pricing Section**: PricingSection component now accurately displays tier features matching implementation
+- **VISUAL CHARTS FOR ENTERPRISE TIER IMPLEMENTED** (July 21, 2025):
+  - **Chart Types Supported**: Bar charts, line charts, and pie charts with interactive tooltips
+  - **Sage Green Theme**: All charts use consistent sage green color scheme matching the app theme
+  - **Enterprise Tier Exclusive**: Charts only render for users with subscriptionTier === 'pro'
+  - **AI Integration**: Updated OpenAI service to return visualData in responses for Enterprise users
+  - **Responsive Design**: Charts wrapped in responsive containers with rounded borders
+  - **Chart Configuration**: 
+    - Bar charts: Customizable X/Y axis with grid lines and legends
+    - Line charts: Smooth monotone curves with configurable data points
+    - Pie charts: Percentage labels with multi-color segments using sage green variations
+  - **Implementation Details**:
+    - Added DataVisualization component using Recharts library
+    - Updated ChatMessage interface to include visualData in metadata
+    - Charts render below AI text responses when visualData is present
+    - AI prompts updated to prepare data for visualization when appropriate
 - **DATA SOURCES ENHANCEMENT & NAVIGATION UPDATE** (January 12, 2025):
   - **Removed Dashboards Navigation**: 
     - Completely removed "Dashboards" section from the navigation bar

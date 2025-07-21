@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import HyppoLogo from './HyppoLogo';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Select,
   SelectContent,
@@ -23,6 +24,131 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import type { DataSource } from '@shared/schema';
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
+
+// Sage green theme color for charts
+const CHART_COLORS = {
+  primary: 'hsl(142, 25%, 45%)',
+  secondary: 'hsl(142, 25%, 55%)',
+  tertiary: 'hsl(142, 25%, 35%)',
+  quaternary: 'hsl(142, 25%, 65%)',
+  accent: 'hsl(142, 25%, 75%)'
+};
+
+// Chart rendering component
+function DataVisualization({ visualData }: { visualData: any }) {
+  if (!visualData || !visualData.data || visualData.data.length === 0) {
+    return null;
+  }
+
+  const { type, data, config = {} } = visualData;
+
+  switch (type) {
+    case 'bar':
+      return (
+        <div className="mt-4 p-4 bg-white rounded-lg border">
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey={config.xAxis || 'name'} />
+              <YAxis />
+              <RechartsTooltip />
+              <Legend />
+              <Bar dataKey={config.yAxis || 'value'} fill={CHART_COLORS.primary} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      );
+
+    case 'line':
+      return (
+        <div className="mt-4 p-4 bg-white rounded-lg border">
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey={config.xAxis || 'name'} />
+              <YAxis />
+              <RechartsTooltip />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey={config.yAxis || 'value'} 
+                stroke={CHART_COLORS.primary} 
+                strokeWidth={2}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      );
+
+    case 'pie':
+      const RADIAN = Math.PI / 180;
+      const renderCustomizedLabel = ({
+        cx, cy, midAngle, innerRadius, outerRadius, percent
+      }: any) => {
+        const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+        const x = cx + radius * Math.cos(-midAngle * RADIAN);
+        const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+        return (
+          <text 
+            x={x} 
+            y={y} 
+            fill="white" 
+            textAnchor={x > cx ? 'start' : 'end'} 
+            dominantBaseline="central"
+          >
+            {`${(percent * 100).toFixed(0)}%`}
+          </text>
+        );
+      };
+
+      return (
+        <div className="mt-4 p-4 bg-white rounded-lg border">
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={renderCustomizedLabel}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey={config.valueKey || 'value'}
+              >
+                {data.map((entry: any, index: number) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={Object.values(CHART_COLORS)[index % Object.values(CHART_COLORS).length]}
+                  />
+                ))}
+              </Pie>
+              <RechartsTooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      );
+
+    default:
+      return null;
+  }
+}
 
 interface ChatMessage {
   id: number;
@@ -31,6 +157,11 @@ interface ChatMessage {
   metadata?: {
     confidence?: number;
     suggestedFollowUps?: string[];
+    visualData?: {
+      type: 'bar' | 'line' | 'pie';
+      data: any[];
+      config?: any;
+    };
   };
   createdAt: string;
 }
@@ -46,6 +177,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [extendedThinking, setExtendedThinking] = useState(false);
   const [selectedDataSourceId, setSelectedDataSourceId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
   // Fetch available data sources
   const { data: dataSources = [] } = useQuery<DataSource[]>({
@@ -53,12 +185,12 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   });
 
   // Get conversation details to find linked data source
-  const { data: conversation } = useQuery({
+  const { data: conversation } = useQuery<{ id: number; dataSourceId?: number }>({
     queryKey: ['/api/conversations', currentConversationId],
     enabled: !!currentConversationId,
   });
 
-  const { data: messages, refetch } = useQuery({
+  const { data: messages = [], refetch } = useQuery<ChatMessage[]>({
     queryKey: ['/api/conversations', currentConversationId, 'messages'],
     enabled: !!currentConversationId,
   });
@@ -147,7 +279,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 <span className="text-sm font-semibold text-gray-900">
                   {selectedDataSource.name}
                 </span>
-                {selectedDataSource.rowCount > 0 && (
+                {selectedDataSource.rowCount && selectedDataSource.rowCount > 0 && (
                   <span className="text-xs text-gray-500">
                     ({selectedDataSource.rowCount.toLocaleString()} rows)
                   </span>
@@ -214,7 +346,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
       <div className="space-y-4 mb-6 max-h-96 overflow-y-auto min-h-[300px]">
         {/* Welcome message */}
-        {(!messages || messages.length === 0) && (
+        {messages.length === 0 && (
           <div className="flex items-start space-x-3">
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 p-1.5">
               <HyppoLogo className="w-full h-full" />
@@ -233,7 +365,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
         )}
 
         {/* Chat messages */}
-        {messages?.map((msg: ChatMessage) => (
+        {messages.map((msg: ChatMessage) => (
           <div
             key={msg.id}
             className={`flex items-start space-x-3 ${msg.role === 'user' ? 'justify-end' : ''}`}
@@ -250,6 +382,11 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 : 'bg-gray-50 text-gray-800'
             }`}>
               <p>{msg.content}</p>
+              
+              {/* Render charts for Enterprise tier users */}
+              {msg.role === 'assistant' && msg.metadata?.visualData && user?.subscriptionTier === 'pro' && (
+                <DataVisualization visualData={msg.metadata.visualData} />
+              )}
               
               {msg.role === 'assistant' && msg.metadata?.confidence && (
                 <div className="mt-2 flex items-center space-x-2">

@@ -170,7 +170,8 @@ Remember: Be clear and focus on what matters most to the business owner.`;
       answer: result.answer || "I apologize, but I couldn't analyze your data properly. Could you try rephrasing your question?",
       queryUsed: result.queryUsed,
       confidence: Math.max(0, Math.min(1, result.confidence || 0.5)),
-      suggestedFollowUps: result.suggestedFollowUps || []
+      suggestedFollowUps: result.suggestedFollowUps || [],
+      visualData: result.visualData || null
     };
   } catch (error: any) {
     logger.error("OpenAI API error", { error, question: question.substring(0, 100) });
