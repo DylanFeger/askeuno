@@ -31,39 +31,43 @@ const plans = [
     monthlyPrice: 29,
     annualPrice: 290, // 2 months free
     description: 'Perfect for small businesses getting started with data insights',
+    queryLimit: 5,
     features: [
+      '5 AI queries per month',
+      'Basic short responses (1-2 sentences)',
       'Up to 3 data sources',
       '10,000 rows per source',
-      'AI-powered chat insights',
-      'Basic data visualizations',
       'Email support',
       '30-day data history',
     ],
     notIncluded: [
+      'Detailed responses toggle',
+      'Recommendations',
+      'Visual graphs',
       'Real-time data sync',
-      'Custom API integrations',
       'Priority support',
-      'Advanced analytics',
     ],
   },
   {
     id: 'growth',
-    name: 'Growth',
+    name: 'Professional',
     monthlyPrice: 79,
     annualPrice: 790, // 2 months free
-    description: 'For growing businesses that need real-time insights',
+    description: 'For growing businesses that need detailed insights',
+    queryLimit: 20,
     features: [
+      '20 AI queries per month',
+      'Detailed responses with toggle',
+      'Business recommendations',
       'Up to 20 data sources',
       '100,000 rows per source',
-      'AI chat + interactive charts',
       'Real-time data sync',
-      'Custom dashboards',
       'Priority email & chat support',
       '90-day data history',
-      'API access (1,000 calls/month)',
       'Basic integrations (Shopify, Stripe)',
     ],
     notIncluded: [
+      'Visual graphs and charts',
       'Custom API development',
       'Dedicated onboarding',
       'White-label options',
@@ -72,22 +76,23 @@ const plans = [
   },
   {
     id: 'pro',
-    name: 'Pro',
+    name: 'Enterprise',
     monthlyPrice: 149,
     annualPrice: 1490, // 2 months free
     description: 'Everything you need for enterprise-grade business intelligence',
+    queryLimit: 50,
     features: [
+      '50 AI queries per month',
+      'Visual graphs with explanations',
+      'Comprehensive recommendations',
       'Unlimited data sources',
       'Unlimited rows',
-      'Advanced AI analytics',
       'Real-time sync (1-minute intervals)',
       'Custom API integrations',
-      'Unlimited API calls',
       'Dedicated onboarding specialist',
       'Phone & priority support',
       'Unlimited data history',
       'Team collaboration (10 users)',
-      'Custom branding options',
       'Advanced security features',
     ],
     notIncluded: [],
@@ -206,7 +211,7 @@ export default function SubscriptionPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-xl font-semibold">
-                      {currentPlan === 'starter' ? 'Starter' : currentPlan === 'growth' ? 'Growth' : 'Pro'} Plan
+                      {currentPlan === 'starter' ? 'Starter' : currentPlan === 'growth' ? 'Professional' : 'Enterprise'} Plan
                     </h3>
                     <p className="text-gray-600 mt-1">
                       {subscriptionStatus === 'active' 
@@ -218,6 +223,30 @@ export default function SubscriptionPage() {
                   <Badge variant={subscriptionStatus === 'trial' ? 'default' : 'secondary'} className="text-lg px-4 py-2">
                     {subscriptionStatus === 'trial' ? 'Free Trial' : 'Active'}
                   </Badge>
+                </div>
+
+                {/* Query Usage Display */}
+                <div className="bg-gray-100 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">Monthly Query Usage</span>
+                    <span className="text-sm text-gray-600">
+                      {user.monthlyQueryCount || 0} / {plans.find(p => p.id === currentPlan)?.queryLimit || 5} queries
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className="bg-primary h-2.5 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(((user?.monthlyQueryCount || 0) / (plans.find(p => p.id === currentPlan)?.queryLimit || 5)) * 100, 100)}%` }}
+                    />
+                  </div>
+                  {user.monthlyQueryCount >= (plans.find(p => p.id === currentPlan)?.queryLimit || 5) && (
+                    <Alert className="mt-3 bg-yellow-50 border-yellow-200">
+                      <AlertCircle className="h-4 w-4 text-yellow-600" />
+                      <AlertDescription className="text-yellow-900">
+                        You've reached your monthly query limit. Upgrade your plan for more queries.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 </div>
 
                 {/* Features for current plan */}
@@ -291,6 +320,13 @@ export default function SubscriptionPage() {
                     
                     <CardHeader className="text-center pt-8">
                       <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                      
+                      {/* Query Limit Highlight */}
+                      <div className="mt-3 p-2 bg-primary/10 rounded-lg">
+                        <span className="text-2xl font-bold text-primary">{plan.queryLimit}</span>
+                        <span className="text-sm text-gray-600 ml-1">queries/month</span>
+                      </div>
+                      
                       <div className="mt-4">
                         <span className="text-4xl font-bold">${price}</span>
                         <span className="text-gray-600">/month</span>

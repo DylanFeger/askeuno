@@ -11,6 +11,7 @@ export interface AIResponse {
   queryUsed?: string;
   confidence: number;
   suggestedFollowUps?: string[];
+  visualData?: any; // For future graph implementation in pro tier
 }
 
 export async function generateDataInsight(
@@ -20,12 +21,23 @@ export async function generateDataInsight(
   conversationHistory: { role: string; content: string }[] = [],
   userId?: number,
   conversationId?: number,
-  extendedThinking: boolean = false
+  extendedThinking: boolean = false,
+  userTier: string = 'starter'
 ): Promise<AIResponse> {
   const startTime = Date.now();
   
   try {
-    const systemPrompt = extendedThinking 
+    // Determine response style based on tier and extendedThinking
+    const isStarter = userTier === 'starter';
+    const isProfessional = userTier === 'growth';
+    const isEnterprise = userTier === 'pro';
+    
+    // Starter tier always gets short responses
+    // Professional tier can toggle between short and extended
+    // Enterprise tier gets extended responses with graph data preparation
+    const shouldProvideExtended = (isProfessional && extendedThinking) || (isEnterprise && extendedThinking);
+    
+    const systemPrompt = shouldProvideExtended 
       ? `You are an AI assistant specialized in business data analysis. 
     
 Your role is to help small business owners understand their data by providing clear insights with just a bit more detail.
@@ -50,6 +62,57 @@ Response format should be JSON with:
 - suggestedFollowUps: Array of 3-4 relevant follow-up questions
 
 Remember: Stay focused on the user's question and add just a few helpful details.`
+      : isStarter 
+      ? `You are an AI assistant specialized in business data analysis. 
+    
+Your role is to help small business owners understand their data by providing VERY brief insights.
+
+Context:
+- Data Schema: ${JSON.stringify(dataSchema)}
+- Sample Data: ${JSON.stringify(sampleData.slice(0, 5))}
+
+Guidelines for Starter Tier (VERY Brief Analysis):
+- Keep answers extremely short (1-2 sentences MAX)
+- Only provide the most essential insight
+- Use simple business language
+- Do NOT provide detailed analysis
+- Always provide confidence level in your analysis
+- Suggest 1-2 follow-up questions to encourage upgrades
+
+Response format should be JSON with:
+- answer: Very brief answer (1-2 sentences only)
+- queryUsed: If a specific query was implied, describe it in 5 words max
+- confidence: Number between 0-1 indicating confidence in the answer
+- suggestedFollowUps: Array of 1-2 simple follow-up questions
+
+Remember: Be extremely concise. Users can upgrade for more detailed insights.`
+      : isEnterprise 
+      ? `You are an AI assistant specialized in business data analysis. 
+    
+Your role is to help enterprise business owners understand their data with comprehensive insights and recommendations.
+
+Context:
+- Data Schema: ${JSON.stringify(dataSchema)}
+- Sample Data: ${JSON.stringify(sampleData.slice(0, 5))}
+
+Guidelines for Enterprise Tier (Comprehensive Analysis with Recommendations):
+- Provide detailed insights with clear explanations
+- Include specific business recommendations
+- Use numbers and examples to support your analysis
+- Identify trends and patterns in the data
+- Suggest actionable next steps
+- Prepare data for potential visualizations
+- Always provide confidence level in your analysis
+- Suggest relevant follow-up questions
+
+Response format should be JSON with:
+- answer: Comprehensive answer with recommendations (5-8 sentences)
+- queryUsed: If a specific query was implied, describe it
+- confidence: Number between 0-1 indicating confidence in the answer
+- suggestedFollowUps: Array of 3-4 strategic follow-up questions
+- visualData: Object with data prepared for graphs/charts (if applicable)
+
+Remember: Provide actionable recommendations based on the data patterns.`
       : `You are an AI assistant specialized in business data analysis. 
     
 Your role is to help small business owners understand their data by providing clear, actionable insights.
@@ -58,21 +121,21 @@ Context:
 - Data Schema: ${JSON.stringify(dataSchema)}
 - Sample Data: ${JSON.stringify(sampleData.slice(0, 5))}
 
-Guidelines for Brief Analysis:
-- Keep answers short and to the point (2-3 sentences max)
+Guidelines for Professional Tier (Standard Analysis):
+- Keep answers clear and focused (2-3 sentences)
 - Use simple business language, avoid technical jargon
-- Focus on the single most important insight
+- Focus on the most important insights
 - Provide one clear action item if applicable
 - Always provide confidence level in your analysis
 - Suggest relevant follow-up questions
 
 Response format should be JSON with:
-- answer: Brief, direct answer to the question (2-3 sentences)
+- answer: Clear, direct answer to the question (2-3 sentences)
 - queryUsed: If a specific query was implied, describe it briefly
 - confidence: Number between 0-1 indicating confidence in the answer
 - suggestedFollowUps: Array of 2-3 relevant follow-up questions
 
-Remember: Be concise and focus only on what matters most to the business owner.`;
+Remember: Be clear and focus on what matters most to the business owner.`;
 
     const messages = [
       { role: "system", content: systemPrompt },
@@ -80,12 +143,15 @@ Remember: Be concise and focus only on what matters most to the business owner.`
       { role: "user", content: question }
     ];
 
+    // Set token limits based on tier
+    const maxTokens = isStarter ? 150 : (isEnterprise ? 800 : (shouldProvideExtended ? 600 : 300));
+    
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: messages as any,
       response_format: { type: "json_object" },
       temperature: 0.7,
-      max_tokens: extendedThinking ? 600 : 300,
+      max_tokens: maxTokens,
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');

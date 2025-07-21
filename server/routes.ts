@@ -259,6 +259,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Define query limits per tier
+  const QUERY_LIMITS = {
+    starter: 5,
+    growth: 20,
+    pro: 50
+  };
+
   // Chat endpoint - protected with AI rate limiting
   app.post('/api/chat', requireAuth, aiRateLimit, validateChatMessage, async (req, res) => {
     try {
@@ -267,6 +274,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!message) {
         return res.status(400).json({ error: 'Message is required' });
+      }
+
+      // Check and reset query count if needed (new month)
+      const user = await storage.checkAndResetQueryCount(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Get the query limit for the user's tier
+      const queryLimit = QUERY_LIMITS[user.subscriptionTier as keyof typeof QUERY_LIMITS] || QUERY_LIMITS.starter;
+      
+      // Check if user has exceeded their monthly query limit
+      if (user.monthlyQueryCount >= queryLimit) {
+        return res.status(429).json({ 
+          error: `You've reached your monthly limit of ${queryLimit} queries. Please upgrade your plan for more queries.`,
+          currentUsage: user.monthlyQueryCount,
+          limit: queryLimit,
+          tier: user.subscriptionTier
+        });
       }
 
       // Get or create conversation
@@ -342,7 +368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get sample data from the specific data source
       const sampleData = await storage.queryDataRows(dataSource.id, '');
 
-      // Generate AI response
+      // Generate AI response (pass user tier for tier-specific features)
       const aiResponse = await generateDataInsight(
         message,
         dataSource.schema,
@@ -350,7 +376,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversationHistory,
         userId,
         conversation.id,
-        extendedThinking
+        extendedThinking,
+        user.subscriptionTier
       );
 
       // Save AI response
@@ -360,6 +387,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: aiResponse.answer,
         metadata: aiResponse,
       });
+      
+      // Increment query count after successful response
+      await storage.incrementUserQueryCount(userId);
 
       // Generate title if this is the first exchange (conversation has no title yet)
       const currentConversation = await storage.getConversation(conversation.id);

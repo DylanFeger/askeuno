@@ -8,6 +8,10 @@ interface User {
   username: string;
   email: string;
   subscriptionTier: string;
+  subscriptionStatus?: string;
+  billingCycle?: string;
+  monthlyQueryCount?: number;
+  queryResetDate?: string;
 }
 
 interface AuthContextType {
@@ -15,6 +19,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   logout: () => void;
+  refetch: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,7 +27,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [, setLocation] = useLocation();
   
-  const { data: user, isLoading } = useQuery({
+  const { data: user, isLoading, refetch } = useQuery({
     queryKey: ['/api/auth/me'],
     queryFn: async () => {
       try {
@@ -54,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         isAuthenticated: !!user,
         logout,
+        refetch,
       }}
     >
       {children}

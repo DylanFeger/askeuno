@@ -19,6 +19,8 @@ export const users = pgTable("users", {
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
   apiToken: text("api_token").unique(),
+  monthlyQueryCount: integer("monthly_query_count").notNull().default(0),
+  queryResetDate: timestamp("query_reset_date").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

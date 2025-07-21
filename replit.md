@@ -461,6 +461,29 @@ The application follows a monorepo structure with clear separation between front
     - Only pending item: AWS S3 bucket creation by admin
     - All critical features and paths functioning properly
     - System ready for production deployment
+- **SUBSCRIPTION TIER ENFORCEMENT IMPLEMENTED** (July 21, 2025):
+  - **Query Tracking System**: Added monthly query counting and tracking
+    - Added monthlyQueryCount and lastQueryResetDate fields to users table
+    - Implemented automatic monthly reset of query counts
+    - Added storage methods for incrementing and checking query usage
+  - **Tier-Based Query Limits**:
+    - Starter: 5 queries/month with basic short responses (1-2 sentences)
+    - Professional (Growth): 20 queries/month with detailed responses toggle and recommendations
+    - Enterprise (Pro): 50 queries/month with visual graphs (infrastructure prepared), explanations, and recommendations
+  - **Response Quality by Tier**:
+    - Starter: Very brief insights focused on essential information only
+    - Professional: Clear, actionable insights with business recommendations when extended thinking enabled
+    - Enterprise: Comprehensive analysis with detailed recommendations and data prepared for visualizations
+  - **Token Limits by Tier**:
+    - Starter: 150 tokens for extremely concise responses
+    - Professional: 300-600 tokens (based on extended thinking toggle)
+    - Enterprise: 800 tokens for comprehensive analysis
+  - **UI Updates**:
+    - Subscription page shows current query usage with progress bar
+    - Query limits prominently displayed on pricing cards
+    - Warning message when monthly limit reached
+    - Tier names updated to Starter/Professional/Enterprise
+  - **Enforcement**: Query limits checked before processing each message with appropriate error responses
 - **DATA SOURCES ENHANCEMENT & NAVIGATION UPDATE** (January 12, 2025):
   - **Removed Dashboards Navigation**: 
     - Completely removed "Dashboards" section from the navigation bar

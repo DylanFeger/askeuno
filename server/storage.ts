@@ -14,7 +14,7 @@ import {
   type DataRow
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -24,6 +24,11 @@ export interface IStorage {
   getUserByApiToken(token: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
+  
+  // Query tracking operations
+  incrementUserQueryCount(userId: number): Promise<void>;
+  resetUserQueryCount(userId: number): Promise<void>;
+  checkAndResetQueryCount(userId: number): Promise<User | undefined>;
   
   // Data source operations
   createDataSource(dataSource: InsertDataSource & { userId: number }): Promise<DataSource>;
@@ -89,6 +94,40 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user || undefined;
+  }
+
+  // Query tracking operations
+  async incrementUserQueryCount(userId: number): Promise<void> {
+    await db
+      .update(users)
+      .set({ monthlyQueryCount: sql`${users.monthlyQueryCount} + 1` })
+      .where(eq(users.id, userId));
+  }
+
+  async resetUserQueryCount(userId: number): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        monthlyQueryCount: 0,
+        queryResetDate: new Date()
+      })
+      .where(eq(users.id, userId));
+  }
+
+  async checkAndResetQueryCount(userId: number): Promise<User | undefined> {
+    const user = await this.getUser(userId);
+    if (!user) return undefined;
+
+    // Check if we need to reset the query count (new month)
+    const now = new Date();
+    const resetDate = new Date(user.queryResetDate || now);
+    
+    if (now.getMonth() !== resetDate.getMonth() || now.getFullYear() !== resetDate.getFullYear()) {
+      await this.resetUserQueryCount(userId);
+      return await this.getUser(userId);
+    }
+    
+    return user;
   }
 
   // Data source operations
