@@ -484,6 +484,14 @@ The application follows a monorepo structure with clear separation between front
     - Warning message when monthly limit reached
     - Tier names updated to Starter/Professional/Enterprise
   - **Enforcement**: Query limits checked before processing each message with appropriate error responses
+  - **Data Source Connection Limits**: Implemented per-tier restrictions
+    - Starter: 1 connection (file uploads only, no live database connections)
+    - Professional: 3 connections (file uploads + live database connections)
+    - Enterprise: 10 connections (file uploads + live database connections)
+    - Backend enforcement in all data source creation endpoints
+    - Frontend shows usage badge and disables buttons when at limit
+    - Clear upgrade messages when limits are reached
+  - **Updated Home Page Pricing Section**: PricingSection component now accurately displays tier features matching implementation
 - **DATA SOURCES ENHANCEMENT & NAVIGATION UPDATE** (January 12, 2025):
   - **Removed Dashboards Navigation**: 
     - Completely removed "Dashboards" section from the navigation bar
