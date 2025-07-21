@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, ChevronDown, ChevronUp, Mic, Brain, FileText, Database, AlertCircle, ChevronRight, BarChart2 } from 'lucide-react';
+import { Send, Bot, User, ChevronDown, ChevronUp, Brain, FileText, Database, AlertCircle, ChevronRight, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -502,18 +502,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            className="pr-12"
           />
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary"
-            onClick={() => alert('Voice input coming soon!')}
-            aria-label="Voice input"
-            title="Voice input coming soon"
-          >
-            <Mic className="w-4 h-4" />
-          </Button>
         </div>
         {user?.subscriptionTier === 'pro' && (
           <Button
