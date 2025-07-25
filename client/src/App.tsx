@@ -21,6 +21,7 @@ import Integrations from "@/pages/integrations";
 import Contact from "@/pages/contact";
 import Documentation from "@/pages/docs";
 import Settings from "@/pages/settings";
+import TeamCulture from "@/pages/team-culture";
 
 function Router() {
   return (
@@ -40,6 +41,7 @@ function Router() {
       <Route path="/contact" component={Contact} />
       <Route path="/docs" component={Documentation} />
       <Route path="/settings" component={Settings} />
+      <Route path="/team-culture" component={TeamCulture} />
       <Route component={NotFound} />
     </Switch>
   );
