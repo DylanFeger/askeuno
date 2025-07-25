@@ -49,12 +49,6 @@ export default function Home() {
           {/* Hero Section */}
           <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto text-center">
-              <div className="flex justify-center mb-8">
-                <div className="p-4 bg-primary/10 rounded-full">
-                  <HyppoLogo className="w-16 h-16" />
-                </div>
-              </div>
-              
               <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
                 Welcome back to Euno, {user?.username}!
               </h1>
@@ -171,12 +165,6 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -z-10" />
         
         <div className="max-w-5xl mx-auto text-center">
-          <div className="flex justify-center mb-8">
-            <div className="p-4 bg-primary/10 rounded-full animate-pulse">
-              <HyppoLogo className="w-20 h-20" style={{ filter: 'brightness(0) saturate(100%) invert(48%) sepia(10%) saturate(1352%) hue-rotate(90deg) brightness(91%) contrast(85%)' }} />
-            </div>
-          </div>
-          
           <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-6">
             Your business data, simplified — <br/>
             <span className="text-primary">insights in a chat</span>
