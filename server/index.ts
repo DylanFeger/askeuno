@@ -89,7 +89,7 @@ app.use((req, res, next) => {
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
-      const logData = {
+      const logData: any = {
         method: req.method,
         path: path,
         statusCode: res.statusCode,

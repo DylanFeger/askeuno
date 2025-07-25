@@ -227,7 +227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check data source ownership
       const dataSource = await storage.getDataSource(dataSourceId);
-      if (!dataSource || dataSource.userId !== req.user.id) {
+      if (!dataSource || dataSource.userId !== (req as AuthenticatedRequest).user.id) {
         return res.status(403).json({ error: 'Unauthorized' });
       }
       
