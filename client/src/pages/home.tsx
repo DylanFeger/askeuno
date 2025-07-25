@@ -1,4 +1,4 @@
-import { Check, Zap, Lock, MessageCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { Check, Zap, Lock, MessageCircle, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Link, useLocation } from 'wouter';
@@ -173,7 +173,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto text-center">
           <div className="flex justify-center mb-8">
             <div className="p-4 bg-primary/10 rounded-full animate-pulse">
-              <Sparkles className="w-12 h-12 text-primary" />
+              <HyppoLogo className="w-12 h-12 text-primary" />
             </div>
           </div>
           
