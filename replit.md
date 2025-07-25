@@ -8,7 +8,7 @@ Euno (formerly Hyppo/Acre) is a secure, easy-to-use data platform designed to he
 
 Preferred communication style: Simple, everyday language.
 Target audience: Small businesses
-Pricing strategy: Subscription-based with 3 tiers (Starter, Professional, Enterprise)
+Pricing strategy: Subscription-based with 3 tiers (Starter: Free, Professional: $49/mo, Enterprise: $79/mo)
 Key principles: 
 - Easy experience, not many tools
 - Fast, reliable, accurate

@@ -7,7 +7,7 @@ export default function PricingSection() {
   const plans = [
     {
       name: 'Starter',
-      price: 29,
+      price: 0,
       description: 'Perfect for small businesses',
       features: [
         '5 AI queries per month',
@@ -22,7 +22,7 @@ export default function PricingSection() {
     },
     {
       name: 'Professional',
-      price: 79,
+      price: 49,
       description: 'For growing businesses',
       features: [
         '20 AI queries per month',
@@ -37,7 +37,7 @@ export default function PricingSection() {
     },
     {
       name: 'Enterprise',
-      price: 149,
+      price: 79,
       description: 'Enterprise-grade intelligence',
       features: [
         '50 AI queries per month',
@@ -76,8 +76,8 @@ export default function PricingSection() {
               <div className="text-center mb-6">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                 <div className="text-4xl font-bold text-gray-900 mb-2">
-                  ${plan.price}
-                  <span className="text-lg font-normal text-gray-600">/month</span>
+                  {plan.price === 0 ? 'Free' : `$${plan.price}`}
+                  {plan.price > 0 && <span className="text-lg font-normal text-gray-600">/month</span>}
                 </div>
                 <p className="text-gray-600">{plan.description}</p>
               </div>
@@ -97,9 +97,9 @@ export default function PricingSection() {
                 onClick={() => {
                   document.getElementById('auth-section')?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                aria-label={`Select ${plan.name} plan - $${plan.price}/month`}
+                aria-label={`Select ${plan.name} plan - ${plan.price === 0 ? 'Free' : `$${plan.price}/month`}`}
               >
-                Start Free Trial
+                {plan.price === 0 ? 'Get Started Free' : 'Start Free Trial'}
               </Button>
             </Card>
           ))}

@@ -28,8 +28,8 @@ const plans = [
   {
     id: 'starter',
     name: 'Starter',
-    monthlyPrice: 29,
-    annualPrice: 290, // 2 months free
+    monthlyPrice: 0,
+    annualPrice: 0, // Free plan
     description: 'Perfect for small businesses getting started with data insights',
     queryLimit: 5,
     features: [
@@ -53,8 +53,8 @@ const plans = [
   {
     id: 'growth',
     name: 'Professional',
-    monthlyPrice: 79,
-    annualPrice: 790, // 2 months free
+    monthlyPrice: 49,
+    annualPrice: 490, // 2 months free
     description: 'For growing businesses that need detailed insights',
     queryLimit: 20,
     features: [
@@ -81,8 +81,8 @@ const plans = [
   {
     id: 'pro',
     name: 'Enterprise',
-    monthlyPrice: 149,
-    annualPrice: 1490, // 2 months free
+    monthlyPrice: 79,
+    annualPrice: 790, // 2 months free
     description: 'Everything you need for enterprise-grade business intelligence',
     queryLimit: 50,
     features: [
@@ -331,10 +331,10 @@ export default function SubscriptionPage() {
                       </div>
                       
                       <div className="mt-4">
-                        <span className="text-4xl font-bold">${price}</span>
-                        <span className="text-gray-600">/month</span>
+                        <span className="text-4xl font-bold">{price === 0 ? 'Free' : `$${price}`}</span>
+                        {price > 0 && <span className="text-gray-600">/month</span>}
                       </div>
-                      {billingCycle === 'annual' && (
+                      {billingCycle === 'annual' && price > 0 && (
                         <p className="text-sm text-green-600 mt-1">
                           ${plan.annualPrice}/year (save ${plan.monthlyPrice * 12 - plan.annualPrice})
                         </p>
