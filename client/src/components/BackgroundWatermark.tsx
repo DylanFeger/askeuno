@@ -32,7 +32,7 @@ export default function BackgroundWatermark() {
         filter: currentBgLight 
           ? 'brightness(0) saturate(100%) invert(85%) sepia(5%) saturate(500%) hue-rotate(90deg) brightness(95%) contrast(90%)' // Lighter sage green for light backgrounds
           : 'brightness(0) saturate(100%) invert(48%) sepia(10%) saturate(1352%) hue-rotate(90deg) brightness(91%) contrast(85%)', // Darker sage green for dark backgrounds
-        opacity: 0.4, // More prominent watermark
+        opacity: 0.35, // 35% opacity watermark
         transition: 'all 0.3s ease-in-out'
       });
     };
