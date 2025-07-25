@@ -34,7 +34,7 @@ export default function BackgroundWatermark() {
         filter: currentBgLight 
           ? 'brightness(0) saturate(100%) invert(85%) sepia(5%) saturate(500%) hue-rotate(90deg) brightness(95%) contrast(90%)' // Lighter sage green for light backgrounds
           : 'brightness(0) saturate(100%) invert(48%) sepia(10%) saturate(1352%) hue-rotate(90deg) brightness(91%) contrast(85%)', // Darker sage green for dark backgrounds
-        opacity: 0.05, // Very subtle
+        opacity: 0.4, // More prominent watermark
         transition: 'all 0.3s ease-in-out'
       });
     };
@@ -52,7 +52,7 @@ export default function BackgroundWatermark() {
     <>
       {/* Desktop watermark */}
       <div 
-        className="fixed inset-0 pointer-events-none -z-10 hidden md:block overflow-hidden"
+        className="fixed inset-0 pointer-events-none z-10 hidden md:block overflow-hidden"
         aria-hidden="true"
       >
         <div 
@@ -70,7 +70,7 @@ export default function BackgroundWatermark() {
 
       {/* Mobile watermark - smaller and positioned differently */}
       <div 
-        className="fixed inset-0 pointer-events-none -z-10 md:hidden overflow-hidden"
+        className="fixed inset-0 pointer-events-none z-10 md:hidden overflow-hidden"
         aria-hidden="true"
       >
         <div 
@@ -80,7 +80,7 @@ export default function BackgroundWatermark() {
           }}
         >
           <HyppoLogo 
-            className="w-[300px] h-[300px] opacity-50 translate-x-1/3 translate-y-1/3" 
+            className="w-[300px] h-[300px] translate-x-1/3 translate-y-1/3" 
             style={logoStyle}
           />
         </div>
