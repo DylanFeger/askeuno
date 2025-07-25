@@ -173,7 +173,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto text-center">
           <div className="flex justify-center mb-8">
             <div className="p-4 bg-primary/10 rounded-full animate-pulse">
-              <HyppoLogo className="w-12 h-12 text-primary" />
+              <HyppoLogo className="w-20 h-20" style={{ filter: 'brightness(0) saturate(100%) invert(48%) sepia(10%) saturate(1352%) hue-rotate(90deg) brightness(91%) contrast(85%)' }} />
             </div>
           </div>
           
