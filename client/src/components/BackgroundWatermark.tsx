@@ -2,12 +2,10 @@ import { useEffect, useState } from 'react';
 import HyppoLogo from './HyppoLogo';
 
 export default function BackgroundWatermark() {
-  const [scrollY, setScrollY] = useState(0);
   const [logoStyle, setLogoStyle] = useState<React.CSSProperties>({});
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrollY(window.scrollY);
       
       // Detect which section we're in based on scroll position
       const sections = document.querySelectorAll('section');
@@ -45,20 +43,19 @@ export default function BackgroundWatermark() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Parallax effect - logo moves slower than scroll
-  const translateY = scrollY * 0.3;
+
 
   return (
     <>
       {/* Desktop watermark */}
       <div 
-        className="fixed inset-0 pointer-events-none z-10 hidden md:block overflow-hidden"
+        className="fixed inset-0 pointer-events-none z-0 hidden md:block overflow-hidden"
         aria-hidden="true"
       >
         <div 
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
           style={{
-            transform: `translate(-50%, calc(-50% + ${translateY}px))`,
+            transform: `translate(-50%, -50%)`,
           }}
         >
           <HyppoLogo 
@@ -70,13 +67,13 @@ export default function BackgroundWatermark() {
 
       {/* Mobile watermark - smaller and positioned differently */}
       <div 
-        className="fixed inset-0 pointer-events-none z-10 md:hidden overflow-hidden"
+        className="fixed inset-0 pointer-events-none z-0 md:hidden overflow-hidden"
         aria-hidden="true"
       >
         <div 
           className="absolute right-0 bottom-0"
           style={{
-            transform: `translateY(${translateY * 0.5}px)`,
+            transform: `translate(0, 0)`,
           }}
         >
           <HyppoLogo 
