@@ -25,16 +25,39 @@ export default function Contact() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // For now, just show a success message
-    // In production, this would send to your backend
-    setTimeout(() => {
-      toast({
-        title: 'Message Sent!',
-        description: 'We\'ll get back to you within 24 hours.',
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
-      setFormData({ name: '', email: '', subject: '', message: '' });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast({
+          title: 'Message Sent!',
+          description: data.message || 'We\'ll get back to you within 24 hours.',
+        });
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        toast({
+          title: 'Failed to send message',
+          description: data.error || 'Please try again later or email us directly at support@askeuno.com',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Network error',
+        description: 'Please check your connection and try again.',
+        variant: 'destructive',
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   return (

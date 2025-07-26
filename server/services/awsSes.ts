@@ -214,6 +214,72 @@ If you have any questions, feel free to reply to this email.
 }
 
 /**
+ * Send a contact form submission email
+ */
+export async function sendContactFormEmail(
+  formData: { name: string; email: string; subject: string; message: string }
+): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>New Contact Form Submission</title>
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="text-align: center; padding: 30px 0;">
+    <h1 style="color: hsl(142, 25%, 45%); margin: 0;">New Contact Form Submission</h1>
+  </div>
+  
+  <div style="background-color: #f9f9f9; padding: 30px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <h2 style="margin-top: 0;">Contact Details</h2>
+    
+    <div style="margin-bottom: 20px;">
+      <strong>Name:</strong> ${formData.name}<br>
+      <strong>Email:</strong> <a href="mailto:${formData.email}">${formData.email}</a><br>
+      <strong>Subject:</strong> ${formData.subject}
+    </div>
+    
+    <div style="background-color: white; padding: 20px; border-radius: 5px; margin-top: 20px;">
+      <h3 style="margin-top: 0;">Message:</h3>
+      <p style="white-space: pre-wrap;">${formData.message}</p>
+    </div>
+    
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+      <p style="color: #666; font-size: 14px;">
+        This message was sent from the Euno contact form at ${new Date().toLocaleString()}.
+      </p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+  const text = `
+New Contact Form Submission
+
+Contact Details:
+Name: ${formData.name}
+Email: ${formData.email}
+Subject: ${formData.subject}
+
+Message:
+${formData.message}
+
+---
+This message was sent from the Euno contact form at ${new Date().toLocaleString()}.
+`;
+
+  return sendEmail({
+    to: 'support@askeuno.com',
+    from: process.env.SES_FROM_EMAIL || 'noreply@askeuno.com',
+    subject: `Contact Form: ${formData.subject}`,
+    html,
+    text,
+    replyTo: formData.email
+  });
+}
+
+/**
  * Test connection to AWS SES
  */
 export async function testSESConnection(): Promise<{ success: boolean; error?: string }> {

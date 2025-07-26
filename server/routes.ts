@@ -1,4 +1,4 @@
-import type { Express, Request } from "express";
+import express, { type Express, type Request } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import path from "path";
@@ -20,6 +20,7 @@ import pipelineTestRoutes from "./routes/pipeline-test";
 import apiPushRoutes from "./routes/api-push";
 import healthRoutes from "./routes/health";
 import { initializeScheduler, shutdownScheduler } from "./services/scheduler";
+import { sendContactFormEmail } from "./services/awsSes";
 
 // Extend Express Request interface for file uploads
 interface MulterRequest extends Request {
@@ -98,6 +99,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Health check routes
   app.use('/api/health', healthRoutes);
+
+  // Contact form endpoint - public with rate limiting
+  app.post('/api/contact', 
+    ipRateLimit(5, 15 * 60 * 1000), // 5 submissions per 15 minutes
+    express.json(),
+    async (req, res) => {
+      try {
+        const { name, email, subject, message } = req.body;
+        
+        // Validate required fields
+        if (!name || !email || !subject || !message) {
+          return res.status(400).json({ 
+            error: 'All fields are required: name, email, subject, message' 
+          });
+        }
+
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          return res.status(400).json({ 
+            error: 'Please provide a valid email address' 
+          });
+        }
+
+        // Send the email
+        const result = await sendContactFormEmail({ name, email, subject, message });
+        
+        if (result.success) {
+          logger.info('Contact form submission sent', { 
+            from: email, 
+            subject,
+            messageId: result.messageId 
+          });
+          
+          res.json({ 
+            success: true, 
+            message: 'Your message has been sent successfully. We\'ll get back to you within 24 hours.' 
+          });
+        } else {
+          logger.error('Failed to send contact form email', { 
+            error: result.error,
+            from: email 
+          });
+          
+          res.status(500).json({ 
+            error: 'Failed to send message. Please try again later or email us directly at support@askeuno.com' 
+          });
+        }
+      } catch (error: any) {
+        logger.error('Contact form error', { error: error.message });
+        res.status(500).json({ 
+          error: 'An unexpected error occurred. Please try again later.' 
+        });
+      }
+    }
+  );
 
   // Rate limiting for AI features
   const aiRateLimit = createUserRateLimit(
