@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Link } from 'wouter';
 import HyppoLogo from '@/components/HyppoLogo';
 import Footer from '@/components/Footer';
+import EmailWithCopy from '@/components/EmailWithCopy';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Contact() {
@@ -145,7 +146,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Email Support</h3>
-                    <p className="text-gray-600">support@acre.com</p>
+                    <EmailWithCopy email="support@askeuno.com" className="text-gray-600" />
                     <p className="text-sm text-gray-500 mt-1">We respond within 24 hours</p>
                   </div>
                 </div>
@@ -158,7 +159,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Sales Inquiries</h3>
-                    <p className="text-gray-600">sales@acre.com</p>
+                    <EmailWithCopy email="welcome@askeuno.com" className="text-gray-600" />
                     <p className="text-sm text-gray-500 mt-1">For enterprise plans and custom needs</p>
                   </div>
                 </div>

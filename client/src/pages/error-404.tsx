@@ -2,6 +2,7 @@ import { Home, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'wouter';
 import HyppoLogo from '@/components/HyppoLogo';
+import EmailWithCopy from '@/components/EmailWithCopy';
 
 export default function Error404() {
   return (
@@ -39,7 +40,9 @@ export default function Error404() {
         </div>
         
         <div className="pt-8 text-sm text-gray-500">
-          <p>Need help? Contact us at <a href="mailto:support@euno.com" className="text-primary hover:underline">support@euno.com</a></p>
+          <p className="flex items-center justify-center">
+            Need help? Contact us at <span className="ml-1"><EmailWithCopy email="support@askeuno.com" className="text-primary hover:underline" /></span>
+          </p>
         </div>
       </div>
     </div>

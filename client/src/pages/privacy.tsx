@@ -2,6 +2,7 @@ import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, Shield, Lock, Cookie, Mail } from 'lucide-react';
+import EmailWithCopy from '@/components/EmailWithCopy';
 
 export default function Privacy() {
   return (
@@ -159,9 +160,9 @@ export default function Privacy() {
               <p>We're here to help!</p>
               <div className="mt-4">
                 <p className="font-medium">Email us at:</p>
-                <a href="mailto:support@euno.com" className="text-primary hover:underline text-lg">
-                  support@euno.com
-                </a>
+                <div className="mt-2">
+                  <EmailWithCopy email="support@askeuno.com" className="text-primary hover:underline text-lg" />
+                </div>
               </div>
               <p className="text-sm mt-4">We typically respond within 24 business hours.</p>
             </div>

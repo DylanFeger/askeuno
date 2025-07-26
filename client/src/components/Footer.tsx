@@ -1,5 +1,6 @@
 import { Link } from 'wouter';
 import HyppoLogo from './HyppoLogo';
+import EmailWithCopy from './EmailWithCopy';
 
 export default function Footer() {
   return (
@@ -31,7 +32,9 @@ export default function Footer() {
             <ul className="space-y-2 text-gray-400">
               <li><Link href="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
               <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
-              <li><a href="mailto:support@acre.com" className="hover:text-white transition-colors">Email Support</a></li>
+              <li className="flex items-center">
+                <EmailWithCopy email="support@askeuno.com" className="text-gray-400 hover:text-white transition-colors" />
+              </li>
             </ul>
           </div>
           

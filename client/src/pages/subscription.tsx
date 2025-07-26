@@ -11,6 +11,7 @@ import { Link } from 'wouter';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Subscribe from './subscribe';
+import EmailWithCopy from '@/components/EmailWithCopy';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import {
@@ -425,10 +426,12 @@ export default function SubscriptionPage() {
             </div>
 
             <div className="mt-8 p-4 bg-gray-100 rounded-lg inline-block">
-              <p className="text-sm text-gray-600">
-                <AlertCircle className="w-4 h-4 inline mr-1" />
+              <p className="text-sm text-gray-600 flex items-center justify-center">
+                <AlertCircle className="w-4 h-4 mr-1" />
                 Questions about pricing? Email us at{' '}
-                <a href="mailto:support@euno.com" className="text-primary hover:underline">support@euno.com</a>
+                <span className="ml-1">
+                  <EmailWithCopy email="support@askeuno.com" className="text-primary hover:underline" />
+                </span>
               </p>
             </div>
           </div>
