@@ -427,6 +427,11 @@ The application follows a monorepo structure with clear separation between front
     - Non-authenticated users see marketing home page and are redirected to login
     - Authenticated users land directly on chat page with personalized welcome
     - Quick access to connect data or upload files if no data sources exist
+- **BACKGROUND LOGO OPACITY ADJUSTED** (July 28, 2025):
+  - Decreased background watermark logo opacity from 35% to 30% (5% reduction)
+  - Updated BackgroundWatermark component to use 0.30 opacity value
+  - Logo remains responsive with dynamic color adjustments based on section backgrounds
+  - Mobile and desktop watermark positions remain unchanged
 - **COMPREHENSIVE SYSTEM AUDIT COMPLETED** (January 17, 2025):
   - **Authentication & Security**: 
     - User-friendly error messages for login failures
