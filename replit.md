@@ -432,6 +432,12 @@ The application follows a monorepo structure with clear separation between front
   - Updated BackgroundWatermark component to use 0.30 opacity value
   - Logo remains responsive with dynamic color adjustments based on section backgrounds
   - Mobile and desktop watermark positions remain unchanged
+- **CHAT AVATAR UPDATED TO GLASSES ICON** (July 28, 2025):
+  - Created new GlassesIcon component showing square-framed glasses only
+  - Updated ChatInterface to use GlassesIcon for Euno's responses
+  - Changed both welcome message and assistant message avatars
+  - HyppoLogo remains unchanged everywhere else (navbar, footer, etc.)
+  - Glasses icon styled with white color on sage green background
 - **COMPREHENSIVE SYSTEM AUDIT COMPLETED** (January 17, 2025):
   - **Authentication & Security**: 
     - User-friendly error messages for login failures
