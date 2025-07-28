@@ -36,6 +36,10 @@ const dataSourceTypes = [
   { id: 'salesforce', name: 'Salesforce', icon: Building2, category: 'apps' },
   { id: 'shopify', name: 'Shopify', icon: ShoppingCart, category: 'apps' },
   { id: 'googleads', name: 'Google Ads', icon: BarChart3, category: 'apps' },
+  { id: 'stripe', name: 'Stripe', icon: ShoppingCart, category: 'payments' },
+  { id: 'square', name: 'Square', icon: ShoppingCart, category: 'payments' },
+  { id: 'paypal', name: 'PayPal', icon: ShoppingCart, category: 'payments' },
+  { id: 'quickbooks', name: 'QuickBooks', icon: Building2, category: 'accounting' },
   { id: 'api', name: 'Custom API', icon: Server, category: 'api' },
 ];
 
@@ -55,7 +59,7 @@ export default function ConnectionsPage() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  const { data: connections = [] } = useQuery({
+  const { data: connections = [] } = useQuery<any[]>({
     queryKey: ['/api/data-sources'],
   });
   
@@ -290,6 +294,159 @@ export default function ConnectionsPage() {
                 value={connectionForm.domain || ''}
                 onChange={(e) => setConnectionForm({ ...connectionForm, domain: e.target.value })}
               />
+            </div>
+          </div>
+        );
+
+      case 'stripe':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4">
+              <Shield className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Stripe Integration</strong><br />
+                Connect your Stripe account to automatically sync payment data including transactions, customers, and revenue analytics.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="stripeSecretKey">Secret Key</Label>
+              <Input
+                id="stripeSecretKey"
+                type="password"
+                placeholder="sk_live_..."
+                value={connectionForm.apiKey || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, apiKey: e.target.value })}
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Find this in your Stripe Dashboard → Developers → API keys
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="syncMode">Sync Mode</Label>
+              <Select
+                value={connectionForm.syncMode || 'daily'}
+                onValueChange={(value) => setConnectionForm({ ...connectionForm, syncMode: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="realtime">Real-time (via webhooks)</SelectItem>
+                  <SelectItem value="daily">Daily sync</SelectItem>
+                  <SelectItem value="manual">Manual sync only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case 'square':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4">
+              <Shield className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Square Integration</strong><br />
+                Connect your Square account to sync transactions, inventory, and customer data from your point of sale.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="squareAccessToken">Access Token</Label>
+              <Input
+                id="squareAccessToken"
+                type="password"
+                placeholder="EAAAE..."
+                value={connectionForm.apiKey || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, apiKey: e.target.value })}
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Get this from Square Developer Dashboard → Applications → Access Tokens
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="environment">Environment</Label>
+              <Select
+                value={connectionForm.environment || 'production'}
+                onValueChange={(value) => setConnectionForm({ ...connectionForm, environment: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="production">Production</SelectItem>
+                  <SelectItem value="sandbox">Sandbox (Testing)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case 'paypal':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4">
+              <Shield className="h-4 w-4" />
+              <AlertDescription>
+                <strong>PayPal Integration</strong><br />
+                Connect your PayPal Business account to track payments, refunds, and transaction fees.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="paypalClientId">Client ID</Label>
+              <Input
+                id="paypalClientId"
+                placeholder="AWj..."
+                value={connectionForm.clientId || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, clientId: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="paypalClientSecret">Client Secret</Label>
+              <Input
+                id="paypalClientSecret"
+                type="password"
+                placeholder="••••••••"
+                value={connectionForm.clientSecret || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, clientSecret: e.target.value })}
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Find these in PayPal Developer Dashboard → My Apps & Credentials
+              </p>
+            </div>
+          </div>
+        );
+
+      case 'quickbooks':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4">
+              <Building2 className="h-4 w-4" />
+              <AlertDescription>
+                <strong>QuickBooks Integration</strong><br />
+                Connect your QuickBooks account to sync invoices, expenses, and financial reports.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="quickbooksCompanyId">Company ID</Label>
+              <Input
+                id="quickbooksCompanyId"
+                placeholder="123456789"
+                value={connectionForm.companyId || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, companyId: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="quickbooksAccessToken">Access Token</Label>
+              <Input
+                id="quickbooksAccessToken"
+                type="password"
+                placeholder="••••••••"
+                value={connectionForm.apiKey || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, apiKey: e.target.value })}
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                You'll need to authorize Euno in your QuickBooks account first
+              </p>
             </div>
           </div>
         );

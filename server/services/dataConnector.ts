@@ -35,6 +35,12 @@ export async function connectToDataSource(
         return await connectToShopify(connectionData);
       case 'stripe':
         return await connectToStripe(connectionData);
+      case 'square':
+        return await connectToSquare(connectionData);
+      case 'paypal':
+        return await connectToPayPal(connectionData);
+      case 'quickbooks':
+        return await connectToQuickBooks(connectionData);
       case 'googleads':
         return await connectToGoogleAds(connectionData);
       case 'salesforce':
@@ -269,6 +275,185 @@ async function connectToStripe(config: any): Promise<ConnectionResult> {
     created_at: 'date',
     paid: 'boolean',
     refunded: 'boolean',
+  };
+
+  return {
+    success: true,
+    data,
+    schema,
+    rowCount: data.length,
+  };
+}
+
+/**
+ * Connect to Square API
+ */
+async function connectToSquare(config: any): Promise<ConnectionResult> {
+  const { apiKey, environment = 'production' } = config;
+  const baseURL = environment === 'production' 
+    ? 'https://connect.squareup.com/v2' 
+    : 'https://connect.squareupsandbox.com/v2';
+  
+  // Fetch payments as sample data
+  const response = await axios.get(`${baseURL}/payments`, {
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    params: { limit: 100 },
+  });
+
+  const payments = response.data.payments || [];
+  
+  // Transform to flat structure
+  const data = payments.map((payment: any) => ({
+    id: payment.id,
+    amount: payment.amount_money?.amount ? payment.amount_money.amount / 100 : 0,
+    currency: payment.amount_money?.currency || 'USD',
+    status: payment.status,
+    source_type: payment.source_type,
+    created_at: new Date(payment.created_at),
+    customer_id: payment.customer_id,
+    location_id: payment.location_id,
+    reference_id: payment.reference_id,
+    note: payment.note,
+  }));
+
+  const schema = {
+    id: 'string',
+    amount: 'number',
+    currency: 'string',
+    status: 'string',
+    source_type: 'string',
+    created_at: 'date',
+    customer_id: 'string',
+    location_id: 'string',
+    reference_id: 'string',
+    note: 'string',
+  };
+
+  return {
+    success: true,
+    data,
+    schema,
+    rowCount: data.length,
+  };
+}
+
+/**
+ * Connect to PayPal API
+ */
+async function connectToPayPal(config: any): Promise<ConnectionResult> {
+  const { clientId, clientSecret } = config;
+  
+  // Get OAuth token
+  const authResponse = await axios.post(
+    'https://api-m.paypal.com/v1/oauth2/token',
+    'grant_type=client_credentials',
+    {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+      },
+    }
+  );
+
+  const accessToken = authResponse.data.access_token;
+
+  // Fetch transactions
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 30); // Last 30 days
+  
+  const response = await axios.get(
+    'https://api-m.paypal.com/v1/reporting/transactions',
+    {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      params: {
+        start_date: startDate.toISOString(),
+        end_date: new Date().toISOString(),
+        page_size: 100,
+      },
+    }
+  );
+
+  const transactions = response.data.transaction_details || [];
+  
+  // Transform to flat structure
+  const data = transactions.map((txn: any) => ({
+    transaction_id: txn.transaction_info?.transaction_id,
+    amount: parseFloat(txn.transaction_info?.transaction_amount?.value || 0),
+    currency: txn.transaction_info?.transaction_amount?.currency_code,
+    status: txn.transaction_info?.transaction_status,
+    transaction_date: new Date(txn.transaction_info?.transaction_initiation_date),
+    payer_email: txn.payer_info?.email_address,
+    payer_name: txn.payer_name?.alternate_full_name,
+    fee_amount: parseFloat(txn.transaction_info?.fee_amount?.value || 0),
+  }));
+
+  const schema = {
+    transaction_id: 'string',
+    amount: 'number',
+    currency: 'string',
+    status: 'string',
+    transaction_date: 'date',
+    payer_email: 'string',
+    payer_name: 'string',
+    fee_amount: 'number',
+  };
+
+  return {
+    success: true,
+    data,
+    schema,
+    rowCount: data.length,
+  };
+}
+
+/**
+ * Connect to QuickBooks API
+ */
+async function connectToQuickBooks(config: any): Promise<ConnectionResult> {
+  const { companyId, apiKey } = config;
+  const baseURL = 'https://sandbox-quickbooks.api.intuit.com/v3/company';
+  
+  // Fetch invoices as sample data
+  const response = await axios.get(
+    `${baseURL}/${companyId}/query?query=SELECT * FROM Invoice MAXRESULTS 100`,
+    {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  const invoices = response.data.QueryResponse?.Invoice || [];
+  
+  // Transform to flat structure
+  const data = invoices.map((invoice: any) => ({
+    invoice_id: invoice.Id,
+    invoice_number: invoice.DocNumber,
+    customer_name: invoice.CustomerRef?.name,
+    total_amount: parseFloat(invoice.TotalAmt || 0),
+    balance: parseFloat(invoice.Balance || 0),
+    due_date: invoice.DueDate ? new Date(invoice.DueDate) : null,
+    created_date: new Date(invoice.MetaData?.CreateTime),
+    status: invoice.Balance > 0 ? 'Open' : 'Paid',
+  }));
+
+  const schema = {
+    invoice_id: 'string',
+    invoice_number: 'string',
+    customer_name: 'string',
+    total_amount: 'number',
+    balance: 'number',
+    due_date: 'date',
+    created_date: 'date',
+    status: 'string',
   };
 
   return {

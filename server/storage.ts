@@ -33,6 +33,7 @@ export interface IStorage {
   // Data source operations
   createDataSource(dataSource: InsertDataSource & { userId: number }): Promise<DataSource>;
   getDataSourcesByUserId(userId: number): Promise<DataSource[]>;
+  getDataSourcesByType(type: string): Promise<DataSource[]>;
   getDataSource(id: number): Promise<DataSource | undefined>;
   getDataSourceByNameAndUser(name: string, userId: number): Promise<DataSource | undefined>;
   updateDataSource(id: number, updates: Partial<DataSource>): Promise<DataSource | undefined>;
@@ -144,6 +145,14 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(dataSources)
       .where(eq(dataSources.userId, userId))
+      .orderBy(desc(dataSources.createdAt));
+  }
+
+  async getDataSourcesByType(type: string): Promise<DataSource[]> {
+    return await db
+      .select()
+      .from(dataSources)
+      .where(eq(dataSources.type, type))
       .orderBy(desc(dataSources.createdAt));
   }
 

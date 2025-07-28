@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Database, ShoppingCart, BarChart3, Users, Cloud, FileSpreadsheet, Code, Search, Lock, Zap } from 'lucide-react';
-import { SiMysql, SiPostgresql, SiMongodb, SiAmazons3, SiGooglesheets, SiSalesforce, SiShopify, SiGoogleads } from 'react-icons/si';
+import { Database, ShoppingCart, BarChart3, Users, Cloud, FileSpreadsheet, Code, Search, Lock, Zap, CreditCard, Building2 } from 'lucide-react';
+import { SiMysql, SiPostgresql, SiMongodb, SiAmazons3, SiGooglesheets, SiSalesforce, SiShopify, SiGoogleads, SiStripe, SiSquare, SiPaypal, SiIntuit } from 'react-icons/si';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -88,7 +88,46 @@ export default function Integrations() {
         }
       ]
     },
-
+    {
+      category: 'Payment Processors',
+      icon: CreditCard,
+      items: [
+        {
+          name: 'Stripe',
+          icon: SiStripe,
+          description: 'Automatically sync payments, customers, and subscriptions.',
+          status: 'available',
+          syncType: 'Real-time webhooks'
+        },
+        {
+          name: 'Square',
+          icon: SiSquare,
+          description: 'Import transactions and inventory from your POS system.',
+          status: 'available',
+          syncType: 'Real-time webhooks'
+        },
+        {
+          name: 'PayPal',
+          icon: SiPaypal,
+          description: 'Track payments, refunds, and transaction fees.',
+          status: 'available',
+          syncType: 'API + Webhooks'
+        }
+      ]
+    },
+    {
+      category: 'Accounting Software',
+      icon: Building2,
+      items: [
+        {
+          name: 'QuickBooks',
+          icon: SiIntuit,
+          description: 'Sync invoices, expenses, and financial reports.',
+          status: 'available',
+          syncType: 'API connection'
+        }
+      ]
+    },
     {
       category: 'Custom API',
       icon: Code,
