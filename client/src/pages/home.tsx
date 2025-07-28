@@ -1,4 +1,4 @@
-import { Check, Zap, Lock, MessageCircle, ArrowRight } from 'lucide-react';
+import { Check, Zap, Lock, MessageCircle, ArrowRight, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Link, useLocation } from 'wouter';
@@ -188,6 +188,29 @@ export default function Home() {
           <p className="text-sm text-gray-500 mt-4">
             No credit card required • Free trial for all plans
           </p>
+        </div>
+      </section>
+
+      {/* No Data CTA Section */}
+      <section className="py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <Card className="p-8 bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20 hover:shadow-lg transition-shadow">
+            <div className="text-center">
+              <TrendingUp className="w-12 h-12 text-primary mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                Don't have data yet? Start tracking now
+              </h3>
+              <p className="text-lg text-gray-600 mb-6">
+                No spreadsheets? No problem. We'll help you set up simple tracking for your business in minutes.
+              </p>
+              <Link href="/start-tracking">
+                <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
+                  Start Tracking Your Data
+                  <TrendingUp className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+          </Card>
         </div>
       </section>
 

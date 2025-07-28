@@ -22,6 +22,7 @@ import Contact from "@/pages/contact";
 import Documentation from "@/pages/docs";
 import Settings from "@/pages/settings";
 import TeamCulture from "@/pages/team-culture";
+import StartTracking from "@/pages/start-tracking";
 
 function Router() {
   return (
@@ -33,6 +34,7 @@ function Router() {
       <Route path="/dashboards" component={Dashboards} />
       <Route path="/upload" component={UploadPage} />
       <Route path="/import-wizard" component={ImportWizard} />
+      <Route path="/start-tracking" component={StartTracking} />
       <Route path="/subscription" component={SubscriptionPage} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/features" component={Features} />

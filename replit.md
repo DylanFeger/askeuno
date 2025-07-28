@@ -571,5 +571,22 @@ The application follows a monorepo structure with clear separation between front
   - Reply-to address automatically set to sender's email for easy responses
   - Rate limiting: 5 submissions per 15 minutes per IP to prevent spam
   - Backend validation for all form fields and email format
+- **START TRACKING YOUR DATA FEATURE ADDED** (July 28, 2025):
+  - New onboarding feature for businesses without existing data
+  - Navbar banner appears for users without data sources: "No data yet? Start tracking now"
+  - Created /start-tracking page with guided onboarding flow
+  - Three business templates available:
+    - Retail Store: Product sales tracking (product name, date, quantity, price, customer)
+    - Service Business: Service tracking (service type, date, hours, client, rate)
+    - Cafe/Restaurant: Menu item tracking (item, category, price, date, time, table)
+  - Users can:
+    - Select a business template
+    - Name their data collection
+    - Add entries manually through form fields
+    - Review entries in a table format
+    - Generate CSV file automatically
+  - Seamless integration with existing upload system
+  - Added to home page CTA section and chat page empty state
+  - Works across all subscription tiers
 - Waiting for AWS credentials (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, S3_BUCKET_NAME) to enable file storage functionality
 - Backend is now production-ready with enterprise-grade security, monitoring, and data pipeline

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
-import { Database, Upload } from 'lucide-react';
+import { Database, Upload, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import ChatInterface from '@/components/ChatInterface';
@@ -52,17 +52,23 @@ export default function Chat() {
                 <p className="text-amber-800 mb-4">
                   You haven't connected any data sources yet. Get started by:
                 </p>
-                <div className="flex gap-3 justify-center">
+                <div className="flex gap-3 justify-center flex-wrap">
+                  <Link href="/start-tracking">
+                    <Button>
+                      <TrendingUp className="w-4 h-4 mr-2" />
+                      Start Tracking Data
+                    </Button>
+                  </Link>
+                  <Link href="/upload">
+                    <Button variant="outline">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload a File
+                    </Button>
+                  </Link>
                   <Link href="/connections">
                     <Button variant="outline">
                       <Database className="w-4 h-4 mr-2" />
                       Connect Live Data
-                    </Button>
-                  </Link>
-                  <Link href="/upload">
-                    <Button>
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload a File
                     </Button>
                   </Link>
                 </div>
