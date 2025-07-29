@@ -208,9 +208,7 @@ export default function Home() {
             {/* Block 1: Most businesses guess */}
             <div className="flex flex-col md:flex-row items-center gap-8">
               <div className="flex-1 text-center md:text-left">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-                  <Target className="w-8 h-8 text-primary animate-pulse" />
-                </div>
+                <Target className="w-8 h-8 text-primary animate-pulse mb-4" />
                 <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
                   Most businesses <span className="text-primary">guess</span>. 
                   <br />Winning businesses <span className="text-primary">know</span>.
