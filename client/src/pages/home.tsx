@@ -166,7 +166,7 @@ export default function Home() {
                   <AuthForm onSuccess={handleAuthSuccess} />
                 </DialogContent>
               </Dialog>
-              <Button onClick={() => document.getElementById('auth-section')?.scrollIntoView({ behavior: 'smooth' })}>
+              <Button onClick={() => setLocation('/connections')}>
                 Get Started For Free
               </Button>
             </nav>
@@ -189,7 +189,7 @@ export default function Home() {
                   <AuthForm onSuccess={handleAuthSuccess} />
                 </DialogContent>
               </Dialog>
-              <Button size="sm" onClick={() => document.getElementById('auth-section')?.scrollIntoView({ behavior: 'smooth' })}>
+              <Button size="sm" onClick={() => setLocation('/connections')}>
                 Get Started
               </Button>
             </div>
@@ -220,7 +220,7 @@ export default function Home() {
                 <Button 
                   size="lg"
                   className="px-8 py-6 text-lg"
-                  onClick={() => document.getElementById('auth-section')?.scrollIntoView({ behavior: 'smooth' })}
+                  onClick={() => setLocation('/connections')}
                 >
                   Get Started For Free
                   <ArrowRight className="w-5 h-5 ml-2" />
@@ -364,16 +364,6 @@ export default function Home() {
               </Link>
             </div>
           </Card>
-        </div>
-      </section>
-      {/* Auth Section */}
-      <section id="auth-section" className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Ready to simplify your data?</h2>
-            <p className="text-lg text-gray-600">Sign up or sign in to unlock Euno's full experience</p>
-          </div>
-          <AuthForm onSuccess={handleAuthSuccess} />
         </div>
       </section>
       {/* Benefits Section */}
