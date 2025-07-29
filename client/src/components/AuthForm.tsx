@@ -71,7 +71,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   };
 
   return (
-    <Card className="p-8 max-w-md mx-auto">
+    <>
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900">
           {isLogin ? 'Welcome Back' : 'Create Account'}
@@ -159,6 +159,6 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
           </button>
         </p>
       </div>
-    </Card>
+    </>
   );
 }
