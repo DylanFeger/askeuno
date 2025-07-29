@@ -72,15 +72,6 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
 
   return (
     <>
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">
-          {isLogin ? 'Welcome Back' : 'Create Account'}
-        </h2>
-        <p className="text-gray-600 mt-2">
-          {isLogin ? 'Sign in to access your data' : 'Get started with Acre'}
-        </p>
-      </div>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
