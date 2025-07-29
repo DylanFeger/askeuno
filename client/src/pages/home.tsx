@@ -156,7 +156,6 @@ export default function Home() {
           </div>
         </div>
       </header>
-
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         {/* Background decoration */}
@@ -167,7 +166,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto text-center">
           <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-6">
             Your business data, simplified — <br/>
-            <span className="text-primary">insights in a chat</span>
+            <span className="text-primary">Insights in a chat</span>
           </h1>
           <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
             Upload or connect your data — Euno handles the rest with secure, smart answers in seconds. 
@@ -190,7 +189,6 @@ export default function Home() {
           </p>
         </div>
       </section>
-
       {/* Why Your Business Needs Data Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-6xl mx-auto">
@@ -291,7 +289,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* No Data CTA Section */}
       <section className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
@@ -314,7 +311,6 @@ export default function Home() {
           </Card>
         </div>
       </section>
-
       {/* Auth Section */}
       <section id="auth-section" className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-4xl mx-auto">
@@ -325,7 +321,6 @@ export default function Home() {
           <AuthForm onSuccess={handleAuthSuccess} />
         </div>
       </section>
-
       {/* Benefits Section */}
       <section id="benefits" className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
@@ -397,9 +392,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       <PricingSection />
-
       <Footer />
     </div>
   );
