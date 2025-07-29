@@ -280,12 +280,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Optional stat */}
-            <div className="text-center py-8">
-              <p className="text-lg text-gray-600 italic">
-                "Businesses that track their data grow 35% faster on average. Start now with Euno."
-              </p>
-            </div>
+            
           </div>
         </div>
       </section>
