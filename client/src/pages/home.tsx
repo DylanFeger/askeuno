@@ -1,4 +1,4 @@
-import { Check, Zap, Lock, MessageCircle, ArrowRight, TrendingUp } from 'lucide-react';
+import { Check, Zap, Lock, MessageCircle, ArrowRight, TrendingUp, BarChart, Target, Lightbulb, ChartLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Link, useLocation } from 'wouter';
@@ -188,6 +188,114 @@ export default function Home() {
           <p className="text-sm text-gray-500 mt-4">
             No credit card required • Free trial for all plans
           </p>
+        </div>
+      </section>
+
+      {/* Why Your Business Needs Data Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+              Why Your Business Needs Data
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Transform guesswork into strategy. Join the businesses that thrive on insights.
+            </p>
+          </div>
+
+          {/* Main content blocks */}
+          <div className="space-y-16">
+            {/* Block 1: Most businesses guess */}
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="flex-1 text-center md:text-left">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
+                  <Target className="w-8 h-8 text-primary animate-pulse" />
+                </div>
+                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                  Most businesses <span className="text-primary">guess</span>. 
+                  <br />Winning businesses <span className="text-primary">know</span>.
+                </h3>
+                <p className="text-lg text-gray-600">
+                  Data turns instincts into insights. It reveals your best customers, 
+                  most profitable products, busiest hours, and what's holding you back.
+                </p>
+              </div>
+              <div className="flex-1 flex justify-center">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full"></div>
+                  <BarChart className="w-48 h-48 text-primary relative z-10" />
+                </div>
+              </div>
+            </div>
+
+            {/* Block 2: Data shows what to do next */}
+            <div className="flex flex-col md:flex-row-reverse items-center gap-8">
+              <div className="flex-1 text-center md:text-left">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
+                  <ChartLine className="w-8 h-8 text-primary animate-pulse" />
+                </div>
+                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                  Data doesn't just tell you what happened—<br />
+                  it shows you <span className="text-primary">what to do next</span>.
+                </h3>
+                <div className="space-y-2 text-lg text-gray-600">
+                  <p className="flex items-center justify-center md:justify-start">
+                    <ArrowRight className="w-5 h-5 text-primary mr-2" />
+                    Want to grow? Find patterns.
+                  </p>
+                  <p className="flex items-center justify-center md:justify-start">
+                    <ArrowRight className="w-5 h-5 text-primary mr-2" />
+                    Want to save time? Spot waste.
+                  </p>
+                  <p className="flex items-center justify-center md:justify-start">
+                    <ArrowRight className="w-5 h-5 text-primary mr-2" />
+                    Want to sell more? Learn what works.
+                  </p>
+                </div>
+              </div>
+              <div className="flex-1 flex justify-center">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full"></div>
+                  <Lightbulb className="w-48 h-48 text-primary relative z-10" />
+                </div>
+              </div>
+            </div>
+
+            {/* Block 3: Imagine seeing exactly why */}
+            <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-2xl p-8 md:p-12 text-center">
+              <TrendingUp className="w-16 h-16 text-primary mx-auto mb-6 animate-bounce" />
+              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 max-w-3xl mx-auto">
+                Imagine seeing exactly why your sales spike… or drop… 
+                <br />and knowing <span className="text-primary">exactly what to do about it</span>.
+              </h3>
+              <p className="text-xl text-gray-600 mb-2">
+                That's the power of data.
+              </p>
+              <p className="text-xl text-gray-600 mb-8">
+                And with Euno, it's not just for big companies anymore.
+              </p>
+              
+              {/* Call to action */}
+              <div className="space-y-6">
+                <h4 className="text-3xl font-bold text-primary">
+                  Start tracking today. Your future self will thank you.
+                </h4>
+                <Link href="/start-tracking">
+                  <Button size="lg" className="px-8 py-6 text-lg animate-pulse">
+                    Start Tracking Now
+                    <TrendingUp className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Optional stat */}
+            <div className="text-center py-8">
+              <p className="text-lg text-gray-600 italic">
+                "Businesses that track their data grow 35% faster on average. Start now with Euno."
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
