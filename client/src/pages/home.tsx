@@ -1,4 +1,5 @@
 import { Check, Zap, Lock, MessageCircle, ArrowRight, TrendingUp, BarChart, Target, Lightbulb, ChartLine } from 'lucide-react';
+import DemoAnimation from '@/components/DemoAnimation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Link, useLocation } from 'wouter';
@@ -142,17 +143,56 @@ export default function Home() {
                 <span className="text-xl font-bold text-gray-900">Euno</span>
               </div>
             </Link>
-            <nav className="hidden md:flex items-center space-x-6">
+            <nav className="hidden md:flex items-center space-x-4">
               <a href="#benefits" className="text-gray-600 hover:text-primary transition-colors">
                 Benefits
               </a>
               <a href="#pricing" className="text-gray-600 hover:text-primary transition-colors">
                 Pricing
               </a>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" className="text-gray-600 hover:text-primary">
+                    Login
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Welcome to Euno</DialogTitle>
+                    <DialogDescription>
+                      Login or create an account to start using Euno
+                    </DialogDescription>
+                  </DialogHeader>
+                  <AuthForm onSuccess={handleAuthSuccess} />
+                </DialogContent>
+              </Dialog>
               <Button onClick={() => document.getElementById('auth-section')?.scrollIntoView({ behavior: 'smooth' })}>
-                Start Free Trial
+                Get Started For Free
               </Button>
             </nav>
+            
+            {/* Mobile menu */}
+            <div className="md:hidden flex items-center space-x-2">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    Login
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Welcome to Euno</DialogTitle>
+                    <DialogDescription>
+                      Login or create an account to start using Euno
+                    </DialogDescription>
+                  </DialogHeader>
+                  <AuthForm onSuccess={handleAuthSuccess} />
+                </DialogContent>
+              </Dialog>
+              <Button size="sm" onClick={() => document.getElementById('auth-section')?.scrollIntoView({ behavior: 'smooth' })}>
+                Get Started
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -163,30 +203,50 @@ export default function Home() {
         <div className="absolute top-20 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -z-10" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -z-10" />
         
-        <div className="max-w-5xl mx-auto text-center">
-          <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-6">
-            Your business data, simplified — <br/>
-            <span className="text-primary">Insights in a chat</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto">
-            Upload or connect your data — Euno handles the rest with secure, smart answers in seconds. 
-            No complex dashboards. Just clear insights when you need them.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg"
-              className="px-8 py-6 text-lg"
-              onClick={() => document.getElementById('auth-section')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              Start Free for 30 Days
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left side - Headline and CTA */}
+            <div className="text-center lg:text-left">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+                Connect your data.<br/>
+                Ask anything.<br/>
+                <span className="text-primary">Get answers.</span>
+              </h1>
+              <p className="text-xl text-gray-600 mb-8">
+                Euno makes your business data actually make sense — without needing a data team.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <Button 
+                  size="lg"
+                  className="px-8 py-6 text-lg"
+                  onClick={() => document.getElementById('auth-section')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  Get Started For Free
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </div>
+              
+              <p className="text-sm text-gray-500 mt-4">
+                No credit card required • Free trial for all plans
+              </p>
+            </div>
+            
+            {/* Right side - Demo Video/Animation */}
+            <div className="relative">
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-2xl overflow-hidden">
+                <div className="aspect-video">
+                  <DemoAnimation />
+                </div>
+              </div>
+              <p className="text-center text-sm text-gray-600 mt-3 flex items-center justify-center">
+                <span className="inline-block w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mr-2">
+                  <ArrowRight className="w-4 h-4 text-primary" />
+                </span>
+                See Euno in action
+              </p>
+            </div>
           </div>
-          
-          <p className="text-sm text-gray-500 mt-4">
-            No credit card required • Free trial for all plans
-          </p>
         </div>
       </section>
       {/* Why Your Business Needs Data Section */}
