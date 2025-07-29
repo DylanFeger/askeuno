@@ -271,8 +271,8 @@ export default function Home() {
                 <h4 className="text-3xl font-bold text-primary">
                   Start tracking today. Your future self will thank you.
                 </h4>
-                <Link href="/start-tracking">
-                  <Button size="lg" className="px-8 py-6 text-lg animate-pulse">
+                <Link href="/connections">
+                  <Button size="lg" className="px-8 py-6 text-lg">
                     Start Tracking Now
                     <TrendingUp className="w-5 h-5 ml-2" />
                   </Button>
