@@ -229,9 +229,6 @@ export default function Home() {
             {/* Block 2: Data shows what to do next */}
             <div className="flex flex-col md:flex-row-reverse items-center gap-8">
               <div className="flex-1 text-center md:text-left">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-                  <ChartLine className="w-8 h-8 text-primary animate-pulse" />
-                </div>
                 <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
                   Data doesn't just tell you what happened—<br />
                   it shows you <span className="text-primary">what to do next</span>.
