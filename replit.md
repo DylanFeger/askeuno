@@ -584,7 +584,7 @@ The application follows a monorepo structure with clear separation between front
   - Backend validation for all form fields and email format
 - **START TRACKING YOUR DATA FEATURE ADDED** (July 28, 2025):
   - New onboarding feature for businesses without existing data
-  - Navbar banner appears for users without data sources: "No data yet? Start tracking now"
+  - Banner option now appears in Data Sources page (moved from navbar) when user has no data
   - Created /start-tracking page with guided onboarding flow
   - Three business templates available:
     - Retail Store: Product sales tracking (product name, date, quantity, price, customer)
@@ -596,6 +596,7 @@ The application follows a monorepo structure with clear separation between front
     - Add entries manually through form fields
     - Review entries in a table format
     - Generate CSV file automatically
+  - "Start tracking now" button appears in both Live Connections and Uploaded Files tabs when empty
   - Seamless integration with existing upload system
   - Added to home page CTA section and chat page empty state
   - Works across all subscription tiers

@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Database, Cloud, Building2, ShoppingCart, BarChart3, FileSpreadsheet, Server, Wifi, AlertCircle, CheckCircle, Upload, FileIcon, Trash2, Shield } from 'lucide-react';
+import { Database, Cloud, Building2, ShoppingCart, BarChart3, FileSpreadsheet, Server, Wifi, AlertCircle, CheckCircle, Upload, FileIcon, Trash2, Shield, TrendingUp } from 'lucide-react';
 import { Link } from 'wouter';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -589,13 +589,23 @@ export default function ConnectionsPage() {
                 <Database className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No live connections yet</h3>
                 <p className="text-gray-600 mb-6">Connect to databases, APIs, and business apps for real-time data sync</p>
-                <Button 
-                  onClick={() => setIsDialogOpen(true)}
-                  disabled={!canAddMore || userTier === 'starter'}
-                >
-                  <Wifi className="mr-2 h-4 w-4" />
-                  Connect Your First Data Source
-                </Button>
+                <div className="flex flex-col gap-3 items-center">
+                  <Button 
+                    onClick={() => setIsDialogOpen(true)}
+                    disabled={!canAddMore || userTier === 'starter'}
+                  >
+                    <Wifi className="mr-2 h-4 w-4" />
+                    Connect Your First Data Source
+                  </Button>
+                  {uploadedFiles.length === 0 && (
+                    <Link href="/start-tracking">
+                      <Button variant="outline">
+                        <TrendingUp className="mr-2 h-4 w-4" />
+                        No data yet? Start tracking now
+                      </Button>
+                    </Link>
+                  )}
+                </div>
               </Card>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -651,12 +661,22 @@ export default function ConnectionsPage() {
                 <FileIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No uploaded files yet</h3>
                 <p className="text-gray-600 mb-6">Upload Excel, CSV, or JSON files for analysis</p>
-                <Link href="/upload">
-                  <Button disabled={!canAddMore}>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Your First File
-                  </Button>
-                </Link>
+                <div className="flex flex-col gap-3 items-center">
+                  <Link href="/upload">
+                    <Button disabled={!canAddMore}>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Your First File
+                    </Button>
+                  </Link>
+                  {liveConnections.length === 0 && (
+                    <Link href="/start-tracking">
+                      <Button variant="outline">
+                        <TrendingUp className="mr-2 h-4 w-4" />
+                        No data yet? Start tracking now
+                      </Button>
+                    </Link>
+                  )}
+                </div>
               </Card>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
