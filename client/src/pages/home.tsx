@@ -4,30 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Link, useLocation } from 'wouter';
 import PricingSection from '@/components/PricingSection';
-import AuthForm from '@/components/AuthForm';
 import HyppoLogo from '@/components/HyppoLogo';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
-import { queryClient } from '@/lib/queryClient';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 
 export default function Home() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
-
-  const handleAuthSuccess = () => {
-    // Redirect to chat after successful auth
-    queryClient.invalidateQueries();
-    setLocation('/chat');
-  };
 
   if (isLoading) {
     return (
@@ -150,46 +134,20 @@ export default function Home() {
               <a href="#pricing" className="text-gray-600 hover:text-primary transition-colors">
                 Pricing
               </a>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="ghost" className="text-gray-600 hover:text-primary">
-                    Login
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Welcome to Euno</DialogTitle>
-                    <DialogDescription>
-                      Login or create an account to start using Euno
-                    </DialogDescription>
-                  </DialogHeader>
-                  <AuthForm onSuccess={handleAuthSuccess} />
-                </DialogContent>
-              </Dialog>
-              <Button onClick={() => setLocation('/connections')}>
+              <Button variant="ghost" className="text-gray-600 hover:text-primary" onClick={() => setLocation('/signin')}>
+                Login
+              </Button>
+              <Button onClick={() => setLocation('/signin')}>
                 Get Started For Free
               </Button>
             </nav>
             
             {/* Mobile menu */}
             <div className="md:hidden flex items-center space-x-2">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    Login
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Welcome to Euno</DialogTitle>
-                    <DialogDescription>
-                      Login or create an account to start using Euno
-                    </DialogDescription>
-                  </DialogHeader>
-                  <AuthForm onSuccess={handleAuthSuccess} />
-                </DialogContent>
-              </Dialog>
-              <Button size="sm" onClick={() => setLocation('/connections')}>
+              <Button variant="ghost" size="sm" onClick={() => setLocation('/signin')}>
+                Login
+              </Button>
+              <Button size="sm" onClick={() => setLocation('/signin')}>
                 Get Started
               </Button>
             </div>
@@ -220,7 +178,7 @@ export default function Home() {
                 <Button 
                   size="lg"
                   className="px-8 py-6 text-lg"
-                  onClick={() => setLocation('/connections')}
+                  onClick={() => setLocation('/signin')}
                 >
                   Get Started For Free
                   <ArrowRight className="w-5 h-5 ml-2" />

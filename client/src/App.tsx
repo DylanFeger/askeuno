@@ -23,11 +23,13 @@ import Documentation from "@/pages/docs";
 import Settings from "@/pages/settings";
 import TeamCulture from "@/pages/team-culture";
 import StartTracking from "@/pages/start-tracking";
+import SignIn from "@/pages/signin";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/signin" component={SignIn} />
       <Route path="/chat" component={Chat} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/connections" component={Connections} />

@@ -32,10 +32,11 @@ const registerValidation = [
 
 // Login validation
 const loginValidation = [
-  body('username')
+  body('email')
     .trim()
-    .isLength({ min: 1 })
-    .withMessage('Username is required'),
+    .isEmail()
+    .withMessage('Valid email is required')
+    .normalizeEmail(),
   body('password')
     .isLength({ min: 1 })
     .withMessage('Password is required'),
@@ -122,17 +123,17 @@ router.post('/register', registerValidation, async (req, res) => {
 // Login endpoint
 router.post('/login', loginValidation, async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
     
     // Get user
-    const user = await storage.getUserByUsername(username);
+    const user = await storage.getUserByEmail(email);
     if (!user) {
-      logSecurityEvent('LOGIN_ATTEMPT_INVALID_USERNAME', {
-        username,
+      logSecurityEvent('LOGIN_ATTEMPT_INVALID_EMAIL', {
+        email,
         ip: req.ip,
         userAgent: req.get('User-Agent')
       });
-      return res.status(401).json({ error: 'Username not found. Please check your username and try again.' });
+      return res.status(401).json({ error: 'Email not found. Please check your email and try again.' });
     }
     
     // Verify password
@@ -169,7 +170,7 @@ router.post('/login', loginValidation, async (req, res) => {
       }
     });
   } catch (error: any) {
-    logger.error('Login error', { error, username: req.body.username });
+    logger.error('Login error', { error, email: req.body.email });
     res.status(500).json({ error: 'Login failed' });
   }
 });
