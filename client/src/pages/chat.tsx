@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'wouter';
+import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'wouter';
 import { Database, Upload, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -13,6 +13,14 @@ import type { DataSource } from '@shared/schema';
 export default function Chat() {
   const [conversationId, setConversationId] = useState<number | undefined>();
   const { user, isLoading, isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
+  
+  // Redirect to signin if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setLocation('/signin');
+    }
+  }, [isAuthenticated, isLoading, setLocation]);
 
   const { data: dataSources = [] } = useQuery<DataSource[]>({
     queryKey: ['/api/data-sources'],
@@ -27,8 +35,8 @@ export default function Chat() {
     );
   }
 
+  // Don't render anything if not authenticated (will redirect)
   if (!isAuthenticated) {
-    window.location.href = '/';
     return null;
   }
 

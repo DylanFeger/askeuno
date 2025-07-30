@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Database, Wifi, MessageSquare, Shield, Upload, Trash2, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import ChatInterface from '@/components/ChatInterface';
 import ChatHistoryModal from '@/components/ChatHistoryModal';
 import Navbar from '@/components/Navbar';
@@ -33,6 +33,14 @@ export default function Dashboard() {
   const [pipelineTestResult, setPipelineTestResult] = useState<any>(null);
   const { user, isLoading, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
+  
+  // Redirect to signin if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setLocation('/signin');
+    }
+  }, [isAuthenticated, isLoading, setLocation]);
 
   const { data: dataSources = [] } = useQuery<DataSource[]>({
     queryKey: ['/api/data-sources'],
@@ -127,8 +135,8 @@ export default function Dashboard() {
     );
   }
 
+  // Don't render anything if not authenticated (will redirect)
   if (!isAuthenticated) {
-    window.location.href = '/';
     return null;
   }
 
