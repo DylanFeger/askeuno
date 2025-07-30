@@ -633,3 +633,9 @@ The application follows a monorepo structure with clear separation between front
   - Updated support email to support@euno.com
   - Maintained consistent sage green color scheme throughout
   - Application now fully branded as Euno across all user touchpoints
+- **AUTOMATIC SCROLL TO TOP ON PAGE NAVIGATION** (July 30, 2025):
+  - Created ScrollToTop component that listens to route changes
+  - Integrated into App.tsx to work globally across all page navigation
+  - All page links (including footer links) now automatically scroll to top when clicked
+  - Works seamlessly with wouter routing without page refresh
+  - Provides better user experience when navigating between pages
