@@ -195,7 +195,7 @@ export default function SubscriptionPage() {
               <CardDescription>
                 {subscriptionStatus === 'trial' 
                   ? `You're enjoying your free trial - ${daysRemaining} days remaining`
-                  : 'Manage your Hyppo subscription and billing'
+                  : 'Manage your Euno subscription and billing'
                 }
               </CardDescription>
             </CardHeader>
@@ -445,7 +445,7 @@ export default function SubscriptionPage() {
             <AlertDialogTitle>Cancel {subscriptionStatus === 'trial' ? 'Free Trial' : 'Subscription'}?</AlertDialogTitle>
             <AlertDialogDescription>
               {subscriptionStatus === 'trial' 
-                ? "We're sorry to see you go! If you cancel now, you'll lose access to all Hyppo features immediately. You can always start a new trial later, but it won't include the remaining days from this trial."
+                ? "We're sorry to see you go! If you cancel now, you'll lose access to all Euno features immediately. You can always start a new trial later, but it won't include the remaining days from this trial."
                 : "Your subscription will remain active until the end of your current billing period. After that, you'll lose access to all premium features and your data will be archived for 30 days."}
             </AlertDialogDescription>
           </AlertDialogHeader>

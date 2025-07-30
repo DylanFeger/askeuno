@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import HyppoLogo from './HyppoLogo';
+import EunoLogo from './EunoLogo';
 
 export default function BackgroundWatermark() {
   const [logoStyle, setLogoStyle] = useState<React.CSSProperties>({});
@@ -58,7 +58,7 @@ export default function BackgroundWatermark() {
             transform: `translate(-50%, -50%)`,
           }}
         >
-          <HyppoLogo 
+          <EunoLogo 
             className="w-[600px] h-[600px] lg:w-[800px] lg:h-[800px]" 
             style={logoStyle}
           />
@@ -76,7 +76,7 @@ export default function BackgroundWatermark() {
             transform: `translate(0, 0)`,
           }}
         >
-          <HyppoLogo 
+          <EunoLogo 
             className="w-[300px] h-[300px] translate-x-1/3 translate-y-1/3" 
             style={logoStyle}
           />

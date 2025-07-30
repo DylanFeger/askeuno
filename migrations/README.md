@@ -1,6 +1,6 @@
 # Database Migration Guide
 
-This directory contains PostgreSQL migration scripts for the Acre data platform.
+This directory contains PostgreSQL migration scripts for the Euno data platform.
 
 ## Migration Files
 

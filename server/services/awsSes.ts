@@ -151,17 +151,17 @@ export async function sendWelcomeEmail(userEmail: string, username: string): Pro
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Welcome to Acre</title>
+  <title>Welcome to Euno</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="text-align: center; padding: 30px 0;">
-    <h1 style="color: hsl(142, 25%, 45%); margin: 0;">Welcome to Acre!</h1>
+    <h1 style="color: hsl(142, 25%, 45%); margin: 0;">Welcome to Euno!</h1>
   </div>
   
   <div style="background-color: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
     <h2>Hi ${username},</h2>
     
-    <p>Welcome to Acre - your secure, easy-to-use data platform. We're excited to help you upload, store, and analyze your business data with AI-powered insights.</p>
+    <p>Welcome to Euno - your secure, easy-to-use data platform. We're excited to help you upload, store, and analyze your business data with AI-powered insights.</p>
     
     <h3>Getting Started:</h3>
     <ul>
@@ -180,17 +180,17 @@ export async function sendWelcomeEmail(userEmail: string, username: string): Pro
   </div>
   
   <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
-    © ${new Date().getFullYear()} Acre. All rights reserved.
+    © ${new Date().getFullYear()} Euno. All rights reserved.
   </div>
 </body>
 </html>`;
 
   const text = `
-Welcome to Acre!
+Welcome to Euno!
 
 Hi ${username},
 
-Welcome to Acre - your secure, easy-to-use data platform. We're excited to help you upload, store, and analyze your business data with AI-powered insights.
+Welcome to Euno - your secure, easy-to-use data platform. We're excited to help you upload, store, and analyze your business data with AI-powered insights.
 
 Getting Started:
 • Upload your first data file (CSV, Excel, or JSON)
@@ -201,13 +201,13 @@ Get started at: ${process.env.APP_URL || 'https://acre.app'}
 
 If you have any questions, feel free to reply to this email.
 
-© ${new Date().getFullYear()} Acre. All rights reserved.
+© ${new Date().getFullYear()} Euno. All rights reserved.
 `;
 
   return sendEmail({
     to: userEmail,
     from: process.env.SES_FROM_EMAIL || 'noreply@acre.app',
-    subject: 'Welcome to Acre - Your Data Platform',
+    subject: 'Welcome to Euno - Your Data Platform',
     html,
     text
   });

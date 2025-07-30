@@ -55,7 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(200).json({
         status: 'healthy',
-        message: 'Acre API is running',
+        message: 'Euno API is running',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         environment: process.env.NODE_ENV || 'development',

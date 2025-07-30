@@ -1,7 +1,7 @@
 import { Home, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'wouter';
-import HyppoLogo from '@/components/HyppoLogo';
+import EunoLogo from '@/components/EunoLogo';
 import EmailWithCopy from '@/components/EmailWithCopy';
 
 export default function Error404() {
@@ -10,7 +10,7 @@ export default function Error404() {
       <div className="max-w-md w-full text-center space-y-8">
         <div className="flex justify-center">
           <div className="p-4 bg-primary/10 rounded-full">
-            <HyppoLogo className="w-16 h-16" />
+            <EunoLogo className="w-16 h-16" />
           </div>
         </div>
         

@@ -2,7 +2,7 @@ import { Book, Zap, Database, MessageSquare, Settings, HelpCircle, ArrowRight } 
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'wouter';
-import HyppoLogo from '@/components/HyppoLogo';
+import EunoLogo from '@/components/EunoLogo';
 import Footer from '@/components/Footer';
 
 export default function Documentation() {
@@ -124,8 +124,8 @@ export default function Documentation() {
           <div className="flex justify-between items-center h-16">
             <Link href="/">
               <div className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity">
-                <HyppoLogo className="w-8 h-8" />
-                <span className="text-xl font-bold text-gray-900">Hyppo</span>
+                <EunoLogo className="w-8 h-8" />
+                <span className="text-xl font-bold text-gray-900">Euno</span>
               </div>
             </Link>
             <Link href="/">
@@ -147,7 +147,7 @@ export default function Documentation() {
             Documentation & Guides
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Everything you need to know about using Acre. 
+            Everything you need to know about using Euno. 
             Clear guides to help you get the most from your data.
           </p>
         </div>
@@ -229,7 +229,7 @@ export default function Documentation() {
             Need More Help?
           </h2>
           <p className="text-xl text-gray-600 mb-8">
-            Our support team is here to help you succeed with Acre.
+            Our support team is here to help you succeed with Euno.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/contact">

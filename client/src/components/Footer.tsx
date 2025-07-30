@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import HyppoLogo from './HyppoLogo';
+import EunoLogo from './EunoLogo';
 import EmailWithCopy from './EmailWithCopy';
 
 export default function Footer() {
@@ -10,7 +10,7 @@ export default function Footer() {
           <div>
             <Link href="/">
               <div className="flex items-center space-x-3 mb-4 cursor-pointer hover:opacity-80 transition-opacity">
-                <HyppoLogo className="w-8 h-8" />
+                <EunoLogo className="w-8 h-8" />
                 <span className="text-xl font-bold">Euno</span>
               </div>
             </Link>

@@ -2,7 +2,7 @@ import { Zap, Database, MessageSquare, Shield, TrendingUp, Clock } from 'lucide-
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'wouter';
-import HyppoLogo from '@/components/HyppoLogo';
+import EunoLogo from '@/components/EunoLogo';
 import Footer from '@/components/Footer';
 
 export default function Features() {
@@ -83,8 +83,8 @@ export default function Features() {
           <div className="flex justify-between items-center h-16">
             <Link href="/">
               <div className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity">
-                <HyppoLogo className="w-8 h-8" />
-                <span className="text-xl font-bold text-gray-900">Hyppo</span>
+                <EunoLogo className="w-8 h-8" />
+                <span className="text-xl font-bold text-gray-900">Euno</span>
               </div>
             </Link>
             <Link href="/">
@@ -146,7 +146,7 @@ export default function Features() {
             Ready to Transform Your Data?
           </h2>
           <p className="text-xl text-gray-600 mb-8">
-            Join thousands of businesses making smarter decisions with Hyppo.
+            Join thousands of businesses making smarter decisions with Euno.
           </p>
           <Link href="/">
             <Button size="lg" className="px-8">

@@ -1,6 +1,6 @@
 # SSL/HTTPS Setup Guide
 
-This guide covers how to set up SSL certificates and enforce HTTPS for your Acre application on different platforms.
+This guide covers how to set up SSL certificates and enforce HTTPS for your Euno application on different platforms.
 
 ## Table of Contents
 - [Replit Deployment](#replit-deployment)

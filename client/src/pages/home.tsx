@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Link, useLocation } from 'wouter';
 import PricingSection from '@/components/PricingSection';
-import HyppoLogo from '@/components/HyppoLogo';
+import EunoLogo from '@/components/EunoLogo';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
@@ -123,7 +123,7 @@ export default function Home() {
           <div className="flex justify-between items-center h-16">
             <Link href="/">
               <div className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity">
-                <HyppoLogo className="w-8 h-8" />
+                <EunoLogo className="w-8 h-8" />
                 <span className="text-xl font-bold text-gray-900">Euno</span>
               </div>
             </Link>

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Acre Data Processing Pipeline
+Euno Data Processing Pipeline
 Handles ETL operations for business data with support for multiple formats
 """
 

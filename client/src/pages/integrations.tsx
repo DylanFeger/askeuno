@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'wouter';
-import HyppoLogo from '@/components/HyppoLogo';
+import EunoLogo from '@/components/EunoLogo';
 import { useState } from 'react';
 
 export default function Integrations() {
@@ -165,10 +165,10 @@ export default function Integrations() {
             transition={{ duration: 0.5 }}
           >
             <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-              Hyppo plays well with your tools
+              Euno plays well with your tools
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              Connect your business data in real time or manually — Hyppo keeps everything simple and secure.
+              Connect your business data in real time or manually — Euno keeps everything simple and secure.
             </p>
           </motion.div>
         </div>
@@ -261,7 +261,7 @@ export default function Integrations() {
               <h2 className="text-2xl font-semibold text-gray-900">How It Works</h2>
             </div>
             <p className="text-lg text-gray-700 leading-relaxed">
-              Connect your data live or upload files manually. Hyppo keeps your connections secure and up to date. 
+              Connect your data live or upload files manually. Euno keeps your connections secure and up to date. 
               Our real-time sync ensures you always have the latest data, while manual uploads give you control 
               over when and what data to analyze. All connections are encrypted and isolated per business, 
               so your data stays private and secure.

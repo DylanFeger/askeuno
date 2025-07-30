@@ -2,7 +2,7 @@ import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, Database, Settings, LogOut, CreditCard, TrendingUp } from 'lucide-react';
-import HyppoLogo from '@/components/HyppoLogo';
+import EunoLogo from '@/components/EunoLogo';
 import { apiRequest } from '@/lib/queryClient';
 import { useState, useEffect } from 'react';
 
@@ -51,7 +51,7 @@ export default function Navbar() {
             <div className="flex items-center space-x-8">
               <Link href="/">
                 <div className="flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <HyppoLogo className="w-8 h-8" />
+                  <EunoLogo className="w-8 h-8" />
                   <span className="ml-3 text-xl font-bold text-gray-900">Euno</span>
                 </div>
               </Link>

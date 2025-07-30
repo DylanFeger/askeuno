@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import HyppoLogo from './HyppoLogo';
+import EunoLogo from './EunoLogo';
 import GlassesIcon from './GlassesIcon';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -481,7 +481,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
         {sendMessageMutation.isPending && (
           <div className="flex items-start space-x-3">
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 p-1.5">
-              <HyppoLogo className="w-full h-full" />
+              <EunoLogo className="w-full h-full" />
             </div>
             <div className="bg-gray-50 rounded-lg p-4 max-w-md">
               <div className="flex items-center space-x-2">

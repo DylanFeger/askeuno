@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Link } from 'wouter';
-import HyppoLogo from '@/components/HyppoLogo';
+import EunoLogo from '@/components/EunoLogo';
 import Footer from '@/components/Footer';
 import EmailWithCopy from '@/components/EmailWithCopy';
 import { useToast } from '@/hooks/use-toast';
@@ -68,7 +68,7 @@ export default function Contact() {
           <div className="flex justify-between items-center h-16">
             <Link href="/">
               <div className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity">
-                <HyppoLogo className="w-8 h-8" />
+                <EunoLogo className="w-8 h-8" />
                 <span className="text-xl font-bold text-gray-900">Euno</span>
               </div>
             </Link>

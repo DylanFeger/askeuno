@@ -51,7 +51,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
     onSuccess: (data) => {
       toast({
         title: isLogin ? 'Welcome back!' : 'Account created!',
-        description: isLogin ? 'You have successfully logged in.' : 'Welcome to Acre!',
+        description: isLogin ? 'You have successfully logged in.' : 'Welcome to Euno!',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       onSuccess?.();

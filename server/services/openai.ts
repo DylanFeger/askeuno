@@ -275,9 +275,9 @@ export async function generateConversationTitle(
     });
 
     const result = JSON.parse(response.choices[0].message.content || '{}');
-    return result.title || `Chat with Acre — ${new Date().toLocaleDateString()}`;
+    return result.title || `Chat with Euno — ${new Date().toLocaleDateString()}`;
   } catch (error) {
     logger.error("Title generation error", { error });
-    return `Chat with Acre — ${new Date().toLocaleDateString()}`;
+    return `Chat with Euno — ${new Date().toLocaleDateString()}`;
   }
 }

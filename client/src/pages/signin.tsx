@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Card } from '@/components/ui/card';
 import AuthForm from '@/components/AuthForm';
-import HyppoLogo from '@/components/HyppoLogo';
+import EunoLogo from '@/components/EunoLogo';
 import { useAuth } from '@/contexts/AuthContext';
 import { queryClient } from '@/lib/queryClient';
 
@@ -38,7 +38,7 @@ export default function SignIn() {
           <div className="flex justify-between items-center py-4">
             <Link href="/">
               <a className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-                <HyppoLogo className="w-8 h-8 text-primary" />
+                <EunoLogo className="w-8 h-8 text-primary" />
                 <span className="text-xl font-bold text-gray-900">Euno</span>
               </a>
             </Link>

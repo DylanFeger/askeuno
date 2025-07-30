@@ -120,7 +120,7 @@ async function generateUserReport(user: any): Promise<UserReport> {
     }
     
     if (stats.totalRows > 10000) {
-      insights.push("You're analyzing large datasets efficiently with Acre!");
+      insights.push("You're analyzing large datasets efficiently with Euno!");
     }
     
     if (!stats.lastActivity || stats.lastActivity < oneWeekAgo) {
@@ -153,11 +153,11 @@ function formatEmailHtml(report: UserReport): string {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Your Weekly Acre Report</title>
+  <title>Your Weekly Euno Report</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background-color: #f8f9fa; padding: 30px; border-radius: 10px; margin-bottom: 30px;">
-    <h1 style="color: #0066cc; margin: 0 0 10px 0;">Your Weekly Acre Report</h1>
+    <h1 style="color: #0066cc; margin: 0 0 10px 0;">Your Weekly Euno Report</h1>
     <p style="color: #666; margin: 0;">Hi ${report.username}, here's your data activity summary</p>
   </div>
   
@@ -205,7 +205,7 @@ function formatEmailHtml(report: UserReport): string {
   </div>
   
   <div style="margin-top: 30px; text-align: center; color: #999; font-size: 12px;">
-    <p>You're receiving this because you're subscribed to Acre weekly reports.</p>
+    <p>You're receiving this because you're subscribed to Euno weekly reports.</p>
     <p><a href="https://acre.app/settings/notifications" style="color: #0066cc;">Manage notification preferences</a></p>
   </div>
 </body>
@@ -218,9 +218,9 @@ async function sendUserReport(report: UserReport): Promise<EmailResult> {
   const emailData = {
     to: report.email,
     from: process.env.SES_FROM_EMAIL || 'reports@acre.app', // Must be verified in AWS SES
-    subject: `Your Weekly Acre Report - ${report.stats.messagesThisWeek} insights generated`,
+    subject: `Your Weekly Euno Report - ${report.stats.messagesThisWeek} insights generated`,
     html: formatEmailHtml(report),
-    text: `Hi ${report.username}, here's your weekly Acre report. You generated ${report.stats.messagesThisWeek} insights this week from ${report.stats.dataSources} data sources.` // Plain text fallback
+    text: `Hi ${report.username}, here's your weekly Euno report. You generated ${report.stats.messagesThisWeek} insights this week from ${report.stats.dataSources} data sources.` // Plain text fallback
   };
   
   const sendOperation = async () => {

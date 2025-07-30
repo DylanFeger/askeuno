@@ -1,17 +1,17 @@
 #!/bin/bash
 
-# Acre AWS Deployment Helper Script
-# This script helps prepare and deploy Acre to AWS
+# Euno AWS Deployment Helper Script
+# This script helps prepare and deploy Euno to AWS
 
 set -e
 
-echo "🚀 AWS Deployment Helper for Acre"
+echo "🚀 AWS Deployment Helper for Euno"
 echo "================================="
 
 # Configuration
 AWS_REGION="${AWS_REGION:-us-east-1}"
 INSTANCE_TYPE="${INSTANCE_TYPE:-t3.medium}"
-KEY_NAME="${KEY_NAME:-acre-key}"
+KEY_NAME="${KEY_NAME:-euno-key}"
 
 # Colors
 GREEN='\033[0;32m'
@@ -50,7 +50,7 @@ create_deployment_package() {
 #!/bin/bash
 set -e
 
-echo "🔧 Setting up Acre on EC2..."
+echo "🔧 Setting up Euno on EC2..."
 
 # Update system
 sudo yum update -y
@@ -66,8 +66,8 @@ sudo npm install -g pm2
 sudo yum install -y nginx
 
 # Setup application directory
-mkdir -p /home/ec2-user/acre
-cd /home/ec2-user/acre
+mkdir -p /home/ec2-user/euno
+cd /home/ec2-user/euno
 
 # Copy application files
 cp -r /tmp/deployment/* .
@@ -81,7 +81,7 @@ pm2 save
 pm2 startup systemd -u ec2-user --hp /home/ec2-user
 
 # Configure Nginx
-sudo tee /etc/nginx/conf.d/acre.conf << 'NGINX_CONFIG'
+sudo tee /etc/nginx/conf.d/euno.conf << 'NGINX_CONFIG'
 server {
     listen 80;
     server_name _;
@@ -115,16 +115,16 @@ SETUP_SCRIPT
     chmod +x deployment/setup.sh
     
     # Create tarball
-    tar -czf acre-deployment.tar.gz deployment/
+    tar -czf euno-deployment.tar.gz deployment/
     
-    echo -e "${GREEN}✅ Deployment package created: acre-deployment.tar.gz${NC}"
+    echo -e "${GREEN}✅ Deployment package created: euno-deployment.tar.gz${NC}"
 }
 
 # Function to create CloudFormation template
 create_cloudformation_template() {
-    cat > acre-stack.yaml << 'CF_TEMPLATE'
+    cat > euno-stack.yaml << 'CF_TEMPLATE'
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Acre Application Stack'
+Description: 'Euno Application Stack'
 
 Parameters:
   KeyName:
@@ -149,10 +149,10 @@ Parameters:
     Default: ''
 
 Resources:
-  AcreSecurityGroup:
+  EunoSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Security group for Acre application
+      GroupDescription: Security group for Euno application
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -167,14 +167,14 @@ Resources:
           ToPort: 443
           CidrIp: 0.0.0.0/0
 
-  AcreInstance:
+  EunoInstance:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t3.medium
       ImageId: ami-0c02fb55956c7d316  # Amazon Linux 2023
       KeyName: !Ref KeyName
       SecurityGroups:
-        - !Ref AcreSecurityGroup
+        - !Ref EunoSecurityGroup
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
@@ -190,28 +190,28 @@ Resources:
           sudo rpm -U ./amazon-cloudwatch-agent.rpm
       Tags:
         - Key: Name
-          Value: Acre-Backend
+          Value: Euno-Backend
 
-  AcreEIP:
+  EunoEIP:
     Type: AWS::EC2::EIP
     Properties:
-      InstanceId: !Ref AcreInstance
+      InstanceId: !Ref EunoInstance
 
 Outputs:
   PublicIP:
-    Description: Public IP address of the Acre instance
-    Value: !Ref AcreEIP
+    Description: Public IP address of the Euno instance
+    Value: !Ref EunoEIP
   
   InstanceId:
     Description: Instance ID
-    Value: !Ref AcreInstance
+    Value: !Ref EunoInstance
   
   WebURL:
-    Description: URL to access Acre
-    Value: !Sub 'http://${AcreEIP}'
+    Description: URL to access Euno
+    Value: !Sub 'http://${EunoEIP}'
 CF_TEMPLATE
 
-    echo -e "${GREEN}✅ CloudFormation template created: acre-stack.yaml${NC}"
+    echo -e "${GREEN}✅ CloudFormation template created: euno-stack.yaml${NC}"
 }
 
 # Function to deploy frontend to Amplify
@@ -283,7 +283,7 @@ show_menu() {
             echo "================================"
             echo "1. Run option 1 to create deployment package"
             echo "2. Run option 2 to create CloudFormation template"
-            echo "3. Deploy stack: aws cloudformation create-stack --stack-name acre-app --template-body file://acre-stack.yaml --parameters file://params.json"
+            echo "3. Deploy stack: aws cloudformation create-stack --stack-name euno-app --template-body file://euno-stack.yaml --parameters file://params.json"
             echo "4. Upload deployment package to S3"
             echo "5. SSH to instance and run setup script"
             echo "6. Configure domain and SSL with Route53 and ACM"
