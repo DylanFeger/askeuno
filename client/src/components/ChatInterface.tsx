@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import EunoLogo from './EunoLogo';
-import GlassesIcon from './GlassesIcon';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Select,
@@ -437,8 +436,8 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             className={`flex items-start space-x-3 ${msg.role === 'user' ? 'justify-end' : ''}`}
           >
             {msg.role === 'assistant' && (
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 p-1.5">
-                <GlassesIcon className="w-full h-full text-white" />
+              <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-white border border-gray-200">
+                <EunoLogo className="w-6 h-6" />
               </div>
             )}
             
@@ -542,8 +541,8 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
         {/* Loading indicator */}
         {sendMessageMutation.isPending && (
           <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 p-1.5">
-              <EunoLogo className="w-full h-full" />
+            <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-white border border-gray-200">
+              <EunoLogo className="w-6 h-6" />
             </div>
             <div className="bg-gray-50 rounded-lg p-4 max-w-md">
               <div className="flex items-center space-x-2">

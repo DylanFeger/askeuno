@@ -1,4 +1,4 @@
-import eunoLogo from '@/assets/euno-logo.png';
+import eunoLogo from '@assets/783975A8-71CE-4C7A-ABF2-78280874D18D_1754584577565.png';
 
 interface EunoLogoProps {
   className?: string;
