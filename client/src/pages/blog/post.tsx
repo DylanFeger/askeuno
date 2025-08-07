@@ -75,8 +75,10 @@ export default function BlogPostPage() {
     return labels[category] || category;
   };
 
-  // Parse related posts from JSON
-  const relatedPostSlugs = JSON.parse(post.relatedPosts as string || '[]') as string[];
+  // Get related posts - relatedPosts is already parsed from jsonb
+  const relatedPostSlugs = Array.isArray(post.relatedPosts) 
+    ? post.relatedPosts 
+    : [];
   const relatedPosts = allPosts.filter(p => 
     relatedPostSlugs.includes(p.slug) && p.slug !== post.slug
   ).slice(0, 3);
