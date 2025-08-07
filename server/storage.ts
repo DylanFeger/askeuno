@@ -291,7 +291,7 @@ export class DatabaseStorage implements IStorage {
       
       try {
         await db.insert(dataRows).values(dataRowsToInsert);
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Error inserting batch ${i / BATCH_SIZE + 1}:`, error);
         throw new Error(`Failed to insert data rows at batch ${i / BATCH_SIZE + 1}: ${error.message}`);
       }

@@ -323,17 +323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get conversations by data source - protected with ownership check
-  app.get('/api/data-sources/:id/conversations', requireAuth, requireOwnership('dataSource'), async (req, res) => {
-    try {
-      const dataSourceId = parseInt(req.params.id);
-      const conversations = await storage.getConversationsByDataSourceId(dataSourceId);
-      res.json(conversations);
-    } catch (error: any) {
-      console.error('Get conversations error:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
+
 
   // Define query limits per tier
   const QUERY_LIMITS = {
