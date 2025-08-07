@@ -1,0 +1,61 @@
+Create a new `/resources` section for the AskEuno website.
+
+This section will serve as a content hub to attract high-intent users via SEO and educate them on how AskEuno solves their problems. These are not blog posts — each page should be a cleanly structured standalone article with valuable content.
+
+🔹 GENERAL STRUCTURE FOR EACH PAGE:
+- Clean URL: `/resources/[slug]`
+- Page Title (in <title> tag)
+- Meta Description
+- H1: Clear and specific
+- H2/H3 subheadings to organize content
+- Paragraphs of real, valuable text (aim for 600–900 words)
+- Internal links to other resource pages or `/features`
+- “Try AskEuno Free” button at the bottom
+- FAQ section with 2–3 questions and answers (HTML)
+- Mobile-responsive and styled to match AskEuno’s theme (sage green, white, purple)
+
+🔹 CREATE THE FOLLOWING 3 PAGES WITH FULL CONTENT:
+
+---
+
+### 1️⃣ Page: `/resources/sql-for-small-business`
+
+**Title Tag:** What Is SQL and Why Small Businesses Need It | AskEuno  
+**Meta Description:** Learn how SQL helps small businesses gain better insights from their data — and how AskEuno automates it for you.
+
+**H1:** What Is SQL and Why Does Your Small Business Need It?
+
+**H2:** SQL, Explained Simply  
+SQL (Structured Query Language) is how businesses pull specific answers from their data. It's like asking your business database a question — and getting a clear, actionable response.
+
+**H2:** Why Most Small Businesses Avoid SQL  
+Most founders don’t have the time or technical background to learn SQL — so they rely on confusing spreadsheets or wait for expensive consultants.
+
+**H2:** How AskEuno Automates SQL for You  
+AskEuno translates your business questions into real SQL queries in seconds.  
+You ask: “Which of my products have the highest profit margin?”  
+Euno answers with a visual report — no code, no wait.
+
+**H2:** What You Can Do With SQL (Through AskEuno)
+- Track revenue by channel  
+- Find best-selling products  
+- Calculate customer lifetime value  
+- Spot underperforming ads
+
+**CTA:**  
+> ✅ Want answers without learning code?  
+> [**Try AskEuno Free →**](/signup)
+
+**FAQ:**  
+```html
+<section class="faq">
+  <h2>Frequently Asked Questions</h2>
+  <div>
+    <h3>Can I use AskEuno if I’ve never written SQL?</h3>
+    <p>Yes! AskEuno handles all the SQL for you behind the scenes. Just ask your business question.</p>
+  </div>
+  <div>
+    <h3>Does it work with Shopify or QuickBooks?</h3>
+    <p>Yes, AskEuno connects to Shopify, QuickBooks, and more to run queries across platforms.</p>
+  </div>
+</section>
