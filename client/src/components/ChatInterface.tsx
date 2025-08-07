@@ -160,6 +160,9 @@ interface ChatMessage {
   metadata?: {
     confidence?: number;
     suggestedFollowUps?: string[];
+    dataQuality?: string;
+    clarificationNeeded?: string;
+    queryUsed?: string;
     visualData?: {
       type: 'bar' | 'line' | 'pie';
       data: any[];
@@ -448,6 +451,30 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
                 : 'bg-gray-50 text-gray-800'
             }`}>
               <p>{msg.content}</p>
+              
+              {/* Display data quality information */}
+              {msg.role === 'assistant' && msg.metadata?.dataQuality && (
+                <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                  <span className="font-medium">Data Quality: </span>
+                  {msg.metadata.dataQuality}
+                </div>
+              )}
+              
+              {/* Display clarification needed */}
+              {msg.role === 'assistant' && msg.metadata?.clarificationNeeded && (
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
+                  <span className="font-medium">Clarification needed: </span>
+                  {msg.metadata.clarificationNeeded}
+                </div>
+              )}
+              
+              {/* Display query used in plain English */}
+              {msg.role === 'assistant' && msg.metadata?.queryUsed && (
+                <div className="mt-2 p-2 bg-gray-100 rounded text-xs text-gray-600">
+                  <span className="font-medium">Query: </span>
+                  {msg.metadata.queryUsed}
+                </div>
+              )}
               
               {/* Render charts for Enterprise tier users */}
               {msg.role === 'assistant' && msg.metadata?.visualData && user?.subscriptionTier === 'pro' && (
