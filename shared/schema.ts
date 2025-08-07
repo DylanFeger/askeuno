@@ -46,6 +46,7 @@ export const chatConversations = pgTable("chat_conversations", {
   userId: integer("user_id").references(() => users.id).notNull(),
   dataSourceId: integer("data_source_id").references(() => dataSources.id),
   title: text("title"), // AI-generated conversation title
+  category: text("category").default("general"), // 'sales', 'trends', 'predictions', 'general'
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

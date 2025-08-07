@@ -352,7 +352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat endpoint - protected with AI rate limiting
   app.post('/api/chat', requireAuth, aiRateLimit, validateChatMessage, async (req, res) => {
     try {
-      const { message, conversationId, dataSourceId, extendedThinking = false } = req.body;
+      const { message, conversationId, dataSourceId, extendedThinking = false, currentCategory = 'general' } = req.body;
       const userId = (req as AuthenticatedRequest).user.id;
       
       if (!message) {
@@ -460,7 +460,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
         conversation.id,
         extendedThinking,
-        user.subscriptionTier
+        user.subscriptionTier,
+        currentCategory
       );
 
       // Save AI response
@@ -470,6 +471,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: aiResponse.answer,
         metadata: aiResponse,
       });
+      
+      // Update conversation category if it changed
+      if (aiResponse.category && aiResponse.category !== 'general') {
+        await storage.updateConversation(conversation.id, { category: aiResponse.category });
+      }
       
       // Increment query count after successful response
       await storage.incrementUserQueryCount(userId);

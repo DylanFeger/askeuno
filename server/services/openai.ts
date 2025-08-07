@@ -12,7 +12,92 @@ export interface AIResponse {
   confidence: number;
   suggestedFollowUps?: string[];
   visualData?: any; // For future graph implementation in pro tier
+  category?: 'sales' | 'trends' | 'predictions' | 'general';
+  suggestedTabSwitch?: string;
 }
+
+// Helper function to detect query type and determine temperature
+function analyzeQueryType(question: string): {
+  category: 'sales' | 'trends' | 'predictions' | 'general';
+  temperature: number;
+  model: string;
+} {
+  const lowercaseQuestion = question.toLowerCase();
+  
+  // SQL generation or data analysis tasks - low temperature for accuracy
+  if (lowercaseQuestion.includes('sql') || 
+      lowercaseQuestion.includes('query') || 
+      lowercaseQuestion.includes('calculate') ||
+      lowercaseQuestion.includes('sum') ||
+      lowercaseQuestion.includes('count') ||
+      lowercaseQuestion.includes('average') ||
+      lowercaseQuestion.includes('total')) {
+    return { 
+      category: 'sales', 
+      temperature: 0.2,
+      model: 'gpt-4o' // Best for analytical tasks
+    };
+  }
+  
+  // Sales-related questions
+  if (lowercaseQuestion.includes('revenue') ||
+      lowercaseQuestion.includes('sales') ||
+      lowercaseQuestion.includes('profit') ||
+      lowercaseQuestion.includes('customer') ||
+      lowercaseQuestion.includes('order') ||
+      lowercaseQuestion.includes('product') ||
+      lowercaseQuestion.includes('price')) {
+    return { 
+      category: 'sales', 
+      temperature: 0.2,
+      model: 'gpt-4o'
+    };
+  }
+  
+  // Trend analysis - moderate temperature for balanced analysis
+  if (lowercaseQuestion.includes('trend') ||
+      lowercaseQuestion.includes('pattern') ||
+      lowercaseQuestion.includes('change') ||
+      lowercaseQuestion.includes('growth') ||
+      lowercaseQuestion.includes('decline') ||
+      lowercaseQuestion.includes('comparison') ||
+      lowercaseQuestion.includes('over time')) {
+    return { 
+      category: 'trends', 
+      temperature: 0.4,
+      model: 'gpt-4o'
+    };
+  }
+  
+  // Predictions and forecasting - higher temperature for creativity
+  if (lowercaseQuestion.includes('predict') ||
+      lowercaseQuestion.includes('forecast') ||
+      lowercaseQuestion.includes('future') ||
+      lowercaseQuestion.includes('will') ||
+      lowercaseQuestion.includes('expect') ||
+      lowercaseQuestion.includes('project') ||
+      lowercaseQuestion.includes('estimate')) {
+    return { 
+      category: 'predictions', 
+      temperature: 0.6,
+      model: 'gpt-4o' // Using gpt-4o for all tasks
+    };
+  }
+  
+  // Default for general questions
+  return { 
+    category: 'general', 
+    temperature: 0.4,
+    model: 'gpt-4o'
+  };
+}
+
+// Business-focused system prompt
+const BUSINESS_ANALYST_PROMPT = `You are Euno AI, a smart and trustworthy assistant that specializes in helping businesses understand their data, generate SQL queries, and identify trends or predictions. 
+
+You only respond to questions related to business analytics, data analysis, sales, trends, predictions, and related business topics. If asked about non-business topics (personal questions, entertainment, general knowledge unrelated to business), politely decline and redirect the conversation back to business data analysis.
+
+Your tone is professional, focused, and helpful. Always aim to provide actionable insights that can help improve business decisions.`;
 
 export async function generateDataInsight(
   question: string,
@@ -22,11 +107,22 @@ export async function generateDataInsight(
   userId?: number,
   conversationId?: number,
   extendedThinking: boolean = false,
-  userTier: string = 'starter'
+  userTier: string = 'starter',
+  currentCategory?: string
 ): Promise<AIResponse> {
   const startTime = Date.now();
   
   try {
+    // Analyze query type and get appropriate settings
+    const queryAnalysis = analyzeQueryType(question);
+    const { category, temperature, model } = queryAnalysis;
+    
+    // Check if user should switch tabs
+    let suggestedTabSwitch: string | undefined;
+    if (currentCategory && currentCategory !== category && currentCategory !== 'general') {
+      suggestedTabSwitch = `This question relates more to ${category}. Would you like to switch to the ${category.charAt(0).toUpperCase() + category.slice(1)} tab for better context and relevant insights?`;
+    }
+    
     // Determine response style based on tier and extendedThinking
     const isStarter = userTier === 'starter';
     const isProfessional = userTier === 'growth';
@@ -38,7 +134,7 @@ export async function generateDataInsight(
     const shouldProvideExtended = (isProfessional && extendedThinking) || (isEnterprise && extendedThinking);
     
     const systemPrompt = shouldProvideExtended 
-      ? `You are an AI assistant specialized in business data analysis. 
+      ? `${BUSINESS_ANALYST_PROMPT} 
     
 Your role is to help small business owners understand their data by providing clear insights with just a bit more detail.
 
@@ -69,7 +165,7 @@ ${isEnterprise ? `- visualData: {
 
 Remember: Stay focused on the user's question and add just a few helpful details.`
       : isStarter 
-      ? `You are an AI assistant specialized in business data analysis. 
+      ? `${BUSINESS_ANALYST_PROMPT} 
     
 Your role is to help small business owners understand their data by providing VERY brief insights.
 
@@ -93,7 +189,7 @@ Response format should be JSON with:
 
 Remember: Be extremely concise. Users can upgrade for more detailed insights.`
       : isEnterprise 
-      ? `You are an AI assistant specialized in business data analysis. 
+      ? `${BUSINESS_ANALYST_PROMPT} 
     
 Your role is to help enterprise business owners understand their data.
 
@@ -121,7 +217,7 @@ Response format should be JSON with:
   } (only when visualization is requested)
 
 Remember: Be clear and focus on what matters most to the business owner.`
-      : `You are an AI assistant specialized in business data analysis. 
+      : `${BUSINESS_ANALYST_PROMPT} 
     
 Your role is to help small business owners understand their data by providing clear, actionable insights.
 
@@ -155,10 +251,10 @@ Remember: Be clear and focus on what matters most to the business owner.`;
     const maxTokens = isStarter ? 150 : (shouldProvideExtended ? 600 : 300);
     
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: model,
       messages: messages as any,
       response_format: { type: "json_object" },
-      temperature: 0.7,
+      temperature: temperature,
       max_tokens: maxTokens,
     });
 
@@ -167,10 +263,12 @@ Remember: Be clear and focus on what matters most to the business owner.`;
     // Log successful AI call
     if (userId) {
       logAICall(userId, 'data_insight', 'success', {
-        model: 'gpt-4o',
+        model: model,
         responseTime: Date.now() - startTime,
         conversationId,
         tokensUsed: response.usage?.total_tokens,
+        category: category,
+        temperature: temperature
       });
     }
     
@@ -179,7 +277,9 @@ Remember: Be clear and focus on what matters most to the business owner.`;
       queryUsed: result.queryUsed,
       confidence: Math.max(0, Math.min(1, result.confidence || 0.5)),
       suggestedFollowUps: result.suggestedFollowUps || [],
-      visualData: result.visualData || null
+      visualData: result.visualData || null,
+      category: category,
+      suggestedTabSwitch: suggestedTabSwitch
     };
   } catch (error: any) {
     logger.error("OpenAI API error", { error, question: question.substring(0, 100) });

@@ -1,0 +1,62 @@
+Upgrade Euno AI Behavior for Business Data Analysis
+Objective:
+Update the Euno AI assistant so it acts as an expert business data analyst. The assistant must only respond to business-related questions, use appropriate temperature settings per task, organize conversations by topic, and maintain all current app functionality.
+
+🔧 Instructions for Implementation:
+Set a Clear System Prompt:
+Use this system prompt to define the AI's personality and boundaries:
+
+pgsql
+Copy
+Edit
+You are Euno AI, a smart and trustworthy assistant that specializes in helping businesses understand their data, generate SQL queries, and identify trends or predictions. You only respond to questions related to business analytics. Politely decline or redirect any off-topic or personal questions. Your tone is professional, focused, and helpful.
+Dynamically Adjust Temperature Based on Task Type:
+
+Implement logic that detects the type of user input and adjusts the temperature accordingly:
+
+For SQL generation or data analysis tasks:
+→ Set temperature to 0.2 (low for accuracy and reliability).
+
+For trend analysis, predictions, or brainstorming new ideas:
+→ Set temperature to 0.6 (moderately high for creativity).
+
+For general questions:
+→ Use a default temperature of 0.4.
+
+Use the Best Available OpenAI Model for Each Task Type:
+
+Use GPT-4o (or best available model) for SQL, logic, and analytical tasks.
+
+Use GPT-4 turbo or another creative-capable model for brainstorming, trends, and insights.
+
+Ensure the model is selected based on the input category.
+
+Enable Conversation History per Logged-In User:
+
+While a user is logged in, store and maintain a history of their chat by category.
+
+Group conversation history into the following tabs:
+
+Sales
+
+Trends
+
+Predictions
+
+Detect and Organize Conversations by Topic:
+
+Based on keywords in the user's input (e.g., “revenue” → Sales, “forecast” → Trends), assign each message to a relevant topic tab.
+
+Store that message and response in the appropriate tab’s memory.
+
+Add Smart Tab-Switch Suggestions:
+
+If a user asks a trend-related question while in the Sales tab, have Euno respond with a helpful suggestion like:
+
+“This question relates more to trends. Would you like to switch to the Trends tab for better context and relevant insights?”
+
+Preserve All Current Features and Functions:
+
+Do not remove or break any existing features of the current chat interface or backend logic.
+
+Only extend and enhance the AI’s behavior, memory, and interface structure as described above.
