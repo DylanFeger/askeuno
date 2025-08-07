@@ -39,7 +39,8 @@ export default function Navbar() {
   const navItems = [
     { path: '/chat', label: 'Chat', icon: MessageCircle },
     { path: '/connections', label: 'Data Sources', icon: Database },
-    { path: '/resources', label: 'Resources', icon: BookOpen },
+    { path: '/blog', label: 'Blog', icon: BookOpen },
+    { path: '/resources', label: 'Resources', icon: TrendingUp },
   ];
 
   return (
@@ -66,7 +67,7 @@ export default function Navbar() {
                   <Link key={item.path} href={item.path}>
                     <div className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                       isActive 
-                        ? 'bg-sage-100 text-sage-700' 
+                        ? 'bg-green-100 text-green-700' 
                         : 'text-gray-700 hover:bg-gray-100'
                     }`}>
                       <Icon className="h-4 w-4" />

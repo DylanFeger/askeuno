@@ -28,6 +28,8 @@ import Resources from "@/pages/resources";
 import SQLForSmallBusiness from "@/pages/resources/sql-for-small-business";
 import DataDrivenDecisions from "@/pages/resources/data-driven-decisions";
 import BusinessAnalyticsGuide from "@/pages/resources/business-analytics-guide";
+import BlogHomepage from "@/pages/blog";
+import BlogPost from "@/pages/blog/post";
 
 function Router() {
   return (
@@ -54,6 +56,8 @@ function Router() {
       <Route path="/resources/sql-for-small-business" component={SQLForSmallBusiness} />
       <Route path="/resources/data-driven-decisions" component={DataDrivenDecisions} />
       <Route path="/resources/business-analytics-guide" component={BusinessAnalyticsGuide} />
+      <Route path="/blog" component={BlogHomepage} />
+      <Route path="/blog/:slug" component={BlogPost} />
       <Route component={NotFound} />
     </Switch>
   );

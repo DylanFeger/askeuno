@@ -19,6 +19,7 @@ import subscriptionRoutes from "./routes/subscription";
 import pipelineTestRoutes from "./routes/pipeline-test";
 import apiPushRoutes from "./routes/api-push";
 import healthRoutes from "./routes/health";
+import blogRoutes from "./routes/blog";
 import { initializeScheduler, shutdownScheduler } from "./services/scheduler";
 import { sendContactFormEmail } from "./services/awsSes";
 
@@ -99,6 +100,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Health check routes
   app.use('/api/health', healthRoutes);
+  
+  // Blog routes
+  app.use('/api/blog', blogRoutes);
 
   // Contact form endpoint - public with rate limiting
   app.post('/api/contact', 

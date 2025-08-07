@@ -92,6 +92,24 @@ export const alerts = pgTable("alerts", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const blogPosts = pgTable("blog_posts", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  excerpt: text("excerpt").notNull(),
+  content: text("content").notNull(),
+  category: text("category").notNull(), // 'best-of', 'use-case', 'pain-point', 'competitor', 'tutorial'
+  author: text("author").notNull().default("Euno Team"),
+  publishedDate: timestamp("published_date").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  metaDescription: text("meta_description").notNull(),
+  metaKeywords: text("meta_keywords").notNull(),
+  featured: boolean("featured").default(false),
+  readTime: integer("read_time").notNull().default(5), // estimated read time in minutes
+  relatedPosts: jsonb("related_posts").default("[]"), // array of related post slugs
+  status: text("status").notNull().default("published"), // 'draft', 'published'
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   dataSources: many(dataSources),
@@ -161,6 +179,12 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
   metadata: true,
 });
 
+export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
+  id: true,
+  publishedDate: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -170,3 +194,5 @@ export type ChatConversation = typeof chatConversations.$inferSelect;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type DataRow = typeof dataRows.$inferSelect;
+export type BlogPost = typeof blogPosts.$inferSelect;
+export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
