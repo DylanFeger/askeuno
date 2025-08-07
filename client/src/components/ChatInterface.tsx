@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import EunoLogo from './EunoLogo';
+import GlassesIcon from './GlassesIcon';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Select,
