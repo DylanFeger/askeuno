@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Database, Settings, LogOut, CreditCard, TrendingUp } from 'lucide-react';
+import { MessageCircle, Database, Settings, LogOut, CreditCard, TrendingUp, BookOpen } from 'lucide-react';
 import EunoLogo from '@/components/EunoLogo';
 import { apiRequest } from '@/lib/queryClient';
 import { useState, useEffect } from 'react';
@@ -39,6 +39,7 @@ export default function Navbar() {
   const navItems = [
     { path: '/chat', label: 'Chat', icon: MessageCircle },
     { path: '/connections', label: 'Data Sources', icon: Database },
+    { path: '/resources', label: 'Resources', icon: BookOpen },
   ];
 
   return (

@@ -24,6 +24,10 @@ import Settings from "@/pages/settings";
 import TeamCulture from "@/pages/team-culture";
 import StartTracking from "@/pages/start-tracking";
 import SignIn from "@/pages/signin";
+import Resources from "@/pages/resources";
+import SQLForSmallBusiness from "@/pages/resources/sql-for-small-business";
+import DataDrivenDecisions from "@/pages/resources/data-driven-decisions";
+import BusinessAnalyticsGuide from "@/pages/resources/business-analytics-guide";
 
 function Router() {
   return (
@@ -46,6 +50,10 @@ function Router() {
       <Route path="/docs" component={Documentation} />
       <Route path="/settings" component={Settings} />
       <Route path="/team-culture" component={TeamCulture} />
+      <Route path="/resources" component={Resources} />
+      <Route path="/resources/sql-for-small-business" component={SQLForSmallBusiness} />
+      <Route path="/resources/data-driven-decisions" component={DataDrivenDecisions} />
+      <Route path="/resources/business-analytics-guide" component={BusinessAnalyticsGuide} />
       <Route component={NotFound} />
     </Switch>
   );
