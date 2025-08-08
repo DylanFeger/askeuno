@@ -275,7 +275,7 @@ export default function ConnectionsPage() {
               <Label htmlFor="accessKeyId">Access Key ID</Label>
               <Input
                 id="accessKeyId"
-                placeholder="AKIAIOSFODNN7EXAMPLE"
+                placeholder="AKIA... (your AWS access key)"
                 value={connectionForm.accessKeyId || ''}
                 onChange={(e) => setConnectionForm({ ...connectionForm, accessKeyId: e.target.value })}
               />
