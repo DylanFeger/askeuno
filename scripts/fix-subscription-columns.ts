@@ -1,4 +1,6 @@
-import { pool } from '../server/db';
+import { db } from '../server/db';
+import { users } from '../shared/schema';
+import { sql, isNull } from 'drizzle-orm';
 import { logger } from '../server/utils/logger';
 
 async function addSubscriptionColumns() {
@@ -16,7 +18,7 @@ async function addSubscriptionColumns() {
 
     for (const query of alterTableQueries) {
       try {
-        await pool.query(query);
+        await db.execute(sql.raw(query));
         console.log(`✓ Executed: ${query.substring(0, 50)}...`);
       } catch (error: any) {
         if (error.code === '42701') { // Column already exists
@@ -28,12 +30,12 @@ async function addSubscriptionColumns() {
     }
 
     // Set initial trial dates for existing users
-    await pool.query(`
-      UPDATE users 
-      SET trial_start_date = created_at,
-          trial_end_date = created_at + INTERVAL '30 days'
-      WHERE trial_start_date IS NULL
-    `);
+    await db.update(users)
+      .set({
+        trialStartDate: sql`created_at`,
+        trialEndDate: sql`created_at + INTERVAL '30 days'`
+      })
+      .where(isNull(users.trialStartDate));
     console.log('✓ Set trial dates for existing users');
 
     console.log('\n✅ All subscription columns added successfully!');
@@ -41,7 +43,7 @@ async function addSubscriptionColumns() {
     console.error('Error adding subscription columns:', error);
     process.exit(1);
   } finally {
-    await pool.end();
+    // Note: db connection will be handled by the application lifecycle
   }
 }
 
