@@ -49,20 +49,28 @@ app.use(limiter);
 // Session configuration
 import * as connectPgSimple from 'connect-pg-simple';
 const pgSession = connectPgSimple.default(session);
+
+// Ensure SESSION_SECRET is set in production
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  logger.error('SESSION_SECRET is not set in production environment');
+  throw new Error('SESSION_SECRET must be set in production environment');
+}
+
 app.use(session({
   store: new pgSession({
     pool: pool,
     tableName: 'user_sessions',
     createTableIfMissing: true,
   }),
-  secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
+  secret: process.env.SESSION_SECRET || 'dev-secret-key-do-not-use-in-production',
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production', // Requires HTTPS in production
     httpOnly: true, // Prevents XSS attacks
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'strict', // CSRF protection
+    sameSite: 'lax', // Better compatibility while maintaining CSRF protection
+    path: '/', // Explicitly set cookie path
     domain: process.env.COOKIE_DOMAIN || undefined, // Set for subdomain sharing
   },
 }));
