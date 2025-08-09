@@ -8,6 +8,13 @@ import { sql } from 'drizzle-orm';
 const router = Router();
 
 /**
+ * Simple health check endpoint
+ */
+router.get('/', (req, res) => {
+  res.status(200).json({ ok: true });
+});
+
+/**
  * Public health check endpoint for deployment monitoring
  */
 router.get('/check', async (req, res) => {
