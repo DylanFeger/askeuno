@@ -589,13 +589,7 @@ export default function ConnectionsPage() {
                   </AlertDescription>
                 </Alert>
               )}
-              <div className="flex gap-3">
-                <Link href="/import-wizard">
-                  <Button variant="outline">
-                    <Shield className="mr-2 h-4 w-4" />
-                    Import Wizard
-                  </Button>
-                </Link>
+              <div>
                 <Button 
                   onClick={() => setIsDialogOpen(true)}
                   disabled={!canAddMore || userTier === 'starter'}
