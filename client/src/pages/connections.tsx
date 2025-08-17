@@ -760,7 +760,7 @@ export default function ConnectionsPage() {
       </AlertDialog>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
             <DialogHeader>
               <DialogTitle>Connect to Data Source</DialogTitle>
               <DialogDescription>
@@ -768,64 +768,66 @@ export default function ConnectionsPage() {
               </DialogDescription>
             </DialogHeader>
 
-            <Tabs value={selectedType} onValueChange={setSelectedType}>
-              <TabsList className="grid grid-cols-4 mb-4">
-                <TabsTrigger value="database">Databases</TabsTrigger>
-                <TabsTrigger value="cloud">Cloud Storage</TabsTrigger>
-                <TabsTrigger value="apps">Apps</TabsTrigger>
-                <TabsTrigger value="api">APIs</TabsTrigger>
-              </TabsList>
+            <div className="overflow-y-auto flex-1 pr-2">
+              <Tabs value={selectedType} onValueChange={setSelectedType}>
+                <TabsList className="grid grid-cols-4 mb-4">
+                  <TabsTrigger value="database">Databases</TabsTrigger>
+                  <TabsTrigger value="cloud">Cloud Storage</TabsTrigger>
+                  <TabsTrigger value="apps">Apps</TabsTrigger>
+                  <TabsTrigger value="api">APIs</TabsTrigger>
+                </TabsList>
 
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                {dataSourceTypes.map((ds) => (
-                  <Button
-                    key={ds.id}
-                    variant={selectedType === ds.id ? 'default' : 'outline'}
-                    className="flex flex-col items-center p-4 h-auto"
-                    onClick={() => setSelectedType(ds.id)}
-                  >
-                    <ds.icon className="h-6 w-6 mb-1" />
-                    <span className="text-xs">{ds.name}</span>
-                  </Button>
-                ))}
-              </div>
-
-              {selectedType && (
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Connection Name</Label>
-                    <Input
-                      id="name"
-                      placeholder="My Data Connection"
-                      value={connectionForm.name || ''}
-                      onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
-                    />
-                  </div>
-
-                  {renderConnectionForm()}
-
-                  <div>
-                    <Label htmlFor="syncFrequency">Sync Frequency (minutes)</Label>
-                    <Input
-                      id="syncFrequency"
-                      type="number"
-                      placeholder="60"
-                      value={connectionForm.syncFrequency || ''}
-                      onChange={(e) => setConnectionForm({ ...connectionForm, syncFrequency: parseInt(e.target.value) })}
-                    />
-                  </div>
-
-                  <div className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={resetForm}>
-                      Cancel
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  {dataSourceTypes.map((ds) => (
+                    <Button
+                      key={ds.id}
+                      variant={selectedType === ds.id ? 'default' : 'outline'}
+                      className="flex flex-col items-center p-4 h-auto"
+                      onClick={() => setSelectedType(ds.id)}
+                    >
+                      <ds.icon className="h-6 w-6 mb-1" />
+                      <span className="text-xs">{ds.name}</span>
                     </Button>
-                    <Button onClick={handleConnect} disabled={createConnectionMutation.isPending}>
-                      {createConnectionMutation.isPending ? 'Connecting...' : 'Connect'}
-                    </Button>
-                  </div>
+                  ))}
                 </div>
-              )}
-            </Tabs>
+
+                {selectedType && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="name">Connection Name</Label>
+                      <Input
+                        id="name"
+                        placeholder="My Data Connection"
+                        value={connectionForm.name || ''}
+                        onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+                      />
+                    </div>
+
+                    {renderConnectionForm()}
+
+                    <div>
+                      <Label htmlFor="syncFrequency">Sync Frequency (minutes)</Label>
+                      <Input
+                        id="syncFrequency"
+                        type="number"
+                        placeholder="60"
+                        value={connectionForm.syncFrequency || ''}
+                        onChange={(e) => setConnectionForm({ ...connectionForm, syncFrequency: parseInt(e.target.value) })}
+                      />
+                    </div>
+
+                    <div className="flex justify-end space-x-2 pt-4">
+                      <Button variant="outline" onClick={resetForm}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleConnect} disabled={createConnectionMutation.isPending}>
+                        {createConnectionMutation.isPending ? 'Connecting...' : 'Connect'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </Tabs>
+            </div>
           </DialogContent>
         </Dialog>
     </div>
