@@ -14,7 +14,7 @@ import type { BlogPost } from "@shared/schema";
 const categories = [
   { id: "best-of", name: "Best-of Lists", icon: "", description: "Top features and benefits of Euno" },
   { id: "use-case", name: "Use Case Spotlights", icon: "", description: "Real-world applications and success stories" },
-  { id: "pain-point", name: "Pain Point Posts", icon: "🎯", description: "Solutions to common business challenges" },
+  { id: "pain-point", name: "Pain Point Posts", icon: "", description: "Solutions to common business challenges" },
   { id: "competitor", name: "Competitor Comparisons", icon: "⚖️", description: "How Euno compares to other solutions" },
   { id: "tutorial", name: "Tutorials & How-Tos", icon: "📚", description: "Step-by-step guides and best practices" }
 ];
