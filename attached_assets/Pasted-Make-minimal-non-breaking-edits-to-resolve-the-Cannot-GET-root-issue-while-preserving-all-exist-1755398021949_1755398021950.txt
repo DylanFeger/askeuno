@@ -1,0 +1,50 @@
+Make minimal, non-breaking edits to resolve the “Cannot GET /” root issue while preserving all existing functionality and deployment.
+
+SAFETY FIRST
+- Create a new branch: feature/fix-root-route.
+- Propose a unified diff and list changed files. Do not merge or deploy.
+- Do NOT modify DNS, deployment settings, secrets, env vars, or package.json scripts.
+- Use process.env.PORT and bind 0.0.0.0. No hardcoded ports.
+- Preserve all existing API routes and behavior.
+
+GOAL
+Serve the React SPA for non-API routes in dev and prod so / loads the app instead of “Cannot GET /”.
+
+REQUIREMENTS
+1) Health:
+   - Ensure GET /healthz returns 200 "ok". Add only if missing.
+
+2) Routing order:
+   - Mount existing API routes first (e.g., /api/*, /healthz).
+   - Then handle frontend routes.
+
+3) Development (NODE_ENV !== "production"):
+   - Mount Vite middleware (middlewareMode: true) so it serves / and non-API paths.
+   - Do NOT add a custom catch-all in dev.
+   - Do NOT duplicate Vite middleware if already mounted.
+
+4) Production (NODE_ENV === "production"):
+   - Serve the existing built client directory used today by the server. Detect current static path; do NOT change Vite build config unless it does not match.
+   - Add a single SPA catch-all that matches all routes EXCEPT ^/api/ and /healthz and sends index.html from that client directory.
+
+5) Hosting compatibility:
+   - Keep current build output and static directory settings if they already work.
+   - Do not change deployment config or health check path.
+   - Confirm server listens on process.env.PORT and 0.0.0.0.
+
+ACCEPTANCE TESTS (run locally in Replit dev and report results)
+- GET /healthz → 200 with "ok".
+- Existing /api/* endpoints behave exactly as before.
+- Open / in the Replit webview → app loads, no “Cannot GET /”.
+- In production simulation (NODE_ENV=production with existing build), static assets load and the SPA catch-all returns index.html for a random non-API path like /dashboard.
+
+OUTPUT
+- Summarize root cause found and the minimal changes applied.
+- Print the changed files list and a unified diff.
+- Show the exact static directory used in prod.
+- Show the commands used and responses for the acceptance tests.
+
+CONSTRAINTS
+- Do not refactor unrelated code.
+- Do not remove or rename existing files or routes.
+- If a test fails, adjust only the minimum necessary lines to pass it.
