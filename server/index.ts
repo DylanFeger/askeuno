@@ -1,183 +1,31 @@
-import express, { type Request, Response, NextFunction } from "express";
-import session from "express-session";
-import helmet from "helmet";
-import rateLimit from "express-rate-limit";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
-import { logger } from "./utils/logger";
-import { sanitizeInput } from "./middleware/validation";
-import { enforceHTTPS, httpsSecurityHeaders } from "./middleware/https";
-import { pool } from "./db";
+// server/index.ts
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
 
-// Trust proxy for rate limiting and HTTPS detection
-app.set('trust proxy', 1);
+// --- Health check (super useful on Railway) ---
+app.get("/health", (_req, res) => res.status(200).send("ok"));
 
-// Enforce HTTPS (must be first middleware)
-app.use(enforceHTTPS);
-app.use(httpsSecurityHeaders);
+// TODO: Put your API routes ABOVE the static handlers, e.g.:
+// app.get("/api/ping", (_req, res) => res.json({ ok: true }));
 
-// Security middleware with Stripe.js support
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "ws:", "wss:", "https://api.stripe.com", "https://ws.stripe.com"],
-      fontSrc: ["'self'", "https:", "data:"],
-      objectSrc: ["'none'"],
-      frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
-      mediaSrc: ["'self'"],
-    },
-  },
-  crossOriginEmbedderPolicy: false,
-}));
+// --- Serve built frontend in production ---
+if (process.env.NODE_ENV === "production") {
+  const distPath = path.resolve(process.cwd(), "dist");
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500, // limit each IP to 500 requests per windowMs
-  message: { error: "Too many requests from this IP, please try again later." },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use(limiter);
+  // Serve static assets from dist/
+  app.use(express.static(distPath));
 
-// Session configuration
-import * as connectPgSimple from 'connect-pg-simple';
-const pgSession = connectPgSimple.default(session);
-
-// Ensure SESSION_SECRET is set in production
-if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
-  logger.error('SESSION_SECRET is not set in production environment');
-  throw new Error('SESSION_SECRET must be set in production environment');
+  // SPA fallback: send dist/index.html for any non-API route
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(distPath, "index.html"));
+  });
 }
 
-app.use(session({
-  store: new pgSession({
-    pool: pool,
-    tableName: 'user_sessions',
-    createTableIfMissing: true,
-  }),
-  secret: process.env.SESSION_SECRET || 'dev-secret-key-do-not-use-in-production',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production', // Requires HTTPS in production
-    httpOnly: true, // Prevents XSS attacks
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'lax', // Better compatibility while maintaining CSRF protection
-    path: '/', // Explicitly set cookie path
-    domain: process.env.COOKIE_DOMAIN || undefined, // Set for subdomain sharing
-  },
-}));
-
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false, limit: '10mb' }));
-
-// Input sanitization
-app.use(sanitizeInput);
-
-// Enhanced logging middleware
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      const logData: any = {
-        method: req.method,
-        path: path,
-        statusCode: res.statusCode,
-        duration: duration,
-        ip: req.ip,
-        userAgent: req.get('User-Agent'),
-        userId: (req as any).user?.id,
-      };
-
-      // Only log response for successful requests and avoid logging sensitive data
-      if (res.statusCode < 400 && capturedJsonResponse) {
-        const sanitizedResponse = { ...capturedJsonResponse };
-        delete sanitizedResponse.password;
-        delete sanitizedResponse.token;
-        logData.response = sanitizedResponse;
-      }
-
-      if (res.statusCode >= 400) {
-        logger.warn('API Request Error', logData);
-      } else {
-        logger.info('API Request', logData);
-      }
-
-      // Keep backward compatibility for development
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-      log(logLine);
-    }
-  });
-
-  next();
+// --- Start server: MUST use Railway's port + 0.0.0.0 ---
+const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`listening on ${PORT}`);
 });
-
-(async () => {
-  const server = await registerRoutes(app);
-
-  // Enhanced error handling middleware
-  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    
-    // Log error details
-    logger.error('Server Error', {
-      error: err.message,
-      stack: err.stack,
-      path: req.path,
-      method: req.method,
-      ip: req.ip,
-      userId: (req as any).user?.id,
-    });
-
-    // Don't expose internal errors in production
-    const message = status === 500 && process.env.NODE_ENV === 'production' 
-      ? "Internal Server Error" 
-      : err.message || "Internal Server Error";
-
-    res.status(status).json({ 
-      error: message,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    });
-  });
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
-
-  // Use PORT from environment variable with fallback to 5000
-  // This allows the app to work in different deployment environments
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
-})();
