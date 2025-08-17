@@ -16,7 +16,7 @@ const categories = [
   { id: "use-case", name: "Use Case Spotlights", icon: "", description: "Real-world applications and success stories" },
   { id: "pain-point", name: "Pain Point Posts", icon: "", description: "Solutions to common business challenges" },
   { id: "competitor", name: "Competitor Comparisons", icon: "⚖️", description: "How Euno compares to other solutions" },
-  { id: "tutorial", name: "Tutorials & How-Tos", icon: "📚", description: "Step-by-step guides and best practices" }
+  { id: "tutorial", name: "Tutorials & How-Tos", icon: "", description: "Step-by-step guides and best practices" }
 ];
 
 export default function BlogHomepage() {
