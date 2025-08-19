@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Link } from 'wouter';
 import EunoLogo from './EunoLogo';
 import GlassesIcon from './GlassesIcon';
 import { useAuth } from '@/contexts/AuthContext';

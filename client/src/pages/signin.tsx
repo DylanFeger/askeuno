@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Card } from '@/components/ui/card';
 import AuthForm from '@/components/AuthForm';
@@ -16,9 +16,15 @@ export default function SignIn() {
     setLocation('/chat');
   };
 
-  // If already authenticated, redirect to chat
+  // Redirect to chat if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      setLocation('/chat');
+    }
+  }, [isAuthenticated, isLoading, setLocation]);
+
+  // If already authenticated, don't render the form
   if (isAuthenticated && !isLoading) {
-    setLocation('/chat');
     return null;
   }
 
@@ -36,11 +42,9 @@ export default function SignIn() {
       <header className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <Link href="/">
-              <a className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-                <EunoLogo className="w-8 h-8 text-primary" />
-                <span className="text-xl font-bold text-gray-900">Euno</span>
-              </a>
+            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+              <EunoLogo className="w-8 h-8 text-primary" />
+              <span className="text-xl font-bold text-gray-900">Euno</span>
             </Link>
           </div>
         </div>
