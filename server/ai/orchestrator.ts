@@ -6,6 +6,7 @@ import { TIERS } from "./tiers";
 import { checkRateLimit } from "./rate";
 import { getActiveDataSource, runSQL } from "../data/datasource";
 import { generateSQLPlan, generateAnalysis } from "./prompts";
+import { detectMissingColumns } from "./column-detector";
 import OpenAI from "openai";
 
 const openai = new OpenAI({ 
@@ -206,17 +207,48 @@ async function executeDataQuery(
   tierConfig: any
 ): Promise<AiResponse> {
   try {
-    // Generate SQL plan
-    const sqlPlan = await generateSQLPlan(message, dataSource);
+    // Get available columns from the data source
+    const availableColumns = dataSource.tables.flatMap((table: any) => 
+      Object.keys(table.columns || {})
+    );
     
-    // Check for missing columns
-    if (sqlPlan.missingColumns && sqlPlan.missingColumns.length > 0) {
+    // Detect missing columns using enhanced detection
+    const { missing, suggestions } = detectMissingColumns(message, availableColumns);
+    
+    // If columns are missing, provide educational response (available to ALL tiers)
+    if (missing.length > 0) {
       return {
-        text: `I cannot answer this question because your data is missing the following columns: ${sqlPlan.missingColumns.join(', ')}. Please ensure these columns exist in your data source.`,
+        text: suggestions,
         meta: {
           intent: "data_query",
           tier,
-          tables: [],
+          tables: dataSource.tables,
+          rows: 0,
+          limited: false
+        }
+      };
+    }
+    
+    // Generate SQL plan
+    const sqlPlan = await generateSQLPlan(message, dataSource);
+    
+    // Additional check from SQL generation
+    if (sqlPlan.missingColumns && sqlPlan.missingColumns.length > 0) {
+      // Generate helpful guidance about missing data (available to all tiers)
+      const missingDataAnalysis = await generateAnalysis(
+        message,
+        { rows: [], rowCount: 0, tables: dataSource.tables },
+        tier,
+        tierConfig,
+        sqlPlan.missingColumns // Pass missing columns for educational response
+      );
+      
+      return {
+        text: missingDataAnalysis.text,
+        meta: {
+          intent: "data_query",
+          tier,
+          tables: dataSource.tables,
           rows: 0,
           limited: false
         }

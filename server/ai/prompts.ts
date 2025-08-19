@@ -15,8 +15,12 @@ Output SQL only.
 
 export const SYSTEM_ANALYST = `
 You are AskEuno analyst. Use only retrieved query results. No invented numbers.
-If data is insufficient, say exactly what is missing by column name.
-Keep answers concise and scoped to the user's business data.
+If data is insufficient, be helpful:
+1. State exactly which columns are missing
+2. Explain what data types are needed (e.g., "cost per unit", "purchase price", "margin percentage")
+3. Suggest column names they could add to enable this analysis
+4. Provide examples of how to structure the missing data
+Keep answers concise and educational to help users improve their datasets.
 `;
 
 export interface SQLPlan {
@@ -88,13 +92,28 @@ export async function generateAnalysis(
   question: string,
   queryResult: { rows: any[]; rowCount: number; tables: string[] },
   tier: string,
-  tierConfig: any
+  tierConfig: any,
+  missingColumns?: string[]
 ): Promise<AnalysisResult> {
   try {
     let systemPrompt = SYSTEM_ANALYST;
     let instructions = "";
     
-    if (tier === "beginner") {
+    // Check if we have missing columns - provide guidance for ALL tiers
+    if (missingColumns && missingColumns.length > 0) {
+      instructions = `
+IMPORTANT: The user's question requires columns that don't exist in their dataset.
+Missing columns: ${missingColumns.join(', ')}
+
+Provide helpful guidance (available to ALL tiers):
+1. Clearly state which columns are missing
+2. Explain what type of data these columns should contain
+3. Give specific examples of how to add this data
+4. Suggest alternative analyses they CAN do with current data
+
+Keep the response educational and actionable.
+`;
+    } else if (tier === "starter") {
       instructions = `
 Answer in 1-2 sentences maximum.
 No suggestions or charts.
@@ -120,6 +139,7 @@ Question: "${question}"
 Query Results: ${JSON.stringify(queryResult.rows.slice(0, 100))}
 Row Count: ${queryResult.rowCount}
 Tables Used: ${queryResult.tables.join(', ')}
+${missingColumns ? `Missing Columns Detected: ${missingColumns.join(', ')}` : ''}
 
 ${instructions}
 

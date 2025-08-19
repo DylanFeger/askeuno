@@ -4,10 +4,18 @@
 Euno is a secure, easy-to-use data platform for small businesses to upload, store, and analyze their data. It offers a secure upload portal, cloud storage integration, ETL processing, and AI-powered insights via a conversational interface. Euno aims to provide a fast, reliable, and accurate experience without complex dashboards, focusing on delivering concise, AI-driven business intelligence. The platform supports both file uploads and live data integrations, enabling real-time data sync and advanced analysis.
 
 ## Recent Updates (August 19, 2025)
+- **Enhanced Missing Data Education System**: Improved AI responses when data columns are missing:
+  - Intelligent column detection identifies what business metrics users are trying to analyze
+  - Educational responses explain exactly which columns are needed (e.g., "cost", "profit_margin" for profit analysis)
+  - Provides specific data type requirements and real-world examples for each missing column
+  - Suggests alternatives and workarounds using existing data
+  - Lists what analyses CAN be done with current data to keep users productive
+  - Available to ALL subscription tiers (not just Pro/Elite) to help all users improve their datasets
+  - Created comprehensive column-detector module for common business metrics (profit, conversion, CLV, churn, inventory)
 - **Gated Database-Aware Analytics Chat**: Implemented comprehensive AI chat system with strict data source requirements:
   - Intent detection system categorizes queries as data_query, faq_product, or irrelevant
   - Chat only responds when database or file is actively selected
-  - Tier-based behavior: Beginner (20 queries/hr, 80 words), Pro (120 queries/hr, 180 words, suggestions), Elite (unlimited, charts, forecasts)
+  - Tier-based behavior: Starter (20 queries/hr, 80 words), Pro (120 queries/hr, 180 words, suggestions), Elite (unlimited, charts, forecasts)
   - Rate limiting with LRU cache and spam protection
   - SQL generation with forbidden operations whitelist (SELECT/WITH only)
   - Strict accuracy controls - never fabricates data, explicitly states missing columns
