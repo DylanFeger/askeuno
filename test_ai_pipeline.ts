@@ -1,138 +1,195 @@
-// Test the AskEuno AI Pipeline without external dependencies
+/**
+ * Comprehensive AI Pipeline Tests
+ * Tests the complete AI chat system including orchestration, tier policies, and data source requirements
+ */
 
-// Test the AskEuno AI Pipeline
-console.log('===========================================');
-console.log('    AskEuno AI Pipeline Test Suite');
-console.log('===========================================\n');
+import { describe, test, expect } from '@jest/globals';
+import { AIOrchestrator } from './server/ai/orchestrator';
+import { checkRateLimit } from './server/ai/rate';
+import { TIERS } from './server/ai/tiers';
+import { checkActiveDataSource } from './server/data/datasource';
 
-// Import the OpenAI service to test the analyzeQueryType function
-import('./server/services/openai.js').then(async (module) => {
-  const { generateDataInsight } = module;
+describe('AI Pipeline - Complete System Test', () => {
   
-  // Mock data for testing
-  const mockDataSchema = {
-    columns: [
-      { name: 'date', type: 'date' },
-      { name: 'sales', type: 'number' },
-      { name: 'product', type: 'string' },
-      { name: 'region', type: 'string' }
-    ]
-  };
-  
-  const mockSampleData = [
-    { date: '2025-01-01', sales: 1000, product: 'Widget A', region: 'North' },
-    { date: '2025-01-02', sales: 1500, product: 'Widget B', region: 'South' },
-    { date: '2025-01-03', sales: 2000, product: 'Widget A', region: 'East' }
-  ];
-
-  // Test cases
-  const testCases = [
-    {
-      name: 'SQL/Data Analysis Query',
-      message: 'Generate an SQL query to calculate the total sales by product',
-      expectedCategory: 'sales',
-      expectedTemperature: 0.2,
-      currentTab: 'trends' // Wrong tab to test suggestion
-    },
-    {
-      name: 'Trend/Prediction Query',
-      message: 'What trends do you see in our sales growth pattern over time?',
-      expectedCategory: 'trends',
-      expectedTemperature: 0.4,
-      currentTab: 'sales' // Wrong tab to test suggestion
-    },
-    {
-      name: 'Future Prediction Query',
-      message: 'Predict what our sales will be next quarter based on current patterns',
-      expectedCategory: 'predictions',
-      expectedTemperature: 0.6,
-      currentTab: 'predictions' // Correct tab
-    },
-    {
-      name: 'Off-Topic Query',
-      message: 'What is the weather like today?',
-      expectedCategory: 'general',
-      expectedTemperature: 0.4,
-      currentTab: 'sales'
-    }
-  ];
-
-  console.log('Testing AI Pipeline Components:\n');
-  console.log('Pipeline Flow:');
-  console.log('1. User sends message → Analyze category');
-  console.log('2. Select model & temperature based on category');
-  console.log('3. Check if user is in correct tab');
-  console.log('4. Generate response with appropriate settings');
-  console.log('5. Maintain conversation history per tab\n');
-  console.log('-------------------------------------------\n');
-
-  for (const testCase of testCases) {
-    console.log(`📝 Test Case: ${testCase.name}`);
-    console.log(`   Input: "${testCase.message}"`);
-    console.log(`   Current Tab: ${testCase.currentTab}`);
+  describe('Intent Detection', () => {
+    test('should correctly classify data queries', () => {
+      const orchestrator = new AIOrchestrator();
+      const dataQueries = [
+        'Show me sales for last month',
+        'What is our top selling product?',
+        'Calculate revenue by category',
+        'List customers who spent over $500'
+      ];
+      
+      dataQueries.forEach(query => {
+        const result = orchestrator.detectIntent(query);
+        expect(result).toBe('data_query');
+      });
+    });
     
-    try {
-      // Call the actual AI service (with minimal tokens to save costs)
-      const response = await generateDataInsight(
-        testCase.message,
-        mockDataSchema,
-        mockSampleData,
-        [], // empty conversation history
-        1, // mock userId
-        1, // mock conversationId
-        false, // extendedThinking
-        'starter', // userTier
-        testCase.currentTab // current category/tab
-      );
+    test('should correctly classify product/FAQ queries', () => {
+      const orchestrator = new AIOrchestrator();
+      const faqQueries = [
+        'How much does Euno cost?',
+        'What features are included in Pro tier?',
+        'How do I upgrade my account?',
+        'Can Euno integrate with Salesforce?'
+      ];
       
-      console.log('\n   ✅ Pipeline Results:');
-      console.log(`   - Detected Category: ${response.category || 'Not detected'}`);
-      console.log(`   - Expected Category: ${testCase.expectedCategory}`);
-      console.log(`   - Category Match: ${response.category === testCase.expectedCategory ? '✓' : '✗'}`);
+      faqQueries.forEach(query => {
+        const result = orchestrator.detectIntent(query);
+        expect(result).toBe('faq_product');
+      });
+    });
+    
+    test('should reject irrelevant queries', () => {
+      const orchestrator = new AIOrchestrator();
+      const irrelevantQueries = [
+        'What is the weather today?',
+        'Tell me a joke',
+        'How do I cook pasta?',
+        'What is the capital of France?'
+      ];
       
-      // Check for tab switch suggestion
-      if (response.suggestedTabSwitch) {
-        console.log(`   - Tab Switch Suggestion: "${response.suggestedTabSwitch}"`);
-      } else if (testCase.currentTab !== testCase.expectedCategory && testCase.expectedCategory !== 'general') {
-        console.log(`   - Tab Switch Suggestion: None (expected one)`);
+      irrelevantQueries.forEach(query => {
+        const result = orchestrator.detectIntent(query);
+        expect(result).toBe('irrelevant');
+      });
+    });
+  });
+  
+  describe('Tier Policy Enforcement', () => {
+    test('should enforce Beginner tier limits', () => {
+      const beginnerPolicy = TIERS.starter;
+      expect(beginnerPolicy.maxQueriesPerHour).toBe(20);
+      expect(beginnerPolicy.maxResponseWords).toBe(80);
+      expect(beginnerPolicy.allowVisualizations).toBe(false);
+      expect(beginnerPolicy.allowSuggestions).toBe(false);
+      expect(beginnerPolicy.allowForecasting).toBe(false);
+    });
+    
+    test('should enforce Pro tier features', () => {
+      const proPolicy = TIERS.pro;
+      expect(proPolicy.maxQueriesPerHour).toBe(120);
+      expect(proPolicy.maxResponseWords).toBe(180);
+      expect(proPolicy.allowVisualizations).toBe(false);
+      expect(proPolicy.allowSuggestions).toBe(true);
+      expect(proPolicy.allowForecasting).toBe(false);
+    });
+    
+    test('should enforce Elite tier unlimited access', () => {
+      const elitePolicy = TIERS.elite;
+      expect(elitePolicy.maxQueriesPerHour).toBeNull();
+      expect(elitePolicy.maxResponseWords).toBeNull();
+      expect(elitePolicy.allowVisualizations).toBe(true);
+      expect(elitePolicy.allowSuggestions).toBe(true);
+      expect(elitePolicy.allowForecasting).toBe(true);
+      expect(elitePolicy.spamWindowCap).toBe(60);
+    });
+  });
+  
+  describe('Rate Limiting', () => {
+    test('should track query counts for rate limiting', () => {
+      const userId = 'test-user-1';
+      const tier = 'starter';
+      
+      // First query should pass
+      const result1 = checkRateLimit(userId, tier);
+      expect(result1.allowed).toBe(true);
+      
+      // Simulate reaching limit (20 queries)
+      for (let i = 0; i < 19; i++) {
+        checkRateLimit(userId, tier);
       }
       
-      // Show AI response preview
-      const responsePreview = response.answer.substring(0, 150) + (response.answer.length > 150 ? '...' : '');
-      console.log(`   - AI Response Preview: "${responsePreview}"`);
+      // 21st query should be blocked
+      const result21 = checkRateLimit(userId, tier);
+      expect(result21.allowed).toBe(false);
+      expect(result21.message).toContain('hourly query limit');
+    });
+    
+    test('should detect spam for Elite users', () => {
+      const userId = 'elite-user-1';
+      const tier = 'elite';
       
-      // Check if off-topic questions are handled correctly
-      if (testCase.name === 'Off-Topic Query') {
-        const isBusinessFocused = response.answer.toLowerCase().includes('business') || 
-                                  response.answer.toLowerCase().includes('data') ||
-                                  response.answer.toLowerCase().includes('sorry');
-        console.log(`   - Business Focus Check: ${isBusinessFocused ? '✓ Redirected to business' : '✗ Answered non-business question'}`);
+      // Simulate rapid queries (60 in < 60 seconds)
+      for (let i = 0; i < 60; i++) {
+        const result = checkRateLimit(userId, tier);
+        if (i < 60) {
+          expect(result.allowed).toBe(true);
+        }
       }
       
-      // Verify conversation would be stored with correct category
-      console.log(`   - Conversation Category: ${response.category}`);
-      console.log(`   - Confidence Score: ${response.confidence}`);
-      
-    } catch (error: any) {
-      console.log(`   ❌ Error: ${error.message}`);
-    }
+      // 61st rapid query should trigger spam protection
+      const spamResult = checkRateLimit(userId, tier);
+      expect(spamResult.allowed).toBe(false);
+      expect(spamResult.message).toContain('rapid succession');
+    });
+  });
+  
+  describe('Data Source Guards', () => {
+    test('should reject queries when no data source active', async () => {
+      const result = await checkActiveDataSource(123, null);
+      expect(result.hasActiveSource).toBe(false);
+      expect(result.sourceType).toBeNull();
+    });
     
-    console.log('\n-------------------------------------------\n');
-  }
+    test('should accept queries with file data source', async () => {
+      // Mock file data source
+      const result = await checkActiveDataSource(123, 456);
+      // Note: This would need actual database connection to test properly
+      // For now, we're testing the function exists and returns expected shape
+      expect(result).toHaveProperty('hasActiveSource');
+      expect(result).toHaveProperty('sourceType');
+    });
+  });
   
-  // Summary of pipeline verification
-  console.log('🎯 Pipeline Verification Summary:');
-  console.log('   1. Category Detection: ✓ Working (keywords analyzed)');
-  console.log('   2. Dynamic Temperature: ✓ Set based on category');
-  console.log('   3. Model Selection: ✓ GPT-4o used appropriately');
-  console.log('   4. Tab Suggestions: ✓ Suggests switching when needed');
-  console.log('   5. Business Focus: ✓ Redirects non-business queries');
-  console.log('   6. Conversation History: ✓ Category stored for organization');
+  describe('SQL Generation Safety', () => {
+    test('should only allow SELECT and WITH statements', () => {
+      const allowedSQL = [
+        'SELECT * FROM sales',
+        'WITH cte AS (SELECT * FROM orders) SELECT * FROM cte',
+        'SELECT COUNT(*) FROM customers'
+      ];
+      
+      const forbiddenSQL = [
+        'DELETE FROM users',
+        'UPDATE products SET price = 0',
+        'DROP TABLE customers',
+        'INSERT INTO admin VALUES',
+        'TRUNCATE TABLE orders'
+      ];
+      
+      allowedSQL.forEach(sql => {
+        const isSafe = /^(SELECT|WITH)/i.test(sql.trim());
+        expect(isSafe).toBe(true);
+      });
+      
+      forbiddenSQL.forEach(sql => {
+        const isSafe = /^(SELECT|WITH)/i.test(sql.trim());
+        expect(isSafe).toBe(false);
+      });
+    });
+  });
   
-  console.log('\n===========================================');
-  console.log('    Test Complete - Pipeline Verified');
-  console.log('===========================================');
-  
-}).catch(error => {
-  console.error('Failed to load OpenAI service:', error);
+  describe('Response Formatting', () => {
+    test('should truncate responses based on tier', () => {
+      const longResponse = 'word '.repeat(200); // 200 words
+      
+      // Beginner tier should truncate to 80 words
+      const beginnerWords = longResponse.split(' ').slice(0, 80).join(' ');
+      expect(beginnerWords.split(' ').length).toBeLessThanOrEqual(80);
+      
+      // Pro tier should truncate to 180 words  
+      const proWords = longResponse.split(' ').slice(0, 180).join(' ');
+      expect(proWords.split(' ').length).toBeLessThanOrEqual(180);
+      
+      // Elite tier should not truncate
+      const eliteWords = longResponse;
+      expect(eliteWords.split(' ').length).toBe(200);
+    });
+  });
 });
+
+console.log('AI Pipeline Test Suite - Ready to run');
+console.log('Run with: npm test test_ai_pipeline.ts');

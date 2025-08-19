@@ -20,6 +20,7 @@ import pipelineTestRoutes from "./routes/pipeline-test";
 import apiPushRoutes from "./routes/api-push";
 import healthRoutes from "./routes/health";
 import blogRoutes from "./routes/blog";
+import aiRoutes from "./routes/ai";
 import { initializeScheduler, shutdownScheduler } from "./services/scheduler";
 import { sendContactFormEmail } from "./services/awsSes";
 
@@ -103,6 +104,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Blog routes
   app.use('/api/blog', blogRoutes);
+  
+  // AI Chat routes
+  app.use('/api/ai', aiRoutes);
 
   // Contact form endpoint - public with rate limiting
   app.post('/api/contact', 

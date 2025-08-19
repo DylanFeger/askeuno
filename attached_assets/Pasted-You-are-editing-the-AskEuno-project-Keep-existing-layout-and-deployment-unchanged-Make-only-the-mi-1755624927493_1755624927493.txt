@@ -1,0 +1,136 @@
+You are editing the AskEuno project. Keep existing layout and deployment unchanged. Make only the minimal code edits needed.
+
+GOAL
+Implement a gated, database-aware analytics chat with tiered behavior and strict accuracy. The AI must:
+1) Only answer when a database or file is actively selected.
+2) Auto-switch the active data source if the user switches it.
+3) Refuse irrelevant or out-of-scope questions and redirect to the proper topic.
+4) Enforce tier rules: Beginner, Pro, Elite (defined below).
+5) Never fabricate data. If evidence is missing or weak, state limits and request the needed columns/files.
+6) For allowed prediction features, clearly label as projections and state assumptions.
+
+ASSUMPTIONS
+- OpenAI API is already connected.
+- Project has a user session and plan/tier on the request.
+- Data sources are either a SQL database connection or an uploaded file already parsed into a read-only SQLite table.
+- Existing server is Node/TS with Express; front end is React/Vite. If different, adapt paths accordingly without breaking the build.
+
+ADD/EDIT: Core Orchestrator
+- Create `server/ai/orchestrator.ts` that exposes:
+  export async function handleChat({userId, tier, message}): Promise<AiResponse>
+
+  Responsibilities:
+  1) detectIntent(message): "data_query" | "faq_product" | "irrelevant"
+     - data_query keywords: sum, avg, count, filter, group, by, where, top, trend, growth, forecast, cohort, conversion, revenue, orders, sessions, CAC, LTV, churn, ARPU.
+     - faq_product keywords: pricing, features, connection, setup, billing, limits.
+     - else → irrelevant.
+
+  2) getActiveDataSource(userId):
+     - Read from session/store which data source is active.
+     - If none selected → return {active:false, reason:"no_source"}.
+     - If a different file/db is chosen by user, update and return it.
+     Shape: {active:true, type:"sql"|"file", handle, tables:string[]}.
+
+  3) guardDataAvailability(intent, ds):
+     - If intent === "data_query" and ds.active === false → return hard refusal with instructions to connect/upload/select.
+     - If ds.active === true, verify at least one table present and row count > 0; else refuse with missing-data message.
+
+  4) routeByTier(tier, intent):
+     - Beginner: short answers only, no charts, no forecasts, low query limit, no business suggestions.
+     - Pro: longer answers permitted, business suggestions allowed, higher query cap.
+     - Elite: auto charts, trends, optional forecast, business suggestions, unlimited unless spam.
+
+  5) executeDataQuery(message, ds, tier):
+     - Build a strict SQL plan JSON with {table, columns, filters, group_by, metrics, order_by, limit}.
+     - Generate SQL with a system prompt that forbids DDL/DML and enforces LIMIT <= 5000.
+     - Run EXPLAIN, reject if non-whitelisted verbs appear.
+     - Execute against ds handle. Capture rows, schema, and sample size.
+
+  6) composeAnswer():
+     - Always include a “Data basis” line with table(s) touched and row count used.
+     - Beginner: ≤ 80 words. Plain text. No charts. No suggestions.
+     - Pro: ≤ 180 words. May elaborate if user asks. Add “Suggestions” only if on-topic and data-backed.
+     - Elite: generate a chart spec and a 60–120 word explanation. Add “Suggestions” and optional “Trends/Forecast” if supported.
+
+  7) irrelevance handling:
+     - If intent === "irrelevant": reply with one sentence: “I answer questions about your business data. Ask about metrics, filters, or trends.” No further content.
+
+  8) hallucination controls:
+     - If no rows or metric not present → refuse and list required columns.
+     - Forecasts only for Elite. Use last 12 weeks/months if available. Always print: “Forecast is an estimate. Assumptions: …”
+     - Never cite sources you did not actually query.
+
+Types:
+  export type AiResponse = {
+    text: string;
+    chart?: { type:"line"|"bar"|"area"|"pie", x:string, y:string[]|string, data:any[] };
+    meta: { intent:string, tier:string, tables:string[], rows:number, limited:boolean };
+  };
+
+ADD/EDIT: Tier Policy
+- Create `server/ai/tiers.ts`:
+  export const TIERS = {
+    beginner: { maxQueriesPerHour: 20, allowElaboration:false, allowSuggestions:false, allowCharts:false, allowForecast:false },
+    pro:      { maxQueriesPerHour: 120, allowElaboration:true,  allowSuggestions:true,  allowCharts:false, allowForecast:false },
+    elite:    { maxQueriesPerHour: Infinity, spamWindowCap: 60, allowElaboration:true, allowSuggestions:true, allowCharts:true, allowForecast:true }
+  };
+
+- Add simple rate limiter `server/ai/rate.ts` using in-memory LRU keyed by userId+tier with timestamps. Elite: unlimited unless more than spamWindowCap queries in 60 seconds; then 1-hour cooloff message.
+
+ADD/EDIT: Data Access
+- Create `server/data/datasource.ts`:
+  export async function getActiveDataSource(userId): Promise<…>
+  export async function runSQL(ds, sql): Promise<{rows:any[], rowCount:number, tables:string[]}>
+  - Implement read-only SQLite for file uploads and pass-through for external SQL pools already configured.
+  - Enforce verb whitelist: SELECT, WITH.
+  - Force LIMIT injection if absent (<= 5000).
+
+ADD/EDIT: HTTP Route
+- Add POST `/api/ai/chat` in `server/routes/ai.ts` that calls `handleChat`. Input: {message:string}. Derive userId and tier from auth/session. Return AiResponse JSON.
+
+ADD/EDIT: OpenAI Calls
+- Create `server/ai/prompts.ts` with two prompts:
+
+  export const SYSTEM_SQL = `
+You are AskEuno SQL planner. You only output SQL for read-only analytics.
+Forbidden: INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, TRUNCATE, PRAGMA.
+Must include LIMIT <= 5000.
+Prefer existing columns. If a needed column is missing, output: --MISSING:<column>.
+Output SQL only.
+`;
+
+  export const SYSTEM_ANALYST = `
+You are AskEuno analyst. Use only retrieved query results. No invented numbers.
+If data is insufficient, say exactly what is missing by column name.
+Keep answers concise and scoped to the user’s business data.
+`;
+
+ADD/EDIT: Frontend
+- Add a chat component guard:
+  - If `/api/user/active-datasource` returns none, the input box shows a banner: “Connect a database or select a file to ask questions.” Disable send.
+  - When Elite tier response includes chart, render it using a small chart lib already in project; if none, use lightweight Recharts.
+
+Behavior Rules Summary
+- No active data source → refuse with connect/select guidance.
+- Auto-switch when user selects a different file/db (listen to existing selection signal/store).
+- Irrelevant questions → single-sentence redirect.
+- Beginner: short, accurate, friendly. No suggestions or charts.
+- Pro: can elaborate on request. Adds concise business suggestions tied to numbers returned.
+- Elite: auto-chart + short text. Can elaborate on button click. Suggest business moves. Show trends and optional forecasts when sufficient history exists.
+- Always disclose missing data explicitly to improve accuracy.
+
+TESTS (add `server/ai/__tests__/chat.spec.ts`)
+- No source selected → 403 with message to connect/select.
+- Beginner: “top 5 products by revenue last 30d” → ≤80 words, no chart.
+- Pro: same query → ≤180 words, suggestions present.
+- Elite: same query → chart present with x=time, y=revenue; ≤120 words.
+- Irrelevant: “Tell me a joke” → one-sentence redirect.
+- Missing column: ask for LTV when no `ltv` column → refusal with “ltv column missing”.
+- Forecast (Elite): requires ≥12 time periods; else refuse with “insufficient history”.
+
+PLUMBING
+- Wire the new routes in `server/index.ts`.
+- Export types where needed. Keep build green: `npm run build` must pass.
+
+OUTPUT
+- Implement the code, run tests, and show me the diffs for all created/changed files plus a short note on any assumptions you made. Do not modify deployment configs or unrelated pages.

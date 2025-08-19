@@ -1,300 +1,203 @@
-// Comprehensive Backend Pipeline Test for AskEuno
-import axios from 'axios';
-import FormData from 'form-data';
-import fs from 'fs';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+/**
+ * Backend AI Pipeline Tests
+ * Tests the backend components of the AI chat system
+ */
 
-const execAsync = promisify(exec);
-const BASE_URL = 'http://localhost:5000';
+import { generateSQL, generateAnalysis } from './server/ai/prompts';
+import { AIOrchestrator } from './server/ai/orchestrator';
+import { checkActiveDataSource } from './server/data/datasource';
 
-console.log('================================================');
-console.log('   AskEuno Complete Backend Pipeline Test');
-console.log('================================================\n');
-
-async function testBackendPipeline() {
-  const testResults: any = {
-    database: { status: 'pending', details: {} },
-    pythonProcessing: { status: 'pending', details: {} },
-    awsIntegration: { status: 'pending', details: {} },
-    openaiIntegration: { status: 'pending', details: {} },
-    chatPipeline: { status: 'pending', details: {} },
-    dataFlow: { status: 'pending', details: {} }
-  };
-
-  // Test 1: Database Connectivity (PostgreSQL)
-  console.log('📊 Test 1: PostgreSQL Database Connection');
-  console.log('   Testing connection to Neon PostgreSQL...');
-  try {
-    // Test database connection through SQL query
-    const dbTest = await execAsync(`echo "SELECT version();" | npx tsx -e "
-      import { db } from './server/db.js';
-      import { sql } from 'drizzle-orm';
-      db.execute(sql\\\`SELECT version()\\\`).then(r => console.log(JSON.stringify(r)))
-    " 2>&1`);
-    
-    testResults.database.status = 'success';
-    testResults.database.details = {
-      connected: true,
-      message: 'PostgreSQL connection successful'
-    };
-    console.log('   ✅ Database connected successfully\n');
-  } catch (error: any) {
-    testResults.database.status = 'failed';
-    testResults.database.details = {
-      connected: false,
-      error: error.message
-    };
-    console.log('   ❌ Database connection failed:', error.message, '\n');
-  }
-
-  // Test 2: Python Processing Pipeline
-  console.log('📐 Test 2: Python Data Processing Pipeline');
-  console.log('   Testing CSV processing with pandas...');
+describe('Backend AI Service Tests', () => {
   
-  // Create a test CSV file
-  const testCsvContent = `date,product,sales,region
-2025-01-01,Widget A,1000,North
-2025-01-02,Widget B,1500,South
-2025-01-03,Widget A,2000,East`;
-  
-  fs.writeFileSync('test_pipeline_data.csv', testCsvContent);
-  
-  try {
-    // Test Python pandas processing
-    const pythonTest = await execAsync(`python3 -c "
-import pandas as pd
-import json
-
-# Read CSV
-df = pd.read_csv('test_pipeline_data.csv')
-
-# Process data
-result = {
-    'rows': len(df),
-    'columns': list(df.columns),
-    'total_sales': float(df['sales'].sum()),
-    'avg_sales': float(df['sales'].mean()),
-    'products': df['product'].unique().tolist()
-}
-
-print(json.dumps(result))
-"`);
-    
-    const pythonResult = JSON.parse(pythonTest.stdout);
-    testResults.pythonProcessing.status = 'success';
-    testResults.pythonProcessing.details = pythonResult;
-    console.log('   ✅ Python processing successful');
-    console.log(`   - Processed ${pythonResult.rows} rows`);
-    console.log(`   - Total sales: $${pythonResult.total_sales}`);
-    console.log(`   - Products: ${pythonResult.products.join(', ')}\n`);
-  } catch (error: any) {
-    testResults.pythonProcessing.status = 'failed';
-    testResults.pythonProcessing.details = { error: error.message };
-    console.log('   ❌ Python processing failed:', error.message, '\n');
-  }
-
-  // Test 3: AWS Integration (S3 & SES)
-  console.log('🌩️  Test 3: AWS Services Integration');
-  console.log('   Checking AWS configuration...');
-  
-  try {
-    // Check if AWS credentials are configured
-    const awsCheck = await execAsync(`npx tsx -e "
-      const hasS3 = process.env.AWS_ACCESS_KEY_ID ? true : false;
-      const hasSES = process.env.AWS_SES_REGION ? true : false;
-      console.log(JSON.stringify({
-        s3Configured: hasS3,
-        sesConfigured: hasSES,
-        region: process.env.AWS_REGION || 'not configured'
-      }));
-    "`);
-    
-    const awsResult = JSON.parse(awsCheck.stdout);
-    testResults.awsIntegration.status = awsResult.s3Configured ? 'configured' : 'not-configured';
-    testResults.awsIntegration.details = awsResult;
-    
-    if (awsResult.s3Configured) {
-      console.log('   ✅ AWS S3 configured');
-    } else {
-      console.log('   ⚠️  AWS S3 not configured (using local storage)');
-    }
-    
-    if (awsResult.sesConfigured) {
-      console.log('   ✅ AWS SES configured for emails');
-    } else {
-      console.log('   ⚠️  AWS SES not configured\n');
-    }
-  } catch (error: any) {
-    testResults.awsIntegration.status = 'error';
-    testResults.awsIntegration.details = { error: error.message };
-    console.log('   ❌ AWS check failed:', error.message, '\n');
-  }
-
-  // Test 4: OpenAI Integration
-  console.log('🤖 Test 4: OpenAI API Integration');
-  console.log('   Testing OpenAI connection and configuration...');
-  
-  try {
-    // Check OpenAI configuration
-    const openaiCheck = await execAsync(`npx tsx -e "
-      import('./server/services/openai.js').then(module => {
-        const hasKey = process.env.OPENAI_API_KEY ? true : false;
-        console.log(JSON.stringify({
-          configured: hasKey,
-          keyPresent: hasKey,
-          model: 'gpt-4o'
-        }));
-      });
-    "`);
-    
-    const openaiResult = JSON.parse(openaiCheck.stdout);
-    testResults.openaiIntegration.status = openaiResult.configured ? 'configured' : 'not-configured';
-    testResults.openaiIntegration.details = openaiResult;
-    
-    if (openaiResult.configured) {
-      console.log('   ✅ OpenAI API key configured');
-      console.log('   - Model: GPT-4o');
-      console.log('   - Dynamic temperature: 0.2-0.6\n');
-    } else {
-      console.log('   ⚠️  OpenAI API key not configured\n');
-    }
-  } catch (error: any) {
-    testResults.openaiIntegration.status = 'error';
-    testResults.openaiIntegration.details = { error: error.message };
-    console.log('   ❌ OpenAI check failed:', error.message, '\n');
-  }
-
-  // Test 5: Complete Chat Pipeline
-  console.log('💬 Test 5: End-to-End Chat Pipeline');
-  console.log('   Simulating complete chat flow...');
-  
-  try {
-    // Test the chat endpoint structure
-    const chatTest = await execAsync(`npx tsx -e "
-      // Import required modules
-      import('./server/services/openai.js').then(async module => {
-        const mockSchema = {
-          columns: [
-            { name: 'date', type: 'date' },
-            { name: 'sales', type: 'number' }
-          ]
-        };
-        
-        const mockData = [
-          { date: '2025-01-01', sales: 1000 },
-          { date: '2025-01-02', sales: 1500 }
-        ];
-        
-        // Test the query categorization
-        const testQueries = [
-          'Calculate total sales',
-          'Show me the sales trend',
-          'Predict next month sales'
-        ];
-        
-        const results = [];
-        for (const query of testQueries) {
-          // Simulate categorization (without actual API call)
-          let category = 'general';
-          if (query.toLowerCase().includes('calculate') || query.toLowerCase().includes('total')) {
-            category = 'sales';
-          } else if (query.toLowerCase().includes('trend')) {
-            category = 'trends';
-          } else if (query.toLowerCase().includes('predict')) {
-            category = 'predictions';
-          }
-          
-          results.push({
-            query: query,
-            detectedCategory: category,
-            temperature: category === 'sales' ? 0.2 : category === 'trends' ? 0.4 : 0.6
-          });
-        }
-        
-        console.log(JSON.stringify({
-          pipelineWorking: true,
-          categorization: results
-        }));
-      });
-    "`);
-    
-    const chatResult = JSON.parse(chatTest.stdout);
-    testResults.chatPipeline.status = 'success';
-    testResults.chatPipeline.details = chatResult;
-    
-    console.log('   ✅ Chat pipeline structure verified');
-    console.log('   Query categorization:');
-    chatResult.categorization.forEach((item: any) => {
-      console.log(`   - "${item.query}"`);
-      console.log(`     Category: ${item.detectedCategory}, Temperature: ${item.temperature}`);
+  describe('Orchestrator Flow', () => {
+    test('should handle complete chat flow', async () => {
+      const orchestrator = new AIOrchestrator();
+      
+      // Test complete flow with data query
+      const request = {
+        userId: 1,
+        message: 'Show me total sales for last month',
+        conversationId: 1,
+        userTier: 'pro' as const,
+        activeDataSourceId: 123
+      };
+      
+      const result = await orchestrator.processChat(request);
+      
+      expect(result).toHaveProperty('response');
+      expect(result).toHaveProperty('queryType');
+      expect(result).toHaveProperty('conversationId');
+      expect(result.queryType).toBe('data_query');
     });
-    console.log();
-  } catch (error: any) {
-    testResults.chatPipeline.status = 'error';
-    testResults.chatPipeline.details = { error: error.message };
-    console.log('   ❌ Chat pipeline test failed:', error.message, '\n');
-  }
-
-  // Test 6: Complete Data Flow
-  console.log('🔄 Test 6: Complete Data Flow Pipeline');
-  console.log('   Testing: Upload → Process → Store → Query → AI Response\n');
-  
-  const dataFlowSteps = [
-    { step: 'File Upload', component: 'Multer + Express', status: '✅' },
-    { step: 'Data Parsing', component: 'XLSX/CSV Parser', status: '✅' },
-    { step: 'Schema Detection', component: 'Python/TypeScript', status: '✅' },
-    { step: 'Data Storage', component: 'PostgreSQL/S3', status: testResults.database.status === 'success' ? '✅' : '⚠️' },
-    { step: 'Query Processing', component: 'Drizzle ORM', status: '✅' },
-    { step: 'AI Analysis', component: 'OpenAI GPT-4o', status: testResults.openaiIntegration.status === 'configured' ? '✅' : '⚠️' },
-    { step: 'Response Generation', component: 'Express API', status: '✅' }
-  ];
-  
-  dataFlowSteps.forEach(step => {
-    console.log(`   ${step.status} ${step.step}: ${step.component}`);
+    
+    test('should block queries without data source', async () => {
+      const orchestrator = new AIOrchestrator();
+      
+      const request = {
+        userId: 1,
+        message: 'Show me sales data',
+        conversationId: 1,
+        userTier: 'pro' as const,
+        activeDataSourceId: null
+      };
+      
+      const result = await orchestrator.processChat(request);
+      
+      expect(result.response).toContain('select a data source');
+      expect(result.queryType).toBe('blocked');
+    });
+    
+    test('should reject irrelevant queries', async () => {
+      const orchestrator = new AIOrchestrator();
+      
+      const request = {
+        userId: 1,
+        message: 'What is the weather like?',
+        conversationId: 1,
+        userTier: 'pro' as const,
+        activeDataSourceId: 123
+      };
+      
+      const result = await orchestrator.processChat(request);
+      
+      expect(result.response).toContain('business data');
+      expect(result.queryType).toBe('irrelevant');
+    });
   });
   
-  testResults.dataFlow.status = 'verified';
-  testResults.dataFlow.details = dataFlowSteps;
+  describe('SQL Generation', () => {
+    test('should generate safe SQL queries', () => {
+      const queries = [
+        'Show total sales by month',
+        'List top 10 customers',
+        'Calculate average order value'
+      ];
+      
+      queries.forEach(query => {
+        const mockTableStructure = {
+          tables: ['sales', 'customers', 'orders'],
+          columns: {
+            sales: ['id', 'date', 'amount', 'customer_id'],
+            customers: ['id', 'name', 'email'],
+            orders: ['id', 'order_date', 'total', 'customer_id']
+          }
+        };
+        
+        const sql = generateSQL(query, mockTableStructure);
+        
+        // Check SQL is safe (only SELECT/WITH)
+        expect(sql).toMatch(/^(SELECT|WITH)/i);
+        
+        // Check no dangerous operations
+        expect(sql).not.toMatch(/DELETE|UPDATE|INSERT|DROP|TRUNCATE/i);
+      });
+    });
+    
+    test('should handle missing columns gracefully', () => {
+      const query = 'Show me profit margins';
+      const tableStructure = {
+        tables: ['sales'],
+        columns: {
+          sales: ['id', 'date', 'amount'] // No profit column
+        }
+      };
+      
+      const sql = generateSQL(query, tableStructure);
+      
+      // Should still generate valid SQL or indicate missing data
+      expect(sql).toBeTruthy();
+    });
+  });
+  
+  describe('Analysis Generation', () => {
+    test('should provide tier-appropriate analysis', () => {
+      const queryResults = {
+        rows: [
+          { month: 'January', sales: 50000 },
+          { month: 'February', sales: 60000 },
+          { month: 'March', sales: 55000 }
+        ]
+      };
+      
+      // Test Beginner tier (short response)
+      const beginnerAnalysis = generateAnalysis(
+        'Show sales by month',
+        queryResults,
+        'starter'
+      );
+      expect(beginnerAnalysis.split(' ').length).toBeLessThanOrEqual(80);
+      
+      // Test Pro tier (medium response with suggestions)
+      const proAnalysis = generateAnalysis(
+        'Show sales by month',
+        queryResults,
+        'pro'
+      );
+      expect(proAnalysis.split(' ').length).toBeLessThanOrEqual(180);
+      expect(proAnalysis).toContain('consider');
+      
+      // Test Elite tier (detailed analysis)
+      const eliteAnalysis = generateAnalysis(
+        'Show sales by month',
+        queryResults,
+        'elite'
+      );
+      expect(eliteAnalysis.length).toBeGreaterThan(beginnerAnalysis.length);
+    });
+    
+    test('should never fabricate data', () => {
+      const queryResults = {
+        rows: [
+          { product: 'Widget A', sales: 1000 },
+          { product: 'Widget B', sales: 1500 }
+        ]
+      };
+      
+      const analysis = generateAnalysis(
+        'Show me profit margins',
+        queryResults,
+        'pro'
+      );
+      
+      // Should acknowledge missing data
+      expect(analysis).toMatch(/no profit|profit.*not available|missing.*profit/i);
+    });
+  });
+  
+  describe('Data Source Validation', () => {
+    test('should validate file data sources', async () => {
+      // Mock database call
+      const mockFileSource = {
+        id: 1,
+        type: 'file',
+        name: 'sales_data.csv',
+        rowCount: 1000
+      };
+      
+      const result = await checkActiveDataSource(1, mockFileSource.id);
+      
+      expect(result).toHaveProperty('hasActiveSource');
+      expect(result).toHaveProperty('sourceType');
+      expect(result).toHaveProperty('rowCount');
+    });
+    
+    test('should validate live connections', async () => {
+      // Mock live connection
+      const mockLiveSource = {
+        id: 2,
+        type: 'connection',
+        name: 'Shopify Store',
+        platform: 'shopify'
+      };
+      
+      const result = await checkActiveDataSource(1, mockLiveSource.id);
+      
+      expect(result).toHaveProperty('hasActiveSource');
+      expect(result).toHaveProperty('sourceType');
+      expect(result.sourceType).toBe('connection');
+    });
+  });
+});
 
-  // Final Summary
-  console.log('\n================================================');
-  console.log('              Pipeline Test Summary');
-  console.log('================================================\n');
-  
-  console.log('Component Status:');
-  console.log(`  1. PostgreSQL Database: ${testResults.database.status === 'success' ? '✅ Connected' : '❌ Not Connected'}`);
-  console.log(`  2. Python Processing: ${testResults.pythonProcessing.status === 'success' ? '✅ Working' : '❌ Not Working'}`);
-  console.log(`  3. AWS Integration: ${testResults.awsIntegration.status === 'configured' ? '✅ Configured' : '⚠️ Not Configured'}`);
-  console.log(`  4. OpenAI API: ${testResults.openaiIntegration.status === 'configured' ? '✅ Configured' : '⚠️ Not Configured'}`);
-  console.log(`  5. Chat Pipeline: ${testResults.chatPipeline.status === 'success' ? '✅ Verified' : '❌ Issues Found'}`);
-  console.log(`  6. Data Flow: ${testResults.dataFlow.status === 'verified' ? '✅ Complete' : '❌ Incomplete'}`);
-  
-  console.log('\nKey Findings:');
-  if (testResults.database.status === 'success') {
-    console.log('  ✅ Database layer is fully operational');
-  }
-  if (testResults.pythonProcessing.status === 'success') {
-    console.log('  ✅ Python data processing pipeline is working');
-  }
-  if (testResults.awsIntegration.status !== 'configured') {
-    console.log('  ⚠️ AWS services need configuration for full functionality');
-  }
-  if (testResults.openaiIntegration.status !== 'configured') {
-    console.log('  ⚠️ OpenAI API key needed for AI features');
-  }
-  
-  console.log('\n================================================');
-  console.log('         Backend Pipeline Test Complete');
-  console.log('================================================');
-  
-  // Clean up test file
-  if (fs.existsSync('test_pipeline_data.csv')) {
-    fs.unlinkSync('test_pipeline_data.csv');
-  }
-  
-  return testResults;
-}
-
-// Run the test
-testBackendPipeline().catch(console.error);
+console.log('Backend Pipeline Test Suite - Ready to run');
+console.log('Run with: npm test test_backend_pipeline.ts');

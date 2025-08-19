@@ -230,12 +230,9 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const sendMessageMutation = useMutation({
     mutationFn: async ({ messageContent, forceChart = false }: { messageContent: string; forceChart?: boolean }) => {
       const finalMessage = forceChart ? `Create a chart or graph for: ${messageContent}` : messageContent;
-      const response = await apiRequest('POST', '/api/chat', {
+      const response = await apiRequest('POST', '/api/ai/chat', {
         message: finalMessage,
         conversationId: currentConversationId,
-        dataSourceId: selectedDataSourceId,
-        extendedThinking,
-        currentCategory,
       });
       return response.json();
     },
@@ -584,20 +581,39 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Data source guard - show banner if no data source selected */}
+      {!selectedDataSourceId && dataSources.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
+          <p className="text-amber-800 text-sm">
+            Please select a data source above to start asking questions about your data.
+          </p>
+        </div>
+      )}
+      
+      {dataSources.length === 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
+          <p className="text-amber-800 text-sm">
+            Connect a database or select a file to ask questions. 
+            <Link href="/connections" className="underline ml-1">Go to Data Sources</Link>
+          </p>
+        </div>
+      )}
+
       <div className="flex items-center space-x-3">
         <div className="flex-1 relative">
           <Input
             type="text"
-            placeholder="Ask Euno anything..."
+            placeholder={!selectedDataSourceId ? "Select a data source first..." : "Ask Euno anything..."}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
+            disabled={!selectedDataSourceId || dataSources.length === 0}
           />
         </div>
         {user?.subscriptionTier === 'pro' && (
           <Button
             onClick={() => handleSendMessage(true)}
-            disabled={!message.trim() || sendMessageMutation.isPending}
+            disabled={!message.trim() || sendMessageMutation.isPending || !selectedDataSourceId}
             variant="outline"
             title="Generate Chart"
           >
@@ -606,7 +622,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
         )}
         <Button
           onClick={() => handleSendMessage(false)}
-          disabled={!message.trim() || sendMessageMutation.isPending}
+          disabled={!message.trim() || sendMessageMutation.isPending || !selectedDataSourceId}
           className=""
         >
           <Send className="w-4 h-4" />
