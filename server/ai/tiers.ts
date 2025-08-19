@@ -1,13 +1,13 @@
 export const TIERS = {
   beginner: {
-    maxQueriesPerHour: 20,
+    maxQueriesPerHour: 5,
     allowElaboration: false,
     allowSuggestions: false,
     allowCharts: false,
     allowForecast: false
   },
   pro: {
-    maxQueriesPerHour: 120,
+    maxQueriesPerHour: 25,
     allowElaboration: true,
     allowSuggestions: true,
     allowCharts: false,
