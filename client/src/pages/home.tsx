@@ -167,7 +167,7 @@ export default function Home() {
             <div className="text-center lg:text-left">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
                 Connect your data.<br/>
-                Ask anything.<br/>
+                Ask stuff.<br/>
                 <span className="text-primary">Get answers.</span>
               </h1>
               <p className="text-xl text-gray-600 mb-8">
