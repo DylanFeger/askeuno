@@ -426,13 +426,13 @@ export default function SubscriptionPage() {
             </div>
 
             <div className="mt-8 p-4 bg-gray-100 rounded-lg inline-block">
-              <p className="text-sm text-gray-600 flex items-center justify-center">
+              <div className="text-sm text-gray-600 flex items-center justify-center">
                 <AlertCircle className="w-4 h-4 mr-1" />
                 Questions about pricing? Email us at{' '}
                 <span className="ml-1">
                   <EmailWithCopy email="support@askeuno.com" className="text-primary hover:underline" />
                 </span>
-              </p>
+              </div>
             </div>
           </div>
         </div>
