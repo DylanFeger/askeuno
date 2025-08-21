@@ -30,12 +30,12 @@ const registerValidation = [
   handleValidationErrors
 ];
 
-// Login validation
+// Login validation - accepts either email or username
 const loginValidation = [
   body('username')
     .trim()
-    .isLength({ min: 3 })
-    .withMessage('Username is required'),
+    .isLength({ min: 1 })
+    .withMessage('Email or username is required'),
   body('password')
     .isLength({ min: 1 })
     .withMessage('Password is required'),
@@ -126,15 +126,20 @@ router.post('/login', loginValidation, async (req, res) => {
   try {
     const { username, password } = req.body;
     
-    // Get user by username
-    const user = await storage.getUserByUsername(username);
+    // Check if input is email or username
+    const isEmail = username.includes('@');
+    const user = isEmail 
+      ? await storage.getUserByEmail(username)
+      : await storage.getUserByUsername(username);
+    
     if (!user) {
-      logSecurityEvent('LOGIN_ATTEMPT_INVALID_USERNAME', {
-        username,
+      logSecurityEvent('LOGIN_ATTEMPT_INVALID_CREDENTIALS', {
+        loginInput: username,
+        isEmail,
         ip: req.ip,
         userAgent: req.get('User-Agent')
       });
-      return res.status(401).json({ error: 'Username not found. Please check your username and try again.' });
+      return res.status(401).json({ error: 'Invalid email or username. Please check your credentials and try again.' });
     }
     
     // Verify password

@@ -12,7 +12,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters'),
+  username: z.string().min(1, 'Email or username is required'),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -78,9 +78,12 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username</FormLabel>
+                <FormLabel>{isLogin ? 'Email or Username' : 'Username'}</FormLabel>
                 <FormControl>
-                  <Input placeholder="johndoe" {...field} />
+                  <Input 
+                    placeholder={isLogin ? "johndoe or john@example.com" : "johndoe"} 
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

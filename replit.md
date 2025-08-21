@@ -5,11 +5,12 @@ Euno is a secure, easy-to-use data platform for small businesses to upload, stor
 
 ## Recent Updates (August 21, 2025)
 - **Authentication System Overhaul**: Updated authentication flow for improved user experience:
-  - Login now uses username + password only (email no longer required after signup)
+  - Login now accepts BOTH email OR username + password (backwards compatible with existing users)
   - Registration still requires email + username + password for account verification
   - Sessions now persist user_id, username, and subscription_tier for proper rate limiting
   - Duplicate prevention for both email and username with clear error messages
-  - Frontend forms updated to reflect new login flow (username field for login, all fields for registration)
+  - Frontend forms updated to reflect new login flow (shows "Email or Username" with subtle placeholder hint)
+  - No existing users need to create new accounts - they can continue using their email to login
 
 ## Previous Updates (August 19, 2025)
 - **Adjusted Query Limits**: Updated tier-based query limits per user request:
