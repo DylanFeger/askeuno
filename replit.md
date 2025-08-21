@@ -3,7 +3,15 @@
 ## Overview
 Euno is a secure, easy-to-use data platform for small businesses to upload, store, and analyze their data. It offers a secure upload portal, cloud storage integration, ETL processing, and AI-powered insights via a conversational interface. Euno aims to provide a fast, reliable, and accurate experience without complex dashboards, focusing on delivering concise, AI-driven business intelligence. The platform supports both file uploads and live data integrations, enabling real-time data sync and advanced analysis.
 
-## Recent Updates (August 19, 2025)
+## Recent Updates (August 21, 2025)
+- **Authentication System Overhaul**: Updated authentication flow for improved user experience:
+  - Login now uses username + password only (email no longer required after signup)
+  - Registration still requires email + username + password for account verification
+  - Sessions now persist user_id, username, and subscription_tier for proper rate limiting
+  - Duplicate prevention for both email and username with clear error messages
+  - Frontend forms updated to reflect new login flow (username field for login, all fields for registration)
+
+## Previous Updates (August 19, 2025)
 - **Adjusted Query Limits**: Updated tier-based query limits per user request:
   - Starter: 5 queries/hour (reduced from 20)
   - Professional: 25 queries/hour (reduced from 120)

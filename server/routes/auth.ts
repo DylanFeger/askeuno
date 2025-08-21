@@ -32,11 +32,10 @@ const registerValidation = [
 
 // Login validation
 const loginValidation = [
-  body('email')
+  body('username')
     .trim()
-    .isEmail()
-    .withMessage('Valid email is required')
-    .normalizeEmail(),
+    .isLength({ min: 3 })
+    .withMessage('Username is required'),
   body('password')
     .isLength({ min: 1 })
     .withMessage('Password is required'),
@@ -80,8 +79,10 @@ router.post('/register', registerValidation, async (req, res) => {
       password: hashedPassword
     });
     
-    // Create session
+    // Create session with user_id, username, and subscription_tier
     (req.session as any).userId = user.id;
+    (req.session as any).username = user.username;
+    (req.session as any).subscriptionTier = user.subscriptionTier;
     
     logSecurityEvent('USER_REGISTERED', {
       userId: user.id,
@@ -123,17 +124,17 @@ router.post('/register', registerValidation, async (req, res) => {
 // Login endpoint
 router.post('/login', loginValidation, async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
     
-    // Get user
-    const user = await storage.getUserByEmail(email);
+    // Get user by username
+    const user = await storage.getUserByUsername(username);
     if (!user) {
-      logSecurityEvent('LOGIN_ATTEMPT_INVALID_EMAIL', {
-        email,
+      logSecurityEvent('LOGIN_ATTEMPT_INVALID_USERNAME', {
+        username,
         ip: req.ip,
         userAgent: req.get('User-Agent')
       });
-      return res.status(401).json({ error: 'Email not found. Please check your email and try again.' });
+      return res.status(401).json({ error: 'Username not found. Please check your username and try again.' });
     }
     
     // Verify password
@@ -148,8 +149,10 @@ router.post('/login', loginValidation, async (req, res) => {
       return res.status(401).json({ error: 'Incorrect password. Please try again.' });
     }
     
-    // Create session
+    // Create session with user_id, username, and subscription_tier
     (req.session as any).userId = user.id;
+    (req.session as any).username = user.username;
+    (req.session as any).subscriptionTier = user.subscriptionTier;
     
     logSecurityEvent('USER_LOGGED_IN', {
       userId: user.id,
@@ -170,7 +173,7 @@ router.post('/login', loginValidation, async (req, res) => {
       }
     });
   } catch (error: any) {
-    logger.error('Login error', { error, email: req.body.email });
+    logger.error('Login error', { error, username: req.body.username });
     res.status(500).json({ error: 'Login failed' });
   }
 });
