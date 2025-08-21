@@ -16,17 +16,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 // Subscription pricing configuration
 const SUBSCRIPTION_PRICES = {
-  starter: {
-    monthly: 2900, // $29.00 in cents
-    annual: 29000, // $290.00 in cents
+  professional: {
+    monthly: 9900, // $99.00 in cents
+    annual: 100900, // $1,009.00 in cents (15% off monthly)
   },
-  growth: {
-    monthly: 7900, // $79.00 in cents
-    annual: 79000, // $790.00 in cents
-  },
-  pro: {
-    monthly: 14900, // $149.00 in cents
-    annual: 149000, // $1490.00 in cents
+  enterprise: {
+    monthly: 24900, // $249.00 in cents
+    annual: 254000, // $2,540.00 in cents (15% off monthly)
   }
 };
 
@@ -37,7 +33,7 @@ router.post('/get-or-create-subscription', requireAuth, async (req: Authenticate
   try {
     const { tier, billingCycle } = req.body;
     
-    if (!tier || !['starter', 'growth', 'pro'].includes(tier)) {
+    if (!tier || !['professional', 'enterprise'].includes(tier)) {
       return res.status(400).json({ error: 'Invalid subscription tier' });
     }
     
@@ -76,7 +72,7 @@ router.post('/get-or-create-subscription', requireAuth, async (req: Authenticate
     }
 
     // Get the price for the selected tier and billing cycle
-    const priceAmount = SUBSCRIPTION_PRICES[tier as keyof typeof SUBSCRIPTION_PRICES][billingCycle as keyof typeof SUBSCRIPTION_PRICES.starter];
+    const priceAmount = SUBSCRIPTION_PRICES[tier as keyof typeof SUBSCRIPTION_PRICES][billingCycle as keyof typeof SUBSCRIPTION_PRICES.professional];
 
     // Create price object in Stripe
     const price = await stripe.prices.create({
@@ -205,7 +201,7 @@ router.post('/update-tier', requireAuth, async (req: AuthenticatedRequest, res) 
     const { tier, billingCycle } = req.body;
     const user = req.user;
     
-    if (!tier || !['starter', 'growth', 'pro'].includes(tier)) {
+    if (!tier || !['starter', 'professional', 'enterprise'].includes(tier)) {
       return res.status(400).json({ error: 'Invalid subscription tier' });
     }
     

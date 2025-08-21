@@ -90,8 +90,8 @@ router.post('/upload', requireAuth, upload.single('file'), async (req: MulterReq
     // Define data source limits per tier
     const DATA_SOURCE_LIMITS = {
       starter: 1,
-      growth: 3,
-      pro: 10
+      professional: 3,
+      enterprise: 10
     };
     
     const currentDataSources = await storage.getDataSourcesByUserId(req.user.id);

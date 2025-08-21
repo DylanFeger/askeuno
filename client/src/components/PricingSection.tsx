@@ -2,15 +2,21 @@ import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useState } from 'react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 export default function PricingSection() {
+  const [isAnnual, setIsAnnual] = useState(false);
+  
   const plans = [
     {
       name: 'Starter',
-      price: 0,
+      monthlyPrice: 0,
+      annualPrice: 0,
       description: 'Perfect for small businesses',
       features: [
-        '5 AI queries per month',
+        '5 AI queries per hour',
         'Basic short responses',
         '1 database connection',
         'File uploads only',
@@ -22,30 +28,34 @@ export default function PricingSection() {
     },
     {
       name: 'Professional',
-      price: 49,
+      monthlyPrice: 99,
+      annualPrice: Math.round(99 * 12 * 0.85), // 15% off = $1,009/year
       description: 'For growing businesses',
       features: [
-        '20 AI queries per month',
+        '25 AI queries per hour',
         'Detailed responses toggle',
         'Business recommendations',
         '3 database connections',
         'Live data connections',
         '100,000 rows per source',
+        'Visual charts & graphs',
         'Email support',
       ],
       popular: true,
     },
     {
       name: 'Enterprise',
-      price: 79,
+      monthlyPrice: 249,
+      annualPrice: Math.round(249 * 12 * 0.85), // 15% off = $2,540/year
       description: 'Enterprise-grade intelligence',
       features: [
-        '50 AI queries per month',
+        'Unlimited AI queries',
         'Visual graphs & charts',
         'Comprehensive insights',
         '10 database connections',
         'Unlimited rows',
-        'Email support',
+        'Forecasting & predictions',
+        'Priority support',
       ],
       popular: false,
     },
@@ -57,6 +67,23 @@ export default function PricingSection() {
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
           <p className="text-xl text-gray-600">Choose the plan that fits your business needs</p>
+          
+          {/* Annual/Monthly Toggle */}
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <Label htmlFor="annual-toggle" className={`text-lg ${!isAnnual ? 'text-gray-900 font-semibold' : 'text-gray-600'}`}>
+              Monthly
+            </Label>
+            <Switch
+              id="annual-toggle"
+              checked={isAnnual}
+              onCheckedChange={setIsAnnual}
+              className="data-[state=checked]:bg-primary"
+            />
+            <Label htmlFor="annual-toggle" className={`text-lg ${isAnnual ? 'text-gray-900 font-semibold' : 'text-gray-600'}`}>
+              Annual
+              <Badge variant="secondary" className="ml-2">Save 15%</Badge>
+            </Label>
+          </div>
         </div>
         
         <div className="grid md:grid-cols-3 gap-8">
@@ -76,9 +103,20 @@ export default function PricingSection() {
               <div className="text-center mb-6">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                 <div className="text-4xl font-bold text-gray-900 mb-2">
-                  {plan.price === 0 ? 'Free' : `$${plan.price}`}
-                  {plan.price > 0 && <span className="text-lg font-normal text-gray-600">/month</span>}
+                  {plan.monthlyPrice === 0 ? (
+                    'Free'
+                  ) : (
+                    <>
+                      ${isAnnual ? Math.round(plan.annualPrice / 12) : plan.monthlyPrice}
+                      <span className="text-lg font-normal text-gray-600">/month</span>
+                    </>
+                  )}
                 </div>
+                {plan.monthlyPrice > 0 && isAnnual && (
+                  <div className="text-sm text-gray-500 mb-2">
+                    ${plan.annualPrice} billed annually
+                  </div>
+                )}
                 <p className="text-gray-600">{plan.description}</p>
               </div>
               
@@ -97,9 +135,9 @@ export default function PricingSection() {
                 onClick={() => {
                   document.getElementById('auth-section')?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                aria-label={`Select ${plan.name} plan - ${plan.price === 0 ? 'Free' : `$${plan.price}/month`}`}
+                aria-label={`Select ${plan.name} plan - ${plan.monthlyPrice === 0 ? 'Free' : isAnnual ? `$${Math.round(plan.annualPrice / 12)}/month billed annually` : `$${plan.monthlyPrice}/month`}`}
               >
-                {plan.price === 0 ? 'Get Started Free' : 'Start Free Trial'}
+                {plan.monthlyPrice === 0 ? 'Get Started Free' : 'Start Free Trial'}
               </Button>
             </Card>
           ))}

@@ -55,7 +55,10 @@ Euno is a secure, easy-to-use data platform for small businesses to upload, stor
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 Target audience: Small businesses
-Pricing strategy: Subscription-based with 3 tiers (Starter: Free, Professional: $49/mo, Enterprise: $79/mo)
+Pricing strategy: Subscription-based with 3 tiers:
+- Starter: Free
+- Professional: $99/month or $1,009/year (15% off annual)
+- Enterprise: $249/month or $2,540/year (15% off annual)
 Key principles: 
 - Easy experience, not many tools
 - Fast, reliable, accurate

@@ -22,8 +22,8 @@ router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
 // Define data source limits per tier
 const DATA_SOURCE_LIMITS = {
   starter: 1,
-  growth: 3,
-  pro: 10
+  professional: 3,
+  enterprise: 10
 };
 
 router.post('/connect', requireAuth, async (req: AuthenticatedRequest, res) => {

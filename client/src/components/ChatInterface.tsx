@@ -415,7 +415,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
               )}
               
               {/* Render charts for Enterprise tier users */}
-              {msg.role === 'assistant' && msg.metadata?.visualData && user?.subscriptionTier === 'pro' && (
+              {msg.role === 'assistant' && msg.metadata?.visualData && (user?.subscriptionTier === 'professional' || user?.subscriptionTier === 'enterprise') && (
                 <DataVisualization visualData={msg.metadata.visualData} />
               )}
               
@@ -551,7 +551,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             disabled={!selectedDataSourceId || dataSources.length === 0}
           />
         </div>
-        {user?.subscriptionTier === 'pro' && (
+        {(user?.subscriptionTier === 'professional' || user?.subscriptionTier === 'enterprise') && (
           <Button
             onClick={() => handleSendMessage(true)}
             disabled={!message.trim() || sendMessageMutation.isPending || !selectedDataSourceId}
