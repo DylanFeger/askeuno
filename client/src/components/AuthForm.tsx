@@ -81,7 +81,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
                 <FormLabel>{isLogin ? 'Email or Username' : 'Username'}</FormLabel>
                 <FormControl>
                   <Input 
-                    placeholder={isLogin ? "johndoe or john@example.com" : "johndoe"} 
+                    placeholder="" 
                     {...field} 
                   />
                 </FormControl>
