@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, ChevronDown, ChevronUp, Brain, FileText, Database, AlertCircle, ChevronRight, BarChart2, DollarSign, TrendingUp, Sparkles } from 'lucide-react';
+import { Send, Bot, User, ChevronDown, ChevronUp, Brain, FileText, Database, AlertCircle, ChevronRight, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'wouter';
 import EunoLogo from './EunoLogo';
@@ -184,8 +183,6 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [extendedThinking, setExtendedThinking] = useState(false);
   const [selectedDataSourceId, setSelectedDataSourceId] = useState<number | null>(null);
   const [includeChart, setIncludeChart] = useState(false);
-  const [currentCategory, setCurrentCategory] = useState<'sales' | 'trends' | 'predictions'>('sales');
-  const [showTabSwitchSuggestion, setShowTabSwitchSuggestion] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
@@ -241,11 +238,6 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
       setCurrentConversationId(data.conversationId);
       refetch();
       setIncludeChart(false);
-      
-      // Check if AI suggests switching tabs
-      if (data.response?.suggestedTabSwitch) {
-        setShowTabSwitchSuggestion(data.response.suggestedTabSwitch);
-      }
     },
   });
 
@@ -277,58 +269,6 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
   return (
     <Card className="p-8">
-      {/* Category Tabs */}
-      <Tabs value={currentCategory} onValueChange={(value: any) => setCurrentCategory(value)} className="mb-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="sales" className="flex items-center gap-2">
-            <DollarSign className="w-4 h-4" />
-            Sales
-          </TabsTrigger>
-          <TabsTrigger value="trends" className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
-            Trends
-          </TabsTrigger>
-          <TabsTrigger value="predictions" className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4" />
-            Predictions
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value={currentCategory} className="mt-4">
-          {/* Tab content will be the same chat interface for all tabs */}
-        </TabsContent>
-      </Tabs>
-
-      {/* Tab Switch Suggestion Alert */}
-      {showTabSwitchSuggestion && (
-        <Alert className="mb-4 border-primary/20 bg-primary/5">
-          <AlertCircle className="h-4 w-4 text-primary" />
-          <AlertDescription className="flex items-center justify-between">
-            <span>{showTabSwitchSuggestion}</span>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowTabSwitchSuggestion(null)}
-              >
-                Stay Here
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => {
-                  const suggestedTab = showTabSwitchSuggestion.toLowerCase().includes('trend') ? 'trends' :
-                                       showTabSwitchSuggestion.toLowerCase().includes('prediction') ? 'predictions' : 'sales';
-                  setCurrentCategory(suggestedTab as any);
-                  setShowTabSwitchSuggestion(null);
-                }}
-              >
-                Switch Tab
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Data Source Info Bar */}
       <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

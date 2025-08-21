@@ -49,7 +49,7 @@ Euno is a secure, easy-to-use data platform for small businesses to upload, stor
   - Sales/SQL queries: Temperature 0.2 for maximum accuracy
   - Trend analysis: Temperature 0.4 for balanced analysis
   - Predictions/forecasting: Temperature 0.6 for creative insights
-- **Conversation Categorization**: Added automatic categorization into Sales, Trends, and Predictions tabs with intelligent tab-switch suggestions
+- **Unified Conversation Interface**: Removed separate tabs (Sales, Trends, Predictions) to provide a single, continuous conversation memory that remembers all context
 - **Business-Only Focus**: AI strictly responds to business-related queries and politely redirects non-business questions
 
 ## User Preferences
