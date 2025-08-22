@@ -37,7 +37,7 @@ interface UserReport {
   insights: string[];
 }
 
-// AWS SES configuration is handled in the awsSes service
+// SendGrid configuration is handled in the awsSes service
 
 // Retry wrapper with exponential backoff
 async function retryOperation<T>(
@@ -217,7 +217,7 @@ function formatEmailHtml(report: UserReport): string {
 async function sendUserReport(report: UserReport): Promise<EmailResult> {
   const emailData = {
     to: report.email,
-    from: process.env.SES_FROM_EMAIL || 'reports@acre.app', // Must be verified in AWS SES
+    from: process.env.SENDGRID_FROM_EMAIL || 'reports@acre.app', // Must be verified in SendGrid
     subject: `Your Weekly Euno Report - ${report.stats.messagesThisWeek} insights generated`,
     html: formatEmailHtml(report),
     text: `Hi ${report.username}, here's your weekly Euno report. You generated ${report.stats.messagesThisWeek} insights this week from ${report.stats.dataSources} data sources.` // Plain text fallback
@@ -225,7 +225,7 @@ async function sendUserReport(report: UserReport): Promise<EmailResult> {
   
   const sendOperation = async () => {
     // In test mode, just log the email
-    if (process.env.NODE_ENV === 'test' || !process.env.AWS_ACCESS_KEY_ID) {
+    if (process.env.NODE_ENV === 'test' || !process.env.SENDGRID_API_KEY) {
       logger.info('Test mode: Would send email', { 
         to: emailData.to, 
         subject: emailData.subject 

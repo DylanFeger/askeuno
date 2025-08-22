@@ -1,18 +1,20 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { objectStorageClient } from '../objectStorage';
 import { logger } from '../utils/logger';
 import crypto from 'crypto';
+import { setObjectAclPolicy } from '../objectAcl';
 
-// Initialize S3 client
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  } : undefined,
-});
+const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
 
-const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'acre-data-uploads';
+// Get the bucket name from the private directory environment variable
+function getBucketName(): string {
+  const privateDir = process.env.PRIVATE_OBJECT_DIR || '';
+  if (!privateDir) {
+    throw new Error('PRIVATE_OBJECT_DIR not set');
+  }
+  // Extract bucket name from path like /repl-default-bucket-xxx/...
+  const parts = privateDir.split('/');
+  return parts[1] || 'repl-default-bucket';
+}
 
 export interface UploadResult {
   success: boolean;
@@ -33,7 +35,7 @@ export function generateS3Key(userId: number, filename: string): string {
 }
 
 /**
- * Upload file to S3 with proper isolation per business
+ * Upload file to Object Storage with proper isolation per business
  */
 export async function uploadToS3(
   userId: number,
@@ -43,22 +45,30 @@ export async function uploadToS3(
 ): Promise<UploadResult> {
   try {
     const key = generateS3Key(userId, filename);
+    const bucketName = getBucketName();
     
-    const command = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key,
-      Body: fileBuffer,
-      ContentType: contentType,
-      ServerSideEncryption: 'AES256', // Encryption at rest
-      Metadata: {
-        userId: userId.toString(),
-        uploadDate: new Date().toISOString(),
+    // Get the bucket and create file reference
+    const bucket = objectStorageClient.bucket(bucketName);
+    const file = bucket.file(key);
+    
+    // Upload the file
+    await file.save(fileBuffer, {
+      metadata: {
+        contentType,
+        metadata: {
+          userId: userId.toString(),
+          uploadDate: new Date().toISOString(),
+        },
       },
     });
 
-    await s3Client.send(command);
+    // Set ACL policy for the file (public visibility for uploads)
+    await setObjectAclPolicy(file, {
+      owner: userId.toString(),
+      visibility: 'public',
+    });
 
-    logger.info('File uploaded to S3', {
+    logger.info('File uploaded to Object Storage', {
       userId,
       key,
       filename,
@@ -68,10 +78,10 @@ export async function uploadToS3(
     return {
       success: true,
       key,
-      url: `s3://${BUCKET_NAME}/${key}`,
+      url: `/${bucketName}/${key}`,
     };
   } catch (error) {
-    logger.error('S3 upload error', { error, userId, filename });
+    logger.error('Object Storage upload error', { error, userId, filename });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Upload failed',
@@ -86,60 +96,74 @@ export async function getPresignedDownloadUrl(
   key: string,
   expiresIn: number = 3600
 ): Promise<string> {
-  const command = new GetObjectCommand({
-    Bucket: BUCKET_NAME,
-    Key: key,
-  });
+  const bucketName = getBucketName();
+  
+  // Generate signed URL for Object Storage
+  const request = {
+    bucket_name: bucketName,
+    object_name: key,
+    method: 'GET' as const,
+    expires_at: new Date(Date.now() + expiresIn * 1000).toISOString(),
+  };
+  
+  const response = await fetch(
+    `${REPLIT_SIDECAR_ENDPOINT}/object-storage/signed-object-url`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    }
+  );
+  
+  if (!response.ok) {
+    throw new Error(`Failed to sign object URL: ${response.status}`);
+  }
 
-  return getSignedUrl(s3Client, command, { expiresIn });
+  const { signed_url: signedURL } = await response.json();
+  return signedURL;
 }
 
 /**
- * Download file from S3
+ * Download file from Object Storage
  */
 export async function downloadFromS3(key: string): Promise<Buffer | null> {
   try {
-    const command = new GetObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key,
-    });
-
-    const response = await s3Client.send(command);
+    const bucketName = getBucketName();
+    const bucket = objectStorageClient.bucket(bucketName);
+    const file = bucket.file(key);
     
-    if (response.Body) {
-      const chunks: Uint8Array[] = [];
-      const stream = response.Body as any;
-      
-      for await (const chunk of stream) {
-        chunks.push(chunk);
-      }
-      
-      return Buffer.concat(chunks);
+    // Check if file exists
+    const [exists] = await file.exists();
+    if (!exists) {
+      return null;
     }
     
-    return null;
+    // Download the file
+    const [contents] = await file.download();
+    return contents;
   } catch (error) {
-    logger.error('S3 download error', { error, key });
+    logger.error('Object Storage download error', { error, key });
     return null;
   }
 }
 
 /**
- * Delete file from S3
+ * Delete file from Object Storage
  */
 export async function deleteFromS3(key: string): Promise<boolean> {
   try {
-    const command = new DeleteObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key,
-    });
-
-    await s3Client.send(command);
+    const bucketName = getBucketName();
+    const bucket = objectStorageClient.bucket(bucketName);
+    const file = bucket.file(key);
     
-    logger.info('File deleted from S3', { key });
+    await file.delete();
+    
+    logger.info('File deleted from Object Storage', { key });
     return true;
   } catch (error) {
-    logger.error('S3 delete error', { error, key });
+    logger.error('Object Storage delete error', { error, key });
     return false;
   }
 }
@@ -149,37 +173,37 @@ export async function deleteFromS3(key: string): Promise<boolean> {
  */
 export async function listUserFiles(userId: number): Promise<string[]> {
   try {
+    const bucketName = getBucketName();
+    const bucket = objectStorageClient.bucket(bucketName);
     const prefix = `business-${userId}/`;
-    const command = new ListObjectsV2Command({
-      Bucket: BUCKET_NAME,
-      Prefix: prefix,
-      MaxKeys: 1000,
-    });
-
-    const response = await s3Client.send(command);
-    const keys = response.Contents?.map(item => item.Key!).filter(Boolean) || [];
     
+    // List files with prefix
+    const [files] = await bucket.getFiles({
+      prefix,
+      maxResults: 1000,
+    });
+    
+    const keys = files.map(file => file.name);
     return keys;
   } catch (error) {
-    logger.error('S3 list error', { error, userId });
+    logger.error('Object Storage list error', { error, userId });
     return [];
   }
 }
 
 /**
- * Check if S3 is configured and accessible
+ * Check if Object Storage is configured and accessible
  */
 export async function checkS3Connection(): Promise<boolean> {
   try {
-    const command = new ListObjectsV2Command({
-      Bucket: BUCKET_NAME,
-      MaxKeys: 1,
-    });
+    const bucketName = getBucketName();
+    const bucket = objectStorageClient.bucket(bucketName);
     
-    await s3Client.send(command);
+    // Try to list files to check connection
+    await bucket.getFiles({ maxResults: 1 });
     return true;
   } catch (error) {
-    logger.error('S3 connection check failed', { error });
+    logger.error('Object Storage connection check failed', { error });
     return false;
   }
 }

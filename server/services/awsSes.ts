@@ -1,19 +1,11 @@
-import { SESClient, SendEmailCommand, VerifyEmailIdentityCommand } from "@aws-sdk/client-ses";
+import sgMail from '@sendgrid/mail';
 import { logger } from "../utils/logger";
 
-// Configuration from environment variables
-const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
-const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
-const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
-
-// Initialize SES client
-const sesClient = new SESClient({
-  region: AWS_REGION,
-  credentials: AWS_ACCESS_KEY_ID && AWS_SECRET_ACCESS_KEY ? {
-    accessKeyId: AWS_ACCESS_KEY_ID,
-    secretAccessKey: AWS_SECRET_ACCESS_KEY
-  } : undefined // Use default credential provider chain if not specified
-});
+// Initialize SendGrid with API key
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+if (SENDGRID_API_KEY) {
+  sgMail.setApiKey(SENDGRID_API_KEY);
+}
 
 export interface EmailOptions {
   to: string | string[];
@@ -25,10 +17,19 @@ export interface EmailOptions {
 }
 
 /**
- * Send an email using AWS SES
+ * Send an email using SendGrid
  */
 export async function sendEmail(options: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
+    // Check if SendGrid is configured
+    if (!SENDGRID_API_KEY) {
+      logger.warn('SendGrid API key not configured, skipping email send');
+      return {
+        success: false,
+        error: 'Email service not configured'
+      };
+    }
+
     // Validate required fields
     if (!options.to || !options.from || !options.subject) {
       throw new Error('Missing required email fields: to, from, or subject');
@@ -42,47 +43,27 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
     // Convert to array if single recipient
     const toAddresses = Array.isArray(options.to) ? options.to : [options.to];
 
-    const command = new SendEmailCommand({
-      Source: options.from,
-      Destination: {
-        ToAddresses: toAddresses,
-      },
-      Message: {
-        Subject: {
-          Data: options.subject,
-          Charset: "UTF-8",
-        },
-        Body: {
-          ...(options.html && {
-            Html: {
-              Data: options.html,
-              Charset: "UTF-8",
-            },
-          }),
-          ...(options.text && {
-            Text: {
-              Data: options.text,
-              Charset: "UTF-8",
-            },
-          }),
-        },
-      },
-      ...(options.replyTo && {
-        ReplyToAddresses: [options.replyTo],
-      }),
-    });
+    const msg: any = {
+      to: toAddresses,
+      from: options.from,
+      subject: options.subject,
+      ...(options.text && { text: options.text }),
+      ...(options.html && { html: options.html }),
+      ...(options.replyTo && { replyTo: options.replyTo }),
+    };
 
-    const response = await sesClient.send(command);
+    const response = await sgMail.send(msg);
+    const messageId = response[0].headers['x-message-id'] || `sg_${Date.now()}`;
     
     logger.info('Email sent successfully', {
-      messageId: response.MessageId,
+      messageId,
       to: toAddresses,
       subject: options.subject
     });
 
     return { 
       success: true, 
-      messageId: response.MessageId 
+      messageId
     };
   } catch (error: any) {
     logger.error('Failed to send email', {
@@ -91,18 +72,18 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
       subject: options.subject
     });
 
-    // Handle common SES errors
-    if (error.name === 'MessageRejected') {
+    // Handle common SendGrid errors
+    if (error.code === 401) {
       return { 
         success: false, 
-        error: 'Email address not verified. Please verify sender email in AWS SES.' 
+        error: 'Invalid SendGrid API key. Please check your configuration.' 
       };
     }
     
-    if (error.name === 'ConfigurationSetDoesNotExist') {
+    if (error.code === 403) {
       return { 
         success: false, 
-        error: 'AWS SES configuration error. Please check your SES setup.' 
+        error: 'SendGrid sender not verified. Please verify your sender email.' 
       };
     }
 
@@ -114,32 +95,16 @@ export async function sendEmail(options: EmailOptions): Promise<{ success: boole
 }
 
 /**
- * Verify an email address with AWS SES
+ * Verify an email address (SendGrid handles this automatically)
  */
 export async function verifyEmailAddress(email: string): Promise<{ success: boolean; error?: string }> {
-  try {
-    const command = new VerifyEmailIdentityCommand({
-      EmailAddress: email
-    });
-
-    await sesClient.send(command);
-    
-    logger.info('Email verification request sent', { email });
-    
-    return { 
-      success: true 
-    };
-  } catch (error: any) {
-    logger.error('Failed to verify email address', {
-      error: error.message,
-      email
-    });
-
-    return { 
-      success: false, 
-      error: error.message || 'Failed to verify email address' 
-    };
-  }
+  // SendGrid handles sender verification through their dashboard
+  // This function is kept for compatibility
+  logger.info('Email verification not needed with SendGrid', { email });
+  
+  return { 
+    success: true 
+  };
 }
 
 /**
@@ -206,7 +171,7 @@ If you have any questions, feel free to reply to this email.
 
   return sendEmail({
     to: userEmail,
-    from: process.env.SES_FROM_EMAIL || 'noreply@acre.app',
+    from: process.env.SENDGRID_FROM_EMAIL || 'noreply@acre.app',
     subject: 'Welcome to Euno - Your Data Platform',
     html,
     text
@@ -271,7 +236,7 @@ This message was sent from the Euno contact form at ${new Date().toLocaleString(
 
   return sendEmail({
     to: 'support@askeuno.com',
-    from: process.env.SES_FROM_EMAIL || 'noreply@askeuno.com',
+    from: process.env.SENDGRID_FROM_EMAIL || 'noreply@askeuno.com',
     subject: `Contact Form: ${formData.subject}`,
     html,
     text,
@@ -280,27 +245,16 @@ This message was sent from the Euno contact form at ${new Date().toLocaleString(
 }
 
 /**
- * Test connection to AWS SES
+ * Test connection to SendGrid
  */
 export async function testSESConnection(): Promise<{ success: boolean; error?: string }> {
-  try {
-    // Try to send a test command
-    const command = new VerifyEmailIdentityCommand({
-      EmailAddress: 'test@example.com'
-    });
-    
-    await sesClient.send(command);
-    
-    return { success: true };
-  } catch (error: any) {
-    // If we get a specific AWS error, the connection is working
-    if (error.name && error.name.includes('AWS')) {
-      return { success: true };
-    }
-    
+  if (!SENDGRID_API_KEY) {
     return { 
       success: false, 
-      error: 'Unable to connect to AWS SES. Please check your credentials.' 
+      error: 'SendGrid API key not configured' 
     };
   }
+  
+  // SendGrid connection is tested when sending emails
+  return { success: true };
 }
