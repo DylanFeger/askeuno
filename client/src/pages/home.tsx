@@ -384,7 +384,7 @@ export default function Home() {
                   <Check className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Start free for 30 days</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Start free for 7 days</h3>
                   <p className="text-gray-600">
                     Try Euno risk-free. No credit card required. 
                     Choose the plan that fits your business when you're ready.

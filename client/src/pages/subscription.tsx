@@ -301,7 +301,7 @@ export default function SubscriptionPage() {
           <div>
             <h2 className="text-3xl font-bold text-center mb-4">Simple, Transparent Pricing</h2>
             <p className="text-xl text-gray-600 text-center mb-12">
-              Start with a 30-day free trial. Upgrade, downgrade, or cancel anytime.
+              Start with a 7-day free trial. Upgrade, downgrade, or cancel anytime.
             </p>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -380,7 +380,7 @@ export default function SubscriptionPage() {
                       {/* Free trial notice */}
                       {!isCurrentPlan && subscriptionStatus !== 'active' && (
                         <p className="text-xs text-center text-gray-500 mt-3">
-                          30-day free trial • No credit card required
+                          7-day free trial • No credit card required
                         </p>
                       )}
                     </CardContent>
