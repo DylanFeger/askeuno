@@ -38,7 +38,7 @@ export default function Home() {
                 Welcome back to Euno, {user?.username}!
               </h1>
               <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
-                Your business data, simplified — insights in a chat. 
+                Your business data, simplified. Insights in a chat. 
                 Let's continue making sense of your data together.
               </p>
               
