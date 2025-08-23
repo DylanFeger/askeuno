@@ -384,7 +384,7 @@ export default function SubscriptionPage() {
                       {/* Free trial notice */}
                       {!isCurrentPlan && subscriptionStatus !== 'active' && (
                         <p className="text-xs text-center text-gray-500 mt-3">
-                          7-day free trial • No credit card required
+                          7-day free trial • Cancel anytime
                         </p>
                       )}
                     </CardContent>

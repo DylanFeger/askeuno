@@ -359,8 +359,8 @@ export default function Home() {
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">Start free for 7 days</h3>
                   <p className="text-gray-600">
-                    Try Euno risk-free. No credit card required. 
-                    Choose the plan that fits your business when you're ready.
+                    Try Euno risk-free for 7 days. Card required at signup. 
+                    Cancel anytime during your trial - billing starts after trial ends.
                   </p>
                 </div>
               </div>
