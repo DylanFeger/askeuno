@@ -327,7 +327,9 @@ export default function SubscriptionPage() {
                       
                       {/* Query Limit Highlight */}
                       <div className="mt-3 p-2 bg-primary/10 rounded-lg">
-                        <span className="text-2xl font-bold text-primary">{plan.queryLimit}</span>
+                        <span className="text-2xl font-bold text-primary">
+                          {plan.queryLimit === Infinity ? 'Infinite' : plan.queryLimit}
+                        </span>
                         <span className="text-sm text-gray-600 ml-1">queries/month</span>
                       </div>
                       
