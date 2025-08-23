@@ -30,6 +30,7 @@ import DataDrivenDecisions from "@/pages/resources/data-driven-decisions";
 import BusinessAnalyticsGuide from "@/pages/resources/business-analytics-guide";
 import BlogHomepage from "@/pages/blog";
 import BlogPost from "@/pages/blog/post";
+import CostOfBadQuery from "@/pages/cost-of-bad-query";
 
 function Router() {
   return (
@@ -58,6 +59,7 @@ function Router() {
       <Route path="/resources/business-analytics-guide" component={BusinessAnalyticsGuide} />
       <Route path="/blog" component={BlogHomepage} />
       <Route path="/blog/:slug" component={BlogPost} />
+      <Route path="/cost-of-bad-query" component={CostOfBadQuery} />
       <Route component={NotFound} />
     </Switch>
   );
