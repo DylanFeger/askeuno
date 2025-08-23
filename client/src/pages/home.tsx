@@ -217,6 +217,14 @@ export default function Home() {
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Transform guesswork into strategy. Join the businesses that thrive on insights.
             </p>
+            <div className="mt-6">
+              <Link href="/cost-of-bad-query">
+                <Button variant="outline" size="lg" className="border-primary text-primary hover:bg-primary hover:text-white">
+                  Learn the Cost of a Bad Query
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+            </div>
           </div>
 
           {/* Main content blocks */}
