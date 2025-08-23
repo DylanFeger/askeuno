@@ -291,19 +291,6 @@ export default function Home() {
               <p className="text-xl text-gray-600 mb-8">
                 And with Euno, it's not just for big companies anymore.
               </p>
-              
-              {/* Call to action */}
-              <div className="space-y-6">
-                <h4 className="text-3xl font-bold text-primary">
-                  Start tracking today. Your future self will thank you.
-                </h4>
-                <Link href="/connections">
-                  <Button size="lg" className="px-8 py-6 text-lg">
-                    Start Tracking Now
-                    <TrendingUp className="w-5 h-5 ml-2" />
-                  </Button>
-                </Link>
-              </div>
             </div>
 
             
