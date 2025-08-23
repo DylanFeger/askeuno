@@ -47,21 +47,25 @@ router.post('/register', registerValidation, async (req, res) => {
   try {
     const { username, email, password } = req.body;
     
-    // Check if user already exists
-    const existingUser = await storage.getUserByUsername(username);
+    // Trim inputs
+    const trimmedUsername = username.trim();
+    const trimmedEmail = email.trim();
+    
+    // Check if user already exists (case-insensitive)
+    const existingUser = await storage.getUserByUsername(trimmedUsername);
     if (existingUser) {
       logSecurityEvent('REGISTRATION_ATTEMPT_DUPLICATE_USERNAME', {
-        username,
+        username: trimmedUsername,
         ip: req.ip,
         userAgent: req.get('User-Agent')
       });
       return res.status(400).json({ error: 'Username already exists' });
     }
     
-    const existingEmail = await storage.getUserByEmail(email);
+    const existingEmail = await storage.getUserByEmail(trimmedEmail);
     if (existingEmail) {
       logSecurityEvent('REGISTRATION_ATTEMPT_DUPLICATE_EMAIL', {
-        email,
+        email: trimmedEmail,
         ip: req.ip,
         userAgent: req.get('User-Agent')
       });
@@ -72,10 +76,10 @@ router.post('/register', registerValidation, async (req, res) => {
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     
-    // Create user
+    // Create user with trimmed values
     const user = await storage.createUser({
-      username,
-      email,
+      username: trimmedUsername,
+      email: trimmedEmail,
       password: hashedPassword
     });
     
@@ -126,11 +130,14 @@ router.post('/login', loginValidation, async (req, res) => {
   try {
     const { username, password } = req.body;
     
+    // Trim whitespace from username/email
+    const trimmedUsername = username.trim();
+    
     // Check if input is email or username
-    const isEmail = username.includes('@');
+    const isEmail = trimmedUsername.includes('@');
     const user = isEmail 
-      ? await storage.getUserByEmail(username)
-      : await storage.getUserByUsername(username);
+      ? await storage.getUserByEmail(trimmedUsername)
+      : await storage.getUserByUsername(trimmedUsername);
     
     if (!user) {
       logSecurityEvent('LOGIN_ATTEMPT_INVALID_CREDENTIALS', {
