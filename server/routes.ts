@@ -21,6 +21,7 @@ import apiPushRoutes from "./routes/api-push";
 import healthRoutes from "./routes/health";
 import blogRoutes from "./routes/blog";
 import aiRoutes from "./routes/ai";
+import teamRoutes from "./routes/team";
 import { initializeScheduler, shutdownScheduler } from "./services/scheduler";
 import { sendContactFormEmail } from "./services/awsSes";
 
@@ -107,6 +108,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // AI Chat routes
   app.use('/api/ai', aiRoutes);
+
+  // Team management routes
+  app.use('/api', teamRoutes);
 
   // Contact form endpoint - public with rate limiting
   app.post('/api/contact', 

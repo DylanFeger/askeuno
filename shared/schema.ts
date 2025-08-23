@@ -11,6 +11,8 @@ export const users = pgTable("users", {
   subscriptionTier: text("subscription_tier").notNull().default("starter"), // starter, professional, enterprise
   subscriptionStatus: text("subscription_status").notNull().default("trial"), // trial, active, cancelled, expired
   billingCycle: text("billing_cycle").notNull().default("monthly"), // monthly, annual
+  role: text("role").notNull().default("main_user"), // main_user, chat_only_user
+  invitedBy: integer("invited_by").references(() => users.id), // ID of the main user who invited them
   trialStartDate: timestamp("trial_start_date"),
   trialEndDate: timestamp("trial_end_date"),
   subscriptionStartDate: timestamp("subscription_start_date"),
@@ -108,6 +110,18 @@ export const blogPosts = pgTable("blog_posts", {
   readTime: integer("read_time").notNull().default(5), // estimated read time in minutes
   relatedPosts: jsonb("related_posts").default("[]"), // array of related post slugs
   status: text("status").notNull().default("published"), // 'draft', 'published'
+});
+
+export const teamInvitations = pgTable("team_invitations", {
+  id: serial("id").primaryKey(),
+  inviterId: integer("inviter_id").references(() => users.id).notNull(),
+  inviteeEmail: text("invitee_email").notNull(),
+  inviteToken: text("invite_token").notNull().unique(),
+  status: text("status").notNull().default("pending"), // pending, accepted, expired, cancelled
+  expiresAt: timestamp("expires_at").notNull(),
+  acceptedAt: timestamp("accepted_at"),
+  acceptedUserId: integer("accepted_user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Relations

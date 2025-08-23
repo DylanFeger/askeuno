@@ -5,6 +5,7 @@ import {
   chatMessages, 
   dataRows,
   blogPosts,
+  teamInvitations,
   type User, 
   type InsertUser,
   type DataSource,
@@ -69,6 +70,15 @@ export interface IStorage {
   updateBlogPost(id: number, updates: Partial<BlogPost>): Promise<BlogPost | undefined>;
   deleteBlogPost(id: number): Promise<void>;
   searchBlogPosts(query: string): Promise<BlogPost[]>;
+  
+  // Team management operations
+  createTeamInvitation(inviterId: number, email: string, token: string, expiresAt: Date): Promise<any>;
+  getTeamInvitationByToken(token: string): Promise<any | undefined>;
+  updateTeamInvitation(id: number, updates: any): Promise<any | undefined>;
+  getTeamMembersByInviterId(inviterId: number): Promise<User[]>;
+  getActiveTeamMembersCount(inviterId: number): Promise<number>;
+  removeTeamMember(userId: number): Promise<void>;
+  getPendingInvitations(inviterId: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -435,6 +445,80 @@ export class DatabaseStorage implements IStorage {
         sql`(LOWER(${blogPosts.title}) LIKE ${searchTerm} OR LOWER(${blogPosts.content}) LIKE ${searchTerm})`
       ))
       .orderBy(desc(blogPosts.publishedDate));
+  }
+
+  // Team management operations
+  async createTeamInvitation(inviterId: number, email: string, token: string, expiresAt: Date): Promise<any> {
+    const [invitation] = await db
+      .insert(teamInvitations)
+      .values({
+        inviterId,
+        inviteeEmail: email,
+        inviteToken: token,
+        expiresAt,
+      })
+      .returning();
+    return invitation;
+  }
+
+  async getTeamInvitationByToken(token: string): Promise<any | undefined> {
+    const [invitation] = await db
+      .select()
+      .from(teamInvitations)
+      .where(eq(teamInvitations.inviteToken, token));
+    return invitation || undefined;
+  }
+
+  async updateTeamInvitation(id: number, updates: any): Promise<any | undefined> {
+    const [invitation] = await db
+      .update(teamInvitations)
+      .set(updates)
+      .where(eq(teamInvitations.id, id))
+      .returning();
+    return invitation || undefined;
+  }
+
+  async getTeamMembersByInviterId(inviterId: number): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .where(and(
+        eq(users.invitedBy, inviterId),
+        eq(users.role, 'chat_only_user')
+      ));
+  }
+
+  async getActiveTeamMembersCount(inviterId: number): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(and(
+        eq(users.invitedBy, inviterId),
+        eq(users.role, 'chat_only_user')
+      ));
+    return Number(result[0]?.count || 0);
+  }
+
+  async removeTeamMember(userId: number): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        invitedBy: null,
+        role: 'main_user',
+        subscriptionTier: 'starter'
+      })
+      .where(eq(users.id, userId));
+  }
+
+  async getPendingInvitations(inviterId: number): Promise<any[]> {
+    return await db
+      .select()
+      .from(teamInvitations)
+      .where(and(
+        eq(teamInvitations.inviterId, inviterId),
+        eq(teamInvitations.status, 'pending')
+      ))
+      .orderBy(desc(teamInvitations.createdAt));
   }
 }
 

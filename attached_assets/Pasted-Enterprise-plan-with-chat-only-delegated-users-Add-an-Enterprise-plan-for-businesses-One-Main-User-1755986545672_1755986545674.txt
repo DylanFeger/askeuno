@@ -1,0 +1,95 @@
+Enterprise plan with chat‑only delegated users
+
+Add an Enterprise plan for businesses. One Main User subscribes, then can invite teammates who get chat‑only access. Teammates can use the Chat page but cannot see or change Data Sources, Uploads, Billing, or Settings.
+
+Build the feature as follows:
+
+Plans and roles
+
+Add plan: Enterprise.
+
+Roles: Main User and Chat‑Only User.
+
+Only the Main User on Enterprise can invite or remove people.
+
+What Chat‑Only Users can do
+
+Can log in and use the Chat page (send/receive messages).
+
+Block access to Data Sources, Uploads, Billing, Settings, and any admin tools.
+
+If they try to open a blocked area, show: “Chat‑only access enabled by your admin.” Then send them back to Chat.
+
+Team management (Main User only)
+
+Add a Team page under Settings visible only to the Main User on Enterprise.
+
+The page lets the Main User:
+
+Invite by entering an email.
+
+Copy a unique invite link.
+
+Show a QR code for the same invite link.
+
+See a list of members with status: Invited, Active, or Removed.
+
+Resend invite and Remove access.
+
+Invite and accept flow
+
+When the Main User invites someone, create a one‑time invite link that expires in 72 hours.
+
+Send a simple email invite with a button “Accept Invite” that opens the link.
+
+If the invitee has no account, let them create one, then mark them Chat‑Only User and Active.
+
+If they already have an account, just attach them as Chat‑Only User and Active.
+
+Navigation and guards
+
+Chat‑Only Users land on the /chat page after login.
+
+Hide non‑chat pages in the sidebar/top nav for Chat‑Only Users.
+
+Also enforce the block on the server so they can’t access restricted pages by URL.
+
+Limits and controls
+
+Default limit: up to 5 Chat‑Only Users per Enterprise account.
+
+Show “X of 5 seats used” on the Team page.
+
+If the limit is reached, show: “Seat limit reached. Remove a user or contact support.”
+
+Security and cleanup
+
+Invite links are single‑use. Reuse should fail with a clear message.
+
+Removing a user should immediately revoke their access.
+
+Log key actions: invite sent, invite accepted, invite resent, user removed.
+
+Copy to use in the UI
+
+Team page description: “Invite teammates to use AskEuno’s chat. Teammates can chat. Only you can manage data and settings.”
+
+Blocked notice: “Chat‑only access enabled by your admin.”
+
+Empty state (no members): “No teammates yet. Invite someone to get them chatting.”
+
+Success toast after invite: “Invitation sent.”
+
+Removal confirm text: “Remove this teammate’s chat access?”
+
+Email invite copy
+
+Subject: “You’ve been invited to AskEuno”
+
+Body: “You’ve been given chat‑only access to your team’s AskEuno account. Click the button to join.” Button: Accept Invite (opens the invite link). Footer: “This link expires in 72 hours. If you didn’t expect this, ignore this email.”
+
+Upgrade flow
+
+When a Business upgrades to Enterprise, show: “Enterprise includes chat‑only teammates.” Add a button Manage Team linking to the Team page.
+
+Deliverable: The Enterprise plan, Team management page, invite flow (email + link + QR), chat‑only restrictions, and clear messages as written above

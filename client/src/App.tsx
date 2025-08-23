@@ -31,6 +31,8 @@ import BusinessAnalyticsGuide from "@/pages/resources/business-analytics-guide";
 import BlogHomepage from "@/pages/blog";
 import BlogPost from "@/pages/blog/post";
 import CostOfBadQuery from "@/pages/cost-of-bad-query";
+import TeamPage from "@/pages/team";
+import AcceptInvite from "@/pages/accept-invite";
 
 function Router() {
   return (
@@ -60,6 +62,8 @@ function Router() {
       <Route path="/blog" component={BlogHomepage} />
       <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/cost-of-bad-query" component={CostOfBadQuery} />
+      <Route path="/team" component={TeamPage} />
+      <Route path="/accept-invite/:token" component={AcceptInvite} />
       <Route component={NotFound} />
     </Switch>
   );

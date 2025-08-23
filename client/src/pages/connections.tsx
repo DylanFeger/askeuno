@@ -16,6 +16,7 @@ import { Link, useLocation } from 'wouter';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -544,8 +545,9 @@ export default function ConnectionsPage() {
   const uploadedFiles = connections.filter((conn: any) => conn.connectionType === 'upload');
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
-      <Navbar />
+    <ProtectedRoute requireMainUser={true}>
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
+        <Navbar />
       
       <div className="container mx-auto px-4 py-8 flex-1">
         <div className="mb-8">
@@ -830,6 +832,7 @@ export default function ConnectionsPage() {
             </div>
           </DialogContent>
         </Dialog>
-    </div>
+      </div>
+    </ProtectedRoute>
   );
 }

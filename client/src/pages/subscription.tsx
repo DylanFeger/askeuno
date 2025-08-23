@@ -10,6 +10,7 @@ import { Check, X, CreditCard, Shield, TrendingUp, Sparkles, AlertCircle, Loader
 import { Link } from 'wouter';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import Subscribe from './subscribe';
 import EmailWithCopy from '@/components/EmailWithCopy';
 import { useToast } from '@/hooks/use-toast';
@@ -93,6 +94,8 @@ const plans = [
       'Forecasting & predictions',
       'Data quality warnings',
       'Extended thinking toggle',
+      'Up to 5 chat-only teammates',
+      'Team management dashboard',
       'Priority support',
     ],
     notIncluded: [],
@@ -179,8 +182,9 @@ export default function SubscriptionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+    <ProtectedRoute requireMainUser={true}>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Navbar />
       
       <div className="container mx-auto px-4 py-8 flex-1">
         <div className="max-w-6xl mx-auto">
@@ -484,6 +488,7 @@ export default function SubscriptionPage() {
       )}
 
       <Footer />
-    </div>
+      </div>
+    </ProtectedRoute>
   );
 }

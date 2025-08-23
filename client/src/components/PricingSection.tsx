@@ -53,6 +53,8 @@ export default function PricingSection() {
         'Forecasting & predictions',
         '10 database connections',
         'CSV & Excel file uploads',
+        'Up to 5 chat-only teammates',
+        'Team management dashboard',
         'Priority support',
       ],
       popular: false,

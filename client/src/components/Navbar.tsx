@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Database, Settings, LogOut, CreditCard, TrendingUp, BookOpen } from 'lucide-react';
+import { MessageCircle, Database, Settings, LogOut, CreditCard, TrendingUp, BookOpen, Users } from 'lucide-react';
 import EunoLogo from '@/components/EunoLogo';
 import { apiRequest } from '@/lib/queryClient';
 import { useState, useEffect } from 'react';
@@ -36,12 +36,26 @@ export default function Navbar() {
     }
   };
 
-  const navItems = [
-    { path: '/chat', label: 'Chat', icon: MessageCircle },
-    { path: '/connections', label: 'Data Sources', icon: Database },
-    { path: '/blog', label: 'Blog', icon: BookOpen },
-    { path: '/resources', label: 'Resources', icon: TrendingUp },
-  ];
+  // Different navigation items based on user role
+  const isChatOnlyUser = user?.role === 'chat_only_user';
+  const isEnterpriseMainUser = user?.subscriptionTier === 'enterprise' && user?.role === 'main_user';
+  
+  let navItems = [];
+  
+  if (isChatOnlyUser) {
+    // Chat-only users can only access chat
+    navItems = [
+      { path: '/chat', label: 'Chat', icon: MessageCircle },
+    ];
+  } else {
+    // Main users get full navigation
+    navItems = [
+      { path: '/chat', label: 'Chat', icon: MessageCircle },
+      { path: '/connections', label: 'Data Sources', icon: Database },
+      { path: '/blog', label: 'Blog', icon: BookOpen },
+      { path: '/resources', label: 'Resources', icon: TrendingUp },
+    ];
+  }
 
   return (
     <div>
@@ -83,25 +97,46 @@ export default function Navbar() {
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">
                 {user.username}
+                {isChatOnlyUser && <span className="ml-2 text-xs text-muted-foreground">(Chat-only)</span>}
               </span>
-              <Link href="/settings">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </Button>
-              </Link>
-              <Link href="/subscription">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                >
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Subscription
-                </Button>
-              </Link>
+              
+              {/* Show Team management for Enterprise main users */}
+              {isEnterpriseMainUser && (
+                <Link href="/team">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    Team
+                  </Button>
+                </Link>
+              )}
+              
+              {/* Hide Settings and Subscription for chat-only users */}
+              {!isChatOnlyUser && (
+                <>
+                  <Link href="/settings">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      Settings
+                    </Button>
+                  </Link>
+                  <Link href="/subscription">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                    >
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Subscription
+                    </Button>
+                  </Link>
+                </>
+              )}
+              
               <Button
                 variant="ghost"
                 size="sm"
