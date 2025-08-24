@@ -27,19 +27,19 @@ export default function About() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-primary/5 to-transparent">
+      <section className="pt-16 pb-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-primary/5 to-transparent">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
             Our Team
           </h1>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-xl text-gray-600">
             Established and built on a farm by us shirtless barefoot boys
           </p>
         </div>
       </section>
 
       {/* Team Photos Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
+      <section className="pt-8 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="overflow-hidden">
