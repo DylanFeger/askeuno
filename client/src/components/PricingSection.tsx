@@ -5,9 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { useLocation } from 'wouter';
 
 export default function PricingSection() {
   const [isAnnual, setIsAnnual] = useState(false);
+  const [, setLocation] = useLocation();
   
   const plans = [
     {
@@ -133,7 +135,7 @@ export default function PricingSection() {
                 className="w-full"
                 variant={plan.popular ? 'default' : 'secondary'}
                 onClick={() => {
-                  document.getElementById('auth-section')?.scrollIntoView({ behavior: 'smooth' });
+                  setLocation('/signin');
                 }}
                 aria-label={`Select ${plan.name} plan - ${plan.monthlyPrice === 0 ? 'Free' : isAnnual ? `$${Math.round(plan.annualPrice / 12)}/month billed annually` : `$${plan.monthlyPrice}/month`}`}
               >
