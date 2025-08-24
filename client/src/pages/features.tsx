@@ -57,7 +57,6 @@ export default function Features() {
       description: 'Get started in minutes, not days. Our simple setup process guides you through connecting data and asking your first questions.',
       details: [
         '7-day free trial',
-        'Guided setup wizard',
         'Email support included'
       ]
     },
