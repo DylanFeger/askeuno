@@ -77,11 +77,22 @@ router.post('/register', registerValidation, async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     
     // Create user with trimmed values
-    const user = await storage.createUser({
+    let user = await storage.createUser({
       username: trimmedUsername,
       email: trimmedEmail,
       password: hashedPassword
     });
+    
+    // Set 7-day trial period
+    const now = new Date();
+    const trialEndDate = new Date(now);
+    trialEndDate.setDate(trialEndDate.getDate() + 7); // 7-day free trial
+    
+    // Update user with trial dates
+    user = await storage.updateUser(user.id, {
+      trialStartDate: now,
+      trialEndDate: trialEndDate
+    }) || user;
     
     // Create session with user_id, username, and subscription_tier
     (req.session as any).userId = user.id;
@@ -230,7 +241,10 @@ router.get('/me', async (req, res) => {
       id: user.id,
       username: user.username,
       email: user.email,
-      subscriptionTier: user.subscriptionTier
+      subscriptionTier: user.subscriptionTier,
+      subscriptionStatus: user.subscriptionStatus,
+      trialStartDate: user.trialStartDate,
+      trialEndDate: user.trialEndDate
     });
   } catch (error: any) {
     logger.error('Get current user error', { error, userId: (req.session as any)?.userId });

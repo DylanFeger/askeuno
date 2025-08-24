@@ -133,10 +133,11 @@ export default function SubscriptionPage() {
   const currentPlan = user.subscriptionTier || 'starter';
   const subscriptionStatus = user.subscriptionStatus || 'trial';
   
-  // Calculate trial days remaining (mock data for now)
-  const trialEndDate = new Date();
-  trialEndDate.setDate(trialEndDate.getDate() + 25); // Mock: 25 days left
-  const daysRemaining = Math.ceil((trialEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+  // Calculate trial days remaining from actual trial end date
+  const trialEndDate = user.trialEndDate ? new Date(user.trialEndDate) : null;
+  const daysRemaining = trialEndDate 
+    ? Math.max(0, Math.ceil((trialEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
+    : 0;
 
   const handleCancelSubscription = async () => {
     setIsProcessing(true);
@@ -208,8 +209,13 @@ export default function SubscriptionPage() {
                   <Alert className="bg-blue-50 border-blue-200">
                     <Sparkles className="h-4 w-4 text-blue-600" />
                     <AlertDescription className="text-blue-900">
-                      <strong>Free Trial Active!</strong> You have full access to the {currentPlan === 'starter' ? 'Starter' : currentPlan === 'growth' ? 'Professional' : 'Enterprise'} plan features. 
-                      Your trial ends on {trialEndDate.toLocaleDateString()}. No credit card required until you're ready to continue.
+                      <strong>Free Trial Active!</strong> You have full access to the {currentPlan === 'starter' ? 'Starter' : currentPlan === 'professional' ? 'Professional' : 'Enterprise'} plan features. 
+                      {trialEndDate && (
+                        <>
+                          Your trial ends on {trialEndDate.toLocaleDateString()}. 
+                        </>
+                      )}
+                      Credit card required to continue after trial.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -217,7 +223,7 @@ export default function SubscriptionPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-xl font-semibold">
-                      {currentPlan === 'starter' ? 'Starter' : currentPlan === 'growth' ? 'Professional' : 'Enterprise'} Plan
+                      {currentPlan === 'starter' ? 'Starter' : currentPlan === 'professional' ? 'Professional' : 'Enterprise'} Plan
                     </h3>
                     <p className="text-gray-600 mt-1">
                       {subscriptionStatus === 'active' 

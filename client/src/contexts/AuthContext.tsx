@@ -12,6 +12,8 @@ interface User {
   billingCycle?: string;
   monthlyQueryCount?: number;
   queryResetDate?: string;
+  trialStartDate?: string;
+  trialEndDate?: string;
 }
 
 interface AuthContextType {
