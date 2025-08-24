@@ -338,8 +338,8 @@ export default function Home() {
             
             <Card className="p-8 hover:shadow-lg transition-shadow">
               <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Lock className="w-6 h-6 text-purple-600" />
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Lock className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">Secure, private space</h3>
