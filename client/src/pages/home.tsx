@@ -359,7 +359,6 @@ export default function Home() {
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">Ask Euno for 7 days, free</h3>
                   <p className="text-gray-600">
-                    Try Euno risk-free for 7 days. 
                     Cancel anytime during your trial.
                   </p>
                 </div>
