@@ -180,7 +180,7 @@ export default function Home() {
                   className="px-8 py-6 text-lg"
                   onClick={() => setLocation('/signin')}
                 >
-                  Get Started For Free
+                  Ask Euno
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </div>
