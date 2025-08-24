@@ -57,7 +57,6 @@ export default function Features() {
       description: 'Get started in minutes, not days. Our simple setup process guides you through connecting data and asking your first questions.',
       details: [
         '7-day free trial',
-        'No credit card required',
         'Guided setup wizard',
         'Email support included'
       ]
@@ -154,7 +153,7 @@ export default function Features() {
             </Button>
           </Link>
           <p className="text-sm text-gray-500 mt-4">
-            No credit card required • 7-day free trial
+            7-day free trial
           </p>
         </div>
       </section>
