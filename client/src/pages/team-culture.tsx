@@ -19,7 +19,7 @@ export default function TeamCulture() {
             <Card className="p-8 bg-gray-50 border-gray-200 mb-16">
               <div className="space-y-4 text-center">
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Hypanocalothanocoly
+                  <span className="text-primary">Hypanocalothanocoly</span>
                 </h2>
                 <p className="text-sm text-gray-500 italic">
                   (noun) hy·pa·no·cal·lo·than·oc·o·ly
@@ -30,6 +30,35 @@ export default function TeamCulture() {
                   <p>Where outcomes match our best-intent. Not luck, but care, and effort spent. It's not perfection, not pretend — But vision, trust, and hearts that mend.</p>
                   <p>When people move with hearts and hands aligned, leadership's the cause, not the end we find.</p>
                 </div>
+              </div>
+            </Card>
+            
+            {/* Our Story Section */}
+            <Card className="p-8 mb-16">
+              <div className="prose prose-lg max-w-none">
+                <p className="text-lg text-gray-700 mb-6">
+                  Hypanocalothanocoly isn't just a word that Carter gave us - it's the spirit that defines how we work, how we think, and how we build.
+                </p>
+                
+                <p className="text-lg text-gray-700 mb-6">
+                  It represents the curiosity that drives us to ask "what if?" and "why not?" It's the good spirits that keep us going when the code won't compile at 2 AM. It's the joy of discovery when we finally crack a problem that seemed impossible.
+                </p>
+                
+                <p className="text-lg text-gray-700 mb-6">
+                  This culture means we don't just build tools - we build them with purpose. We believe that data shouldn't be intimidating. Business insights shouldn't require a PhD. And every small business owner deserves the same powerful analytics that big corporations have.
+                </p>
+                
+                <p className="text-lg text-gray-700 mb-6">
+                  Hypanocalothanocoly reminds us to stay humble, stay curious, and never forget that we're just a group of boys from the farm who decided to build something meaningful. It's about keeping that barefoot, shirtless spirit of freedom and creativity, even as we tackle complex data problems.
+                </p>
+                
+                <p className="text-lg text-gray-700">
+                  So yes, it might sound like a silly word. But to us, it's everything. It's why we get up in the morning. It's why we care about every line of code, every user interaction, and every business we help grow.
+                </p>
+                
+                <p className="text-lg text-gray-700 mt-8 font-semibold text-center text-primary">
+                  That's Hypanocalothanocoly. That's who we are.
+                </p>
               </div>
             </Card>
           </div>
