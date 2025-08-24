@@ -57,6 +57,12 @@ export default function Features() {
               />
             </Card>
           </div>
+          
+          <div className="mt-12 max-w-4xl mx-auto">
+            <p className="text-lg text-gray-700 text-center">
+              AskEuno was born from curiosity, good spirits, and the drive to learn. From the start, our main goal was simple—keep learning, keep growing, and never stop asking questions. That same mindset of discovery is what turned a group of boys into a team building tools that make sense of data and bring clarity where it's needed most.
+            </p>
+          </div>
         </div>
       </section>
 
