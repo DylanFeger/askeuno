@@ -76,7 +76,7 @@ export default function About() {
             Ready to Transform Your Data?
           </h2>
           <p className="text-xl text-gray-600 mb-8">
-            Join thousands of businesses making smarter decisions with Euno.
+            Be among the first to transform how you understand your business data.
           </p>
           <Link href="/">
             <Button size="lg" className="px-8">
