@@ -33,6 +33,7 @@ import BlogPost from "@/pages/blog/post";
 import CostOfBadQuery from "@/pages/cost-of-bad-query";
 import TeamPage from "@/pages/team";
 import AcceptInvite from "@/pages/accept-invite";
+import Culture from "@/pages/culture";
 
 function Router() {
   return (
@@ -64,6 +65,7 @@ function Router() {
       <Route path="/cost-of-bad-query" component={CostOfBadQuery} />
       <Route path="/team" component={TeamPage} />
       <Route path="/accept-invite/:token" component={AcceptInvite} />
+      <Route path="/culture" component={Culture} />
       <Route component={NotFound} />
     </Switch>
   );
