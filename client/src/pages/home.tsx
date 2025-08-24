@@ -177,7 +177,7 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Button 
                   size="lg"
-                  className="px-8 py-6 text-lg"
+                  className="px-8 py-6 text-lg font-bold bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                   onClick={() => setLocation('/signin')}
                 >
                   Ask Euno
