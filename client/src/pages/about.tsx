@@ -72,12 +72,9 @@ export default function About() {
       {/* CTA Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">
             Ready to Transform Your Data?
           </h2>
-          <p className="text-xl text-gray-600 mb-8">
-            Be among the first to transform how you understand your business data.
-          </p>
           <Link href="/">
             <Button size="lg" className="px-8">
               Start Your Free Trial
