@@ -186,7 +186,7 @@ export default function Home() {
               </div>
               
               <p className="text-sm text-gray-500 mt-4">
-                Free trial for all plans
+                Get started for free, free trial for all plans
               </p>
             </div>
             
