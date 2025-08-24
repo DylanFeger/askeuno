@@ -212,7 +212,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-              Why Your Business Needs Data
+              Why Your Business Needs Clear Answers
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Transform guesswork into strategy. Join the businesses that thrive on insights.
