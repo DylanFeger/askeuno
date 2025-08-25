@@ -3,7 +3,28 @@
 ## Overview
 Euno is a secure, easy-to-use data platform for small businesses to upload, store, and analyze their data. It offers a secure upload portal, cloud storage integration, ETL processing, and AI-powered insights via a conversational interface. Euno aims to provide a fast, reliable, and accurate experience without complex dashboards, focusing on delivering concise, AI-driven business intelligence. The platform supports both file uploads and live data integrations, enabling real-time data sync and advanced analysis.
 
-## Recent Updates (August 21, 2025)
+## Recent Updates (August 25, 2025)
+- **Enhanced AI with Metaphorical Intelligence**: AI now creatively interprets casual phrases as business insights:
+  - Weather metaphors ("How's the weather?") → Business climate analysis
+  - Health metaphors ("Are we healthy?") → Financial wellness check
+  - Food metaphors ("What's cooking?") → Trending products analysis
+  - Sports metaphors ("Are we winning?") → Competitive performance
+  - Casual greetings ("How are we doing?") → Comprehensive business overview
+- **Expert Data Analyst Personality**: Euno AI now acts as a senior data analyst with 15+ years experience:
+  - Proactive insights beyond what's asked
+  - Conversational yet professional tone
+  - Action-oriented recommendations
+  - Context-aware responses based on time of day
+- **Tier-Adapted Responses**:
+  - Starter: Concise 80-word insights with key findings
+  - Professional: 180-word comprehensive analysis with actionable recommendations
+  - Enterprise: Full strategic analysis with forecasts and ROI estimates
+- **Dynamic Temperature Adjustment**: AI automatically adjusts creativity based on query type:
+  - Data queries: 0.2 (precise)
+  - Trend analysis: 0.4 (balanced)
+  - Predictions/casual: 0.6 (creative)
+
+## Previous Updates (August 21, 2025)
 - **Authentication System Overhaul**: Updated authentication flow for improved user experience:
   - Login now accepts BOTH email OR username + password (backwards compatible with existing users)
   - Registration still requires email + username + password for account verification
@@ -45,10 +66,7 @@ Euno is a secure, easy-to-use data platform for small businesses to upload, stor
   - Business Analytics 101 guide - comprehensive introduction to analytics concepts
   - Dynamic SEO component for proper meta tag management
   - Full content with FAQs, internal linking, and CTAs for conversion
-- **Enhanced AI Behavior**: Euno AI now acts as an expert business data analyst with dynamic temperature adjustment based on query type:
-  - Sales/SQL queries: Temperature 0.2 for maximum accuracy
-  - Trend analysis: Temperature 0.4 for balanced analysis
-  - Predictions/forecasting: Temperature 0.6 for creative insights
+- **AI Acting as Senior Data Analyst**: Expert personality with 15+ years experience providing proactive, actionable insights
 - **Unified Conversation Interface**: Removed separate tabs (Sales, Trends, Predictions) to provide a single, continuous conversation memory that remembers all context
 - **Business-Only Focus**: AI strictly responds to business-related queries and politely redirects non-business questions
 
@@ -63,7 +81,9 @@ Key principles:
 - Easy experience, not many tools
 - Fast, reliable, accurate
 - No complex dashboards
-- AI responses should be brief unless users ask for more details
+- AI acts as expert data analyst with conversational understanding
+- Metaphorical intelligence for interpreting casual queries
+- Proactive insights and action-oriented recommendations
 - Toggle-able extended thinking for AI responses
 
 ## System Architecture

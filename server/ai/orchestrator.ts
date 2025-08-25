@@ -7,6 +7,7 @@ import { checkRateLimit } from "./rate";
 import { getActiveDataSource, runSQL } from "../data/datasource";
 import { generateSQLPlan, generateAnalysis } from "./prompts";
 import { detectMissingColumns } from "./column-detector";
+import { findMetaphorMapping, getMetaphoricalBusinessQuery, shouldRedirectToBusinessQuery } from "./metaphors";
 import OpenAI from "openai";
 
 const openai = new OpenAI({ 
@@ -27,6 +28,7 @@ export type AiResponse = {
     tables: string[];
     rows: number;
     limited: boolean;
+    metaphorUsed?: boolean;
   };
 };
 
@@ -57,11 +59,25 @@ export async function handleChat({
       };
     }
 
-    // 2. Detect intent
-    const intent = detectIntent(message);
+    // 2. Check for metaphorical redirect first
+    let actualMessage = message;
+    let metaphorUsed = false;
+    let metaphorIntro = "";
     
-    // 3. Handle irrelevant questions immediately
-    if (intent === "irrelevant") {
+    if (shouldRedirectToBusinessQuery(message)) {
+      const metaphoricalQuery = getMetaphoricalBusinessQuery(message);
+      if (metaphoricalQuery) {
+        actualMessage = metaphoricalQuery.businessQuery;
+        metaphorUsed = true;
+        metaphorIntro = getMetaphorIntro(message, metaphoricalQuery.metaphorType);
+      }
+    }
+    
+    // 3. Detect intent (using potentially redirected message)
+    const intent = detectIntent(actualMessage);
+    
+    // 4. Handle irrelevant questions (only if no metaphor was found)
+    if (intent === "irrelevant" && !metaphorUsed) {
       return {
         text: "I answer questions about your business data. Ask about metrics, filters, or trends.",
         meta: {
@@ -74,10 +90,10 @@ export async function handleChat({
       };
     }
 
-    // 4. Get active data source
+    // 5. Get active data source
     const dataSource = await getActiveDataSource(userId);
     
-    // 5. Guard data availability
+    // 6. Guard data availability
     const dataGuard = guardDataAvailability(intent, dataSource);
     if (!dataGuard.allowed) {
       return {
@@ -92,14 +108,14 @@ export async function handleChat({
       };
     }
 
-    // 6. Handle FAQ/product questions
+    // 7. Handle FAQ/product questions
     if (intent === "faq_product") {
       return handleFAQQuery(message, tier);
     }
 
-    // 7. Execute data query based on tier
+    // 8. Execute data query based on tier
     const tierConfig = TIERS[tier as keyof typeof TIERS];
-    const result = await executeDataQuery(message, dataSource, tier, tierConfig);
+    const result = await executeDataQuery(actualMessage, dataSource, tier, tierConfig, metaphorIntro, metaphorUsed);
     
     return result;
 
@@ -116,6 +132,80 @@ export async function handleChat({
       }
     };
   }
+}
+
+function getMetaphorIntro(originalMessage: string, metaphorType: string): string {
+  const lowercaseMsg = originalMessage.toLowerCase();
+  
+  // Weather metaphors
+  if (lowercaseMsg.includes("weather")) {
+    return "☀️ Let me check the business weather for you...";
+  }
+  if (lowercaseMsg.includes("temperature") || lowercaseMsg.includes("hot") || lowercaseMsg.includes("cold")) {
+    return "🌡️ Taking the temperature of your business...";
+  }
+  if (lowercaseMsg.includes("storm")) {
+    return "⛈️ Scanning for any business storms on the horizon...";
+  }
+  
+  // Health metaphors
+  if (lowercaseMsg.includes("health") || lowercaseMsg.includes("healthy")) {
+    return "🏥 Running a health check on your business...";
+  }
+  if (lowercaseMsg.includes("pulse") || lowercaseMsg.includes("vital")) {
+    return "💓 Checking your business vital signs...";
+  }
+  
+  // Food/Cooking metaphors
+  if (lowercaseMsg.includes("cooking") || lowercaseMsg.includes("what's cooking")) {
+    return "👨‍🍳 Let me see what's cooking in your business kitchen...";
+  }
+  if (lowercaseMsg.includes("appetite") || lowercaseMsg.includes("hungry")) {
+    return "🍽️ Checking the market's appetite...";
+  }
+  
+  // Sports metaphors
+  if (lowercaseMsg.includes("winning") || lowercaseMsg.includes("score")) {
+    return "🏆 Let's check your business scoreboard...";
+  }
+  if (lowercaseMsg.includes("home run") || lowercaseMsg.includes("touchdown")) {
+    return "⚡ Looking for your business wins...";
+  }
+  
+  // Journey metaphors
+  if (lowercaseMsg.includes("journey") || lowercaseMsg.includes("path")) {
+    return "🗺️ Mapping your business journey...";
+  }
+  if (lowercaseMsg.includes("speed") || lowercaseMsg.includes("velocity")) {
+    return "🚀 Measuring your business velocity...";
+  }
+  
+  // Building metaphors
+  if (lowercaseMsg.includes("foundation") || lowercaseMsg.includes("building")) {
+    return "🏗️ Inspecting your business foundation...";
+  }
+  
+  // Nature metaphors
+  if (lowercaseMsg.includes("bloom") || lowercaseMsg.includes("flourish")) {
+    return "🌱 Checking how your business is growing...";
+  }
+  
+  // Casual greetings
+  if (lowercaseMsg.includes("good morning")) {
+    return "☀️ Good morning! Here's your business wake-up report...";
+  }
+  if (lowercaseMsg.includes("good afternoon")) {
+    return "🌤️ Good afternoon! Here's your midday business update...";
+  }
+  if (lowercaseMsg.includes("good evening")) {
+    return "🌙 Good evening! Here's your end-of-day business summary...";
+  }
+  if (lowercaseMsg.includes("how are we doing") || lowercaseMsg.includes("how's it going")) {
+    return "📊 Let me show you how the business is performing...";
+  }
+  
+  // Default creative intro based on metaphor type
+  return `I understand you're asking about your ${metaphorType}. Let me translate that into business insights...`;
 }
 
 function detectIntent(message: string): "data_query" | "faq_product" | "irrelevant" {
@@ -204,7 +294,9 @@ async function executeDataQuery(
   message: string, 
   dataSource: any, 
   tier: string,
-  tierConfig: any
+  tierConfig: any,
+  metaphorIntro: string = "",
+  metaphorUsed: boolean = false
 ): Promise<AiResponse> {
   try {
     // Get available columns from the data source
@@ -269,6 +361,11 @@ async function executeDataQuery(
     // Compose response based on tier
     let responseText = analysis.text;
     
+    // Add metaphor intro if used
+    if (metaphorIntro) {
+      responseText = `${metaphorIntro}\n\n${responseText}`;
+    }
+    
     // Add data basis
     responseText = `Data basis: ${queryResult.tables.join(', ')} (${queryResult.rowCount} rows analyzed)\n\n${responseText}`;
     
@@ -295,7 +392,8 @@ async function executeDataQuery(
         tier,
         tables: queryResult.tables,
         rows: queryResult.rowCount,
-        limited: queryResult.rowCount >= 5000
+        limited: queryResult.rowCount >= 5000,
+        metaphorUsed
       }
     };
     

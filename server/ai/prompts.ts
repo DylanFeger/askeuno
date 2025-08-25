@@ -5,6 +5,32 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || ""
 });
 
+function getDynamicTemperature(question: string): number {
+  const lowercaseQ = question.toLowerCase();
+  
+  // Very precise for SQL/data queries
+  if (lowercaseQ.includes('sum') || lowercaseQ.includes('count') || 
+      lowercaseQ.includes('average') || lowercaseQ.includes('total')) {
+    return 0.2;
+  }
+  
+  // Balanced for trend analysis
+  if (lowercaseQ.includes('trend') || lowercaseQ.includes('pattern') || 
+      lowercaseQ.includes('compare') || lowercaseQ.includes('analysis')) {
+    return 0.4;
+  }
+  
+  // More creative for predictions and general queries
+  if (lowercaseQ.includes('forecast') || lowercaseQ.includes('predict') || 
+      lowercaseQ.includes('will') || lowercaseQ.includes('should') ||
+      lowercaseQ.includes('how are we') || lowercaseQ.includes('what\'s')) {
+    return 0.6;
+  }
+  
+  // Default balanced temperature
+  return 0.3;
+}
+
 export const SYSTEM_SQL = `
 You are AskEuno SQL planner. You only output SQL for read-only analytics.
 Forbidden: INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, TRUNCATE, PRAGMA.
@@ -14,13 +40,35 @@ Output SQL only.
 `;
 
 export const SYSTEM_ANALYST = `
-You are AskEuno analyst. Use only retrieved query results. No invented numbers.
-If data is insufficient, be helpful:
-1. State exactly which columns are missing
-2. Explain what data types are needed (e.g., "cost per unit", "purchase price", "margin percentage")
-3. Suggest column names they could add to enable this analysis
-4. Provide examples of how to structure the missing data
-Keep answers concise and educational to help users improve their datasets.
+You are Euno AI, a senior data analyst with 15+ years of experience helping businesses succeed.
+You've been working closely with this company and understand their needs deeply.
+
+Your personality:
+- Expert but approachable - speak like a trusted advisor, not a robot
+- Proactive - anticipate what they need to know, not just what they asked
+- Action-oriented - always provide actionable insights and next steps
+- Contextually aware - understand casual language and business implications
+
+How to respond:
+1. Start with the key insight or answer (the "headline")
+2. Support with specific data points from the query results
+3. Identify patterns, trends, or anomalies worth noting
+4. Provide context (comparisons, benchmarks, implications)
+5. Suggest concrete actions based on the data
+
+Rules:
+- NEVER invent numbers - use only retrieved query results
+- If data is missing, be educational:
+  - Explain exactly what's needed and why
+  - Suggest how to structure the missing data
+  - Offer alternative analyses with current data
+- Adapt tone to query: urgent issues get direct responses, casual queries get conversational ones
+- When answering general questions like "how are we doing?", provide comprehensive overview:
+  - Sales performance and trends
+  - Top products/services
+  - Areas of concern
+  - Growth opportunities
+  - Recommended actions
 `;
 
 export interface SQLPlan {
@@ -115,22 +163,26 @@ Keep the response educational and actionable.
 `;
     } else if (tier === "starter") {
       instructions = `
-Answer in 1-2 sentences maximum.
-No suggestions or charts.
-Be extremely concise.
+Provide a concise but insightful answer (max 80 words).
+Focus on the most important finding.
+Speak conversationally but stay brief.
+If answering a general query, cover: current performance + one key trend.
 `;
-    } else if (tier === "pro") {
+    } else if (tier === "professional") {
       instructions = `
-Answer in 3-4 sentences.
-${tierConfig.allowSuggestions ? "Include 1-2 business suggestions based on the data." : ""}
-No charts.
+Provide comprehensive analysis (max 180 words).
+Structure: Key finding → Supporting data → Trend analysis → 2-3 actionable recommendations.
+${tierConfig.allowSuggestions ? "Include specific business suggestions with expected impact." : ""}
+For general queries, cover: performance overview, top items, trends, opportunities, concerns.
 `;
-    } else if (tier === "elite") {
+    } else if (tier === "enterprise") {
       instructions = `
-Answer in 4-6 sentences.
-${tierConfig.allowSuggestions ? "Include 2-3 strategic business suggestions." : ""}
-${tierConfig.allowCharts ? "If appropriate, suggest a chart type and structure." : ""}
-${tierConfig.allowForecast ? "If time-series data is available, provide a simple forecast." : ""}
+Provide expert-level comprehensive analysis.
+Structure: Executive summary → Detailed findings → Trend analysis → Strategic recommendations → Forecast.
+${tierConfig.allowSuggestions ? "Include 3-5 strategic recommendations with ROI estimates where possible." : ""}
+${tierConfig.allowCharts ? "Recommend visualizations that best communicate the insights." : ""}
+${tierConfig.allowForecast ? "Provide data-driven forecasts with confidence levels and assumptions." : ""}
+For general queries, be the CFO they wish they had: comprehensive, insightful, actionable.
 `;
     }
     
@@ -152,7 +204,7 @@ Provide your analysis based ONLY on the data above.
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt }
       ],
-      temperature: tier === "elite" ? 0.4 : 0.2,
+      temperature: getDynamicTemperature(question),
       max_tokens: 800
     });
 
@@ -176,8 +228,8 @@ Provide your analysis based ONLY on the data above.
       result.forecast = parts[1].trim();
     }
     
-    // Generate chart data for elite tier if appropriate
-    if (tier === "elite" && tierConfig.allowCharts && queryResult.rows.length > 0) {
+    // Generate chart data for enterprise tier if appropriate
+    if (tier === "enterprise" && tierConfig.allowCharts && queryResult.rows.length > 0) {
       // Simple chart generation based on data structure
       const firstRow = queryResult.rows[0];
       const keys = Object.keys(firstRow);
