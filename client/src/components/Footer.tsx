@@ -58,7 +58,7 @@ export default function Footer() {
         </div>
         
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>Powered by AI — Ask Euno at your own risk</p>
+          <p>Powered by AI — AskEuno at your own risk</p>
           <p>© 2025 Euno. All rights reserved.</p>
         </div>
       </div>
