@@ -32,8 +32,8 @@ export async function checkRateLimit(
   // Clean old timestamps
   entry.timestamps = entry.timestamps.filter(ts => ts > hourAgo);
   
-  // Check spam cooldown for elite tier
-  if (tier === 'elite' && entry.spamCooldown) {
+  // Check spam cooldown for enterprise tier
+  if (tier === 'enterprise' && entry.spamCooldown) {
     if (now < entry.spamCooldown) {
       return {
         allowed: false,
@@ -46,13 +46,13 @@ export async function checkRateLimit(
   
   const tierConfig = TIERS[tier as keyof typeof TIERS];
   
-  // Check elite tier spam window (60 queries in 60 seconds)
-  if (tier === 'elite') {
-    const eliteConfig = TIERS.elite;
+  // Check enterprise tier spam window (60 queries in 60 seconds)
+  if (tier === 'enterprise') {
+    const enterpriseConfig = TIERS.enterprise;
     const oneMinuteAgo = now - 60000;
     const recentQueries = entry.timestamps.filter(ts => ts > oneMinuteAgo);
     
-    if (recentQueries.length >= eliteConfig.spamWindowCap) {
+    if (recentQueries.length >= enterpriseConfig.spamWindowCap) {
       entry.spamCooldown = now + 3600000; // 1 hour cooldown
       rateLimitCache.set(key, entry);
       
@@ -63,8 +63,8 @@ export async function checkRateLimit(
     }
   }
   
-  // Check hourly rate limit for beginner and pro tiers
-  if (tier !== 'elite' && entry.timestamps.length >= tierConfig.maxQueriesPerHour) {
+  // Check hourly rate limit for starter and professional tiers
+  if (tier !== 'enterprise' && entry.timestamps.length >= tierConfig.maxQueriesPerHour) {
     const oldestTimestamp = entry.timestamps[0];
     const timeUntilReset = Math.ceil((oldestTimestamp + 3600000 - now) / 60000);
     
