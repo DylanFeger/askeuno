@@ -27,11 +27,22 @@ const SUBSCRIPTION_PRICES = {
 };
 
 /**
- * Create or retrieve subscription for user
+ * Create or retrieve subscription for user (only for paid tiers)
  */
 router.post('/get-or-create-subscription', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const { tier, billingCycle } = req.body;
+    
+    // Starter tier is free - no payment needed
+    if (tier === 'starter') {
+      await storage.updateUser(req.user.id, {
+        subscriptionTier: 'starter',
+        subscriptionStatus: 'active',
+        stripeSubscriptionId: null,
+        stripeCustomerId: null
+      });
+      return res.json({ success: true, message: 'Downgraded to free tier' });
+    }
     
     if (!tier || !['professional', 'enterprise'].includes(tier)) {
       return res.status(400).json({ error: 'Invalid subscription tier' });
@@ -124,14 +135,25 @@ router.post('/get-or-create-subscription', requireAuth, async (req: Authenticate
 });
 
 /**
- * Cancel subscription
+ * Cancel subscription (downgrades to free tier)
  */
 router.post('/cancel', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const user = req.user;
     
+    // If already on starter tier, nothing to cancel
+    if (user.subscriptionTier === 'starter') {
+      return res.json({ success: true, message: 'Already on free tier' });
+    }
+    
     if (!user.stripeSubscriptionId) {
-      return res.status(400).json({ error: 'No active subscription found' });
+      // No Stripe subscription but not on starter - reset to starter
+      await storage.updateUser(user.id, {
+        subscriptionTier: 'starter',
+        subscriptionStatus: 'active',
+        stripeSubscriptionId: null
+      });
+      return res.json({ success: true, message: 'Downgraded to free tier' });
     }
 
     // Cancel the subscription at period end
@@ -139,7 +161,7 @@ router.post('/cancel', requireAuth, async (req: AuthenticatedRequest, res) => {
       cancel_at_period_end: true,
     });
 
-    // Update user status
+    // Update user status - will revert to starter after period ends
     await storage.updateUser(user.id, {
       subscriptionStatus: 'cancelled',
     });
@@ -194,7 +216,7 @@ router.get('/status', requireAuth, async (req: AuthenticatedRequest, res) => {
 });
 
 /**
- * Update subscription tier
+ * Update subscription tier (upgrade or change between paid tiers)
  */
 router.post('/update-tier', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
@@ -203,6 +225,19 @@ router.post('/update-tier', requireAuth, async (req: AuthenticatedRequest, res) 
     
     if (!tier || !['starter', 'professional', 'enterprise'].includes(tier)) {
       return res.status(400).json({ error: 'Invalid subscription tier' });
+    }
+    
+    // Downgrading to starter - cancel subscription
+    if (tier === 'starter') {
+      if (user.stripeSubscriptionId) {
+        await stripe.subscriptions.cancel(user.stripeSubscriptionId);
+      }
+      await storage.updateUser(user.id, {
+        subscriptionTier: 'starter',
+        subscriptionStatus: 'active',
+        stripeSubscriptionId: null
+      });
+      return res.json({ success: true, message: 'Downgraded to free tier' });
     }
     
     if (!billingCycle || !['monthly', 'annual'].includes(billingCycle)) {

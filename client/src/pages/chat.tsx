@@ -61,14 +61,8 @@ export default function Chat() {
                   You haven't connected any data sources yet. Get started by:
                 </p>
                 <div className="flex gap-3 justify-center flex-wrap">
-                  <Link href="/start-tracking">
-                    <Button>
-                      <TrendingUp className="w-4 h-4 mr-2" />
-                      Start Tracking Data
-                    </Button>
-                  </Link>
                   <Link href="/upload">
-                    <Button variant="outline">
+                    <Button>
                       <Upload className="w-4 h-4 mr-2" />
                       Upload a File
                     </Button>

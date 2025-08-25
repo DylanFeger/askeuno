@@ -76,23 +76,14 @@ router.post('/register', registerValidation, async (req, res) => {
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     
-    // Create user with trimmed values
-    let user = await storage.createUser({
+    // Create user with trimmed values - automatically gets starter tier with active status
+    const user = await storage.createUser({
       username: trimmedUsername,
       email: trimmedEmail,
       password: hashedPassword
     });
     
-    // Set 7-day trial period
-    const now = new Date();
-    const trialEndDate = new Date(now);
-    trialEndDate.setDate(trialEndDate.getDate() + 7); // 7-day free trial
-    
-    // Update user with trial dates
-    user = await storage.updateUser(user.id, {
-      trialStartDate: now,
-      trialEndDate: trialEndDate
-    }) || user;
+    // No trial needed for free tier - they get immediate access
     
     // Create session with user_id, username, and subscription_tier
     (req.session as any).userId = user.id;

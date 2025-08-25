@@ -11,6 +11,7 @@ declare global {
         username: string;
         email: string;
         subscriptionTier: string;
+        subscriptionStatus: string;
       };
     }
   }
@@ -22,6 +23,7 @@ export interface AuthenticatedRequest extends Request {
     username: string;
     email: string;
     subscriptionTier: string;
+    subscriptionStatus: string;
   };
 }
 
@@ -55,7 +57,8 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
       id: user.id,
       username: user.username,
       email: user.email,
-      subscriptionTier: user.subscriptionTier
+      subscriptionTier: user.subscriptionTier,
+      subscriptionStatus: user.subscriptionStatus
     };
 
     next();
@@ -68,7 +71,24 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 export const requireSubscriptionTier = (requiredTier: string) => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const userTier = req.user.subscriptionTier;
+    const userStatus = req.user.subscriptionStatus;
     const tierLevels = { 'starter': 1, 'professional': 2, 'enterprise': 3 };
+    
+    // For paid tiers, check if subscription is active
+    if (requiredTier !== 'starter' && userStatus !== 'active') {
+      logger.warn('Inactive subscription', { 
+        userId: req.user.id,
+        userTier,
+        userStatus,
+        requiredTier 
+      });
+      return res.status(403).json({ 
+        error: `Active ${requiredTier} subscription required`,
+        requiresUpgrade: true,
+        currentTier: userTier,
+        requiredTier: requiredTier
+      });
+    }
     
     if (tierLevels[userTier as keyof typeof tierLevels] < tierLevels[requiredTier as keyof typeof tierLevels]) {
       logger.warn('Insufficient subscription tier', { 
@@ -77,7 +97,33 @@ export const requireSubscriptionTier = (requiredTier: string) => {
         requiredTier 
       });
       return res.status(403).json({ 
-        error: `This feature requires ${requiredTier} subscription or higher` 
+        error: `This feature requires ${requiredTier} subscription or higher`,
+        requiresUpgrade: true,
+        currentTier: userTier,
+        requiredTier: requiredTier
+      });
+    }
+    
+    next();
+  };
+};
+
+// Check if user has active paid subscription
+export const requirePaidSubscription = () => {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const userTier = req.user.subscriptionTier;
+    const userStatus = req.user.subscriptionStatus;
+    
+    if (userTier === 'starter' || userStatus !== 'active') {
+      logger.warn('Paid subscription required', { 
+        userId: req.user.id,
+        userTier,
+        userStatus
+      });
+      return res.status(403).json({ 
+        error: 'This feature requires an active paid subscription',
+        requiresUpgrade: true,
+        currentTier: userTier
       });
     }
     

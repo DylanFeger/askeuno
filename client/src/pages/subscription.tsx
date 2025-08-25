@@ -131,13 +131,8 @@ export default function SubscriptionPage() {
   }
 
   const currentPlan = user.subscriptionTier || 'starter';
-  const subscriptionStatus = user.subscriptionStatus || 'trial';
-  
-  // Calculate trial days remaining from actual trial end date
-  const trialEndDate = user.trialEndDate ? new Date(user.trialEndDate) : null;
-  const daysRemaining = trialEndDate 
-    ? Math.max(0, Math.ceil((trialEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
-    : 0;
+  const subscriptionStatus = user.subscriptionStatus || 'active';
+  const isPaidPlan = currentPlan === 'professional' || currentPlan === 'enterprise';
 
   const handleCancelSubscription = async () => {
     setIsProcessing(true);
@@ -196,26 +191,21 @@ export default function SubscriptionPage() {
             <CardHeader>
               <CardTitle>Your Current Plan</CardTitle>
               <CardDescription>
-                {subscriptionStatus === 'trial' 
-                  ? `You're enjoying your free trial - ${daysRemaining} days remaining`
+                {currentPlan === 'starter' 
+                  ? 'You are on the free Starter plan'
                   : 'Manage your Euno subscription and billing'
                 }
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {/* Trial Alert */}
-                {subscriptionStatus === 'trial' && (
-                  <Alert className="bg-blue-50 border-blue-200">
-                    <Sparkles className="h-4 w-4 text-blue-600" />
-                    <AlertDescription className="text-blue-900">
-                      <strong>Free Trial Active!</strong> You have full access to the {currentPlan === 'starter' ? 'Starter' : currentPlan === 'professional' ? 'Professional' : 'Enterprise'} plan features. 
-                      {trialEndDate && (
-                        <>
-                          Your trial ends on {trialEndDate.toLocaleDateString()}. 
-                        </>
-                      )}
-                      Credit card required to continue after trial.
+                {/* Free Plan Alert */}
+                {currentPlan === 'starter' && (
+                  <Alert className="bg-green-50 border-green-200">
+                    <Sparkles className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-900">
+                      <strong>Free Forever!</strong> You have access to all Starter plan features with no credit card required. 
+                      Upgrade anytime to unlock more queries and advanced features.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -226,14 +216,16 @@ export default function SubscriptionPage() {
                       {currentPlan === 'starter' ? 'Starter' : currentPlan === 'professional' ? 'Professional' : 'Enterprise'} Plan
                     </h3>
                     <p className="text-gray-600 mt-1">
-                      {subscriptionStatus === 'active' 
-                        ? `Billed ${user.billingCycle || 'monthly'} - Next billing date: ${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}`
-                        : 'Trial period - no billing yet'
+                      {currentPlan === 'starter'
+                        ? 'Free plan - no billing'
+                        : subscriptionStatus === 'active' 
+                          ? `Billed ${user.billingCycle || 'monthly'} - Next billing date: ${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}`
+                          : 'No active subscription'
                       }
                     </p>
                   </div>
-                  <Badge variant={subscriptionStatus === 'trial' ? 'default' : 'secondary'} className="text-lg px-4 py-2">
-                    {subscriptionStatus === 'trial' ? 'Free Trial' : 'Active'}
+                  <Badge variant={currentPlan === 'starter' ? 'secondary' : subscriptionStatus === 'active' ? 'default' : 'destructive'} className="text-lg px-4 py-2">
+                    {currentPlan === 'starter' ? 'Free' : subscriptionStatus === 'active' ? 'Active' : 'Inactive'}
                   </Badge>
                 </div>
 
@@ -274,14 +266,14 @@ export default function SubscriptionPage() {
                   </div>
                 </div>
                 
-                {/* Cancel option - only show if subscribed or on trial */}
-                {(subscriptionStatus === 'trial' || subscriptionStatus === 'active') && (
+                {/* Cancel option - only show if on paid plan */}
+                {isPaidPlan && subscriptionStatus === 'active' && (
                   <div className="pt-4 border-t">
                     <button 
                       onClick={() => setShowCancelDialog(true)}
                       className="text-sm text-gray-500 hover:text-gray-700 underline"
                     >
-                      Cancel {subscriptionStatus === 'trial' ? 'trial' : 'subscription'}
+                      Cancel subscription
                     </button>
                   </div>
                 )}
@@ -309,7 +301,7 @@ export default function SubscriptionPage() {
           <div>
             <h2 className="text-3xl font-bold text-center mb-4">Simple, Transparent Pricing</h2>
             <p className="text-xl text-gray-600 text-center mb-12">
-              Start with a 7-day free trial. Upgrade, downgrade, or cancel anytime.
+              Start free, upgrade when you're ready. Cancel anytime.
             </p>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -381,16 +373,16 @@ export default function SubscriptionPage() {
                             variant={plan.popular ? 'default' : 'outline'}
                             onClick={() => handleSubscribe(plan.id)}
                           >
-                            {subscriptionStatus === 'trial' ? 'Select Plan' : 
-                             plan.monthlyPrice < plans.find(p => p.id === currentPlan)!.monthlyPrice ? 'Downgrade' : 'Upgrade'}
+                            {plan.id === 'starter' ? 'Downgrade to Free' :
+                             plan.monthlyPrice < (plans.find(p => p.id === currentPlan)?.monthlyPrice || 0) ? 'Downgrade' : 'Upgrade'}
                           </Button>
                         )}
                       </div>
 
-                      {/* Free trial notice */}
-                      {!isCurrentPlan && subscriptionStatus !== 'active' && (
+                      {/* Payment notice */}
+                      {!isCurrentPlan && plan.id !== 'starter' && (
                         <p className="text-xs text-center text-gray-500 mt-3">
-                          7-day free trial • Cancel anytime
+                          Credit card required • Cancel anytime
                         </p>
                       )}
                     </CardContent>
@@ -407,15 +399,13 @@ export default function SubscriptionPage() {
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancel {subscriptionStatus === 'trial' ? 'Free Trial' : 'Subscription'}?</AlertDialogTitle>
+            <AlertDialogTitle>Cancel Subscription?</AlertDialogTitle>
             <AlertDialogDescription>
-              {subscriptionStatus === 'trial' 
-                ? "We're sorry to see you go! If you cancel now, you'll lose access to all Euno features immediately. You can always start a new trial later, but it won't include the remaining days from this trial."
-                : "Your subscription will remain active until the end of your current billing period. After that, you'll lose access to all premium features and your data will be archived for 30 days."}
+              Your subscription will remain active until the end of your current billing period. After that, you'll be downgraded to the free Starter plan with limited features.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep {subscriptionStatus === 'trial' ? 'Trial' : 'Subscription'}</AlertDialogCancel>
+            <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleCancelSubscription}
               className="bg-red-600 hover:bg-red-700"

@@ -9,7 +9,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   subscriptionTier: text("subscription_tier").notNull().default("starter"), // starter, professional, enterprise
-  subscriptionStatus: text("subscription_status").notNull().default("trial"), // trial, active, cancelled, expired
+  subscriptionStatus: text("subscription_status").notNull().default("active"), // active, cancelled, expired, pending_payment
   billingCycle: text("billing_cycle").notNull().default("monthly"), // monthly, annual
   role: text("role").notNull().default("main_user"), // main_user, chat_only_user
   invitedBy: integer("invited_by").references(() => users.id), // ID of the main user who invited them

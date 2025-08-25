@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, ChevronDown, ChevronUp, Brain, FileText, Database, AlertCircle, ChevronRight, BarChart2 } from 'lucide-react';
+import { Send, Bot, User, ChevronDown, ChevronUp, Brain, FileText, Database, AlertCircle, ChevronRight, BarChart2, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { Link } from 'wouter';
 import EunoLogo from './EunoLogo';
 import GlassesIcon from './GlassesIcon';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTierAccess } from '@/hooks/useTierAccess';
 import {
   Select,
   SelectContent,
@@ -183,8 +184,15 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [extendedThinking, setExtendedThinking] = useState(false);
   const [selectedDataSourceId, setSelectedDataSourceId] = useState<number | null>(null);
   const [includeChart, setIncludeChart] = useState(false);
+  const [showRateLimitWarning, setShowRateLimitWarning] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+  
+  // Tier access for charts (Professional/Enterprise feature)
+  const chartAccess = useTierAccess('professional', 'Visual Charts & Graphs');
+  
+  // Tier access for extended responses (Professional/Enterprise feature)
+  const extendedResponseAccess = useTierAccess('professional', 'Extended AI Responses');
 
   // Fetch available data sources
   const { data: dataSources = [] } = useQuery<DataSource[]>({
@@ -244,8 +252,24 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const handleSendMessage = async (forceChart: boolean = false) => {
     if (!message.trim()) return;
     
+    // Check if user is approaching query limit for starter/professional tiers
+    if (user?.subscriptionTier !== 'enterprise') {
+      const monthlyCount = user?.monthlyQueryCount || 0;
+      const tierLimits = {
+        starter: 5,
+        professional: 25
+      };
+      const limit = tierLimits[user?.subscriptionTier as keyof typeof tierLimits] || 5;
+      
+      if (monthlyCount >= limit) {
+        setShowRateLimitWarning(true);
+        return;
+      }
+    }
+    
     const messageContent = message;
     setMessage('');
+    setShowRateLimitWarning(false);
     
     sendMessageMutation.mutate({ messageContent, forceChart: forceChart || includeChart });
   };
@@ -539,6 +563,35 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
           </p>
         </div>
       )}
+      
+      {/* Rate limit warning */}
+      {showRateLimitWarning && (
+        <Alert className="mb-3 border-amber-200 bg-amber-50">
+          <AlertCircle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-800">
+            <div className="space-y-2">
+              <p className="font-medium">Query limit reached!</p>
+              <p className="text-sm">
+                {user?.subscriptionTier === 'starter' ? (
+                  <>You've used all 5 queries for this hour. Upgrade to Professional for 25 queries/hour or Enterprise for unlimited queries.</>
+                ) : (
+                  <>You've used all 25 queries for this hour. Upgrade to Enterprise for unlimited queries.</>
+                )}
+              </p>
+              <Link href="/subscription?upgrade=professional">
+                <Button size="sm" className="mt-2">
+                  <Lock className="w-3 h-3 mr-1" />
+                  Upgrade Now
+                </Button>
+              </Link>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      {/* Upgrade Modals */}
+      <chartAccess.UpgradeModal />
+      <extendedResponseAccess.UpgradeModal />
 
       <div className="flex items-center space-x-3">
         <div className="flex-1 relative">

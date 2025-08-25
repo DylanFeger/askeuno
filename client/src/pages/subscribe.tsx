@@ -108,14 +108,15 @@ export default function Subscribe({ tier, billingCycle, onSuccess, onCancel }: S
 
   // Pricing configuration
   const pricing = {
-    starter: { monthly: 29, annual: 290 },
-    growth: { monthly: 79, annual: 790 },
-    pro: { monthly: 149, annual: 1490 }
+    starter: { monthly: 0, annual: 0 }, // Free tier
+    professional: { monthly: 99, annual: 1009 },
+    enterprise: { monthly: 249, annual: 2540 }
   };
 
-  const currentPrice = pricing[tier as keyof typeof pricing]?.[billingCycle as keyof typeof pricing.starter];
-  const annualSavings = billingCycle === 'annual' ? 
-    (pricing[tier as keyof typeof pricing].monthly * 12) - pricing[tier as keyof typeof pricing].annual : 0;
+  const tierPricing = pricing[tier as keyof typeof pricing];
+  const currentPrice = tierPricing?.[billingCycle as keyof typeof tierPricing] || 0;
+  const annualSavings = billingCycle === 'annual' && tierPricing ? 
+    (tierPricing.monthly * 12) - tierPricing.annual : 0;
 
   useEffect(() => {
     // Check if Stripe is available
