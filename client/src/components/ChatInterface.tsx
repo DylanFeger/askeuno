@@ -374,7 +374,7 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
             <div className="flex items-center space-x-2">
               <Brain className="w-4 h-4 text-gray-500" />
               <Label htmlFor="extended-responses" className="text-sm text-gray-600 cursor-pointer">
-                {extendedResponses ? "Extended (5 sentences)" : "Concise (1-2 sentences)"}
+                Extended Thinking
               </Label>
               <Switch
                 id="extended-responses"
