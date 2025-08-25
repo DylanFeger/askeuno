@@ -171,7 +171,7 @@ export default function Home() {
                 <span className="text-primary">Get answers.</span>
               </h1>
               <p className="text-xl text-gray-600 mb-8">
-                Euno makes your business data actually make sense — without needing a data team.
+                Asking Euno makes your business data clear, no need for a data team.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
