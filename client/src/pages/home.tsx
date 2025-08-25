@@ -177,91 +177,18 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <button 
                   onClick={() => setLocation('/signin')}
-                  className="group relative inline-flex items-center justify-center hover:scale-105 transition-all duration-300"
+                  className="group relative inline-flex flex-col items-center gap-3 hover:scale-105 transition-all duration-300"
                 >
-                  {/* Custom glasses-shaped button */}
+                  {/* Use the actual EunoLogo component */}
                   <div className="relative">
-                    {/* Glasses frame with lenses as button area */}
-                    <svg 
-                      width="200" 
-                      height="80" 
-                      viewBox="0 0 200 80" 
-                      className="drop-shadow-2xl"
-                    >
-                      {/* Gradient definition */}
-                      <defs>
-                        <linearGradient id="glassesGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" style={{ stopColor: 'hsl(142, 25%, 45%)', stopOpacity: 1 }} />
-                          <stop offset="100%" style={{ stopColor: 'hsl(142, 25%, 38%)', stopOpacity: 1 }} />
-                        </linearGradient>
-                        <linearGradient id="glassesGradientHover" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" style={{ stopColor: 'hsl(142, 25%, 42%)', stopOpacity: 1 }} />
-                          <stop offset="100%" style={{ stopColor: 'hsl(142, 25%, 35%)', stopOpacity: 1 }} />
-                        </linearGradient>
-                      </defs>
-                      
-                      {/* Left lens */}
-                      <ellipse 
-                        cx="60" 
-                        cy="40" 
-                        rx="35" 
-                        ry="30" 
-                        fill="url(#glassesGradient)" 
-                        className="group-hover:fill-[url(#glassesGradientHover)] transition-all"
-                        stroke="hsl(142, 25%, 35%)" 
-                        strokeWidth="3"
-                      />
-                      
-                      {/* Right lens */}
-                      <ellipse 
-                        cx="140" 
-                        cy="40" 
-                        rx="35" 
-                        ry="30" 
-                        fill="url(#glassesGradient)"
-                        className="group-hover:fill-[url(#glassesGradientHover)] transition-all"
-                        stroke="hsl(142, 25%, 35%)" 
-                        strokeWidth="3"
-                      />
-                      
-                      {/* Bridge */}
-                      <path 
-                        d="M 95 40 Q 100 35, 105 40" 
-                        stroke="hsl(142, 25%, 35%)" 
-                        strokeWidth="3" 
-                        fill="none"
-                      />
-                      
-                      {/* Text "Ask" in left lens */}
-                      <text 
-                        x="60" 
-                        y="45" 
-                        fontSize="20" 
-                        fontWeight="bold" 
-                        fill="white" 
-                        textAnchor="middle"
-                        className="font-sans"
-                      >
-                        Ask
-                      </text>
-                      
-                      {/* Text "Euno" in right lens */}
-                      <text 
-                        x="140" 
-                        y="45" 
-                        fontSize="20" 
-                        fontWeight="bold" 
-                        fill="white" 
-                        textAnchor="middle"
-                        className="font-sans"
-                      >
-                        Euno
-                      </text>
-                    </svg>
-                    
+                    <EunoLogo className="w-32 h-32 shadow-2xl group-hover:shadow-3xl transition-shadow duration-300" />
                     {/* Shimmer effect on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 pointer-events-none rounded-full"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 pointer-events-none rounded-lg"></div>
                   </div>
+                  {/* Text below the logo */}
+                  <span className="text-2xl font-bold text-primary group-hover:text-primary/90 transition-colors">
+                    Ask Euno
+                  </span>
                 </button>
               </div>
               
