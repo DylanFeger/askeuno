@@ -5,30 +5,20 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || ""
 });
 
-function getDynamicTemperature(question: string): number {
+function getDynamicTemperature(question: string, tier?: string): number {
   const lowercaseQ = question.toLowerCase();
   
-  // Very precise for SQL/data queries
-  if (lowercaseQ.includes('sum') || lowercaseQ.includes('count') || 
-      lowercaseQ.includes('average') || lowercaseQ.includes('total')) {
-    return 0.2;
+  // Only allow higher temperature for Enterprise users doing forecasts/predictions
+  if (tier === 'enterprise' && 
+      (lowercaseQ.includes('forecast') || lowercaseQ.includes('predict') || 
+       lowercaseQ.includes('will') || lowercaseQ.includes('future') ||
+       lowercaseQ.includes('projection') || lowercaseQ.includes('estimate'))) {
+    return 0.6; // Creative for predictions
   }
   
-  // Balanced for trend analysis
-  if (lowercaseQ.includes('trend') || lowercaseQ.includes('pattern') || 
-      lowercaseQ.includes('compare') || lowercaseQ.includes('analysis')) {
-    return 0.4;
-  }
-  
-  // More creative for predictions and general queries
-  if (lowercaseQ.includes('forecast') || lowercaseQ.includes('predict') || 
-      lowercaseQ.includes('will') || lowercaseQ.includes('should') ||
-      lowercaseQ.includes('how are we') || lowercaseQ.includes('what\'s')) {
-    return 0.6;
-  }
-  
-  // Default balanced temperature
-  return 0.3;
+  // All other queries use low temperature for accuracy and consistency
+  // This ensures data queries always return the same results
+  return 0.1;
 }
 
 export const SYSTEM_SQL = `
@@ -218,7 +208,7 @@ Provide your analysis based ONLY on the data above.
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt }
       ],
-      temperature: getDynamicTemperature(question),
+      temperature: getDynamicTemperature(question, tier),
       max_tokens: 800
     });
 
