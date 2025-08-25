@@ -240,7 +240,7 @@ export default function SubscriptionPage() {
                 {/* Query Usage Display */}
                 <div className="bg-gray-100 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">Monthly Query Usage</span>
+                    <span className="text-sm font-medium text-gray-700">Hourly Query Usage</span>
                     <span className="text-sm text-gray-600">
                       {user.monthlyQueryCount || 0} / {plans.find(p => p.id === currentPlan)?.queryLimit || 5} queries
                     </span>
@@ -255,7 +255,7 @@ export default function SubscriptionPage() {
                     <Alert className="mt-3 bg-yellow-50 border-yellow-200">
                       <AlertCircle className="h-4 w-4 text-yellow-600" />
                       <AlertDescription className="text-yellow-900">
-                        You've reached your monthly query limit. Upgrade your plan for more queries.
+                        You've reached your hourly query limit. Upgrade your plan for more queries.
                       </AlertDescription>
                     </Alert>
                   )}
