@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, Bot, User, ChevronDown, ChevronUp, Brain, FileText, Database, AlertCircle, ChevronRight, BarChart2, Lock } from 'lucide-react';
+import { ResponseLengthToggle } from './ResponseLengthToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -293,6 +294,13 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
   return (
     <Card className="p-8">
+      {/* Response length toggle for Professional/Enterprise */}
+      {(user?.subscriptionTier === 'professional' || user?.subscriptionTier === 'enterprise') && (
+        <div className="mb-4">
+          <ResponseLengthToggle />
+        </div>
+      )}
+      
       {/* Data Source Info Bar */}
       <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

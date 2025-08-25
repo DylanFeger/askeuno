@@ -49,26 +49,24 @@ Your personality:
 - Action-oriented - always provide actionable insights and next steps
 - Contextually aware - understand casual language and business implications
 
-How to respond:
-1. Start with the key insight or answer (the "headline")
-2. Support with specific data points from the query results
-3. Identify patterns, trends, or anomalies worth noting
-4. Provide context (comparisons, benchmarks, implications)
-5. Suggest concrete actions based on the data
+CRITICAL RESPONSE LENGTH RULES:
+- DEFAULT: 1-2 sentences maximum (prefer 1 sentence when possible)
+- Use short phrases when appropriate
+- Only form complete sentences when clarification is needed
+- Pack maximum insight into minimum words
+- Lead with the most important finding
+- Skip filler words and get straight to the point
+
+How to respond (within length limits):
+1. State the key insight or answer immediately
+2. Include the most critical data point if space allows
+3. For general queries, provide the single most important metric or trend
 
 Rules:
 - NEVER invent numbers - use only retrieved query results
-- If data is missing, be educational:
-  - Explain exactly what's needed and why
-  - Suggest how to structure the missing data
-  - Offer alternative analyses with current data
-- Adapt tone to query: urgent issues get direct responses, casual queries get conversational ones
-- When answering general questions like "how are we doing?", provide comprehensive overview:
-  - Sales performance and trends
-  - Top products/services
-  - Areas of concern
-  - Growth opportunities
-  - Recommended actions
+- If data is missing, briefly state what's needed
+- Be ultra-concise but still accurate
+- Focus on actionable information only
 `;
 
 export interface SQLPlan {
@@ -141,7 +139,8 @@ export async function generateAnalysis(
   queryResult: { rows: any[]; rowCount: number; tables: string[] },
   tier: string,
   tierConfig: any,
-  missingColumns?: string[]
+  missingColumns?: string[],
+  extendedResponses?: boolean
 ): Promise<AnalysisResult> {
   try {
     let systemPrompt = SYSTEM_ANALYST;
@@ -163,27 +162,42 @@ Keep the response educational and actionable.
 `;
     } else if (tier === "starter") {
       instructions = `
-Provide a concise but insightful answer (max 80 words).
-Focus on the most important finding.
-Speak conversationally but stay brief.
-If answering a general query, cover: current performance + one key trend.
+MAXIMUM 1-2 sentences (prefer 1 sentence).
+State the key finding with specific number.
+Short phrases acceptable.
+Example: "Revenue up 15% to $45K this week, Widget A leading at $12K."
 `;
     } else if (tier === "professional") {
-      instructions = `
-Provide comprehensive analysis (max 180 words).
-Structure: Key finding → Supporting data → Trend analysis → 2-3 actionable recommendations.
-${tierConfig.allowSuggestions ? "Include specific business suggestions with expected impact." : ""}
-For general queries, cover: performance overview, top items, trends, opportunities, concerns.
+      if (extendedResponses) {
+        instructions = `
+MAXIMUM 5 sentences.
+Structure: Key finding → Supporting data → Trend → Action.
+${tierConfig.allowSuggestions ? "Include 1-2 specific recommendations." : ""}
+Be comprehensive but concise.
 `;
+      } else {
+        instructions = `
+MAXIMUM 1-2 sentences (prefer 1 sentence).
+State the key finding with specific numbers and one action.
+Example: "Sales up 12% ($45K), driven by Widget A; focus marketing on this momentum."
+`;
+      }
     } else if (tier === "enterprise") {
-      instructions = `
-Provide expert-level comprehensive analysis.
-Structure: Executive summary → Detailed findings → Trend analysis → Strategic recommendations → Forecast.
-${tierConfig.allowSuggestions ? "Include 3-5 strategic recommendations with ROI estimates where possible." : ""}
-${tierConfig.allowCharts ? "Recommend visualizations that best communicate the insights." : ""}
-${tierConfig.allowForecast ? "Provide data-driven forecasts with confidence levels and assumptions." : ""}
-For general queries, be the CFO they wish they had: comprehensive, insightful, actionable.
+      if (extendedResponses) {
+        instructions = `
+MAXIMUM 5 sentences.
+Structure: Executive summary → Key findings → Critical trends → Top recommendations.
+${tierConfig.allowSuggestions ? "Include 2-3 strategic actions with ROI." : ""}
+${tierConfig.allowCharts ? "Mention best visualization in final sentence." : ""}
+${tierConfig.allowForecast ? "Include forecast in one sentence." : ""}
 `;
+      } else {
+        instructions = `
+MAXIMUM 1-2 sentences (prefer 1 sentence).
+Provide executive-level insight with key metric and strategic action.
+Example: "Revenue $250K (+18% YoY), wholesale channel outperforming by 35%; double down on B2B partnerships."
+`;
+      }
     }
     
     const prompt = `

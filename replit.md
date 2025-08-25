@@ -15,10 +15,10 @@ Euno is a secure, easy-to-use data platform for small businesses to upload, stor
   - Conversational yet professional tone
   - Action-oriented recommendations
   - Context-aware responses based on time of day
-- **Tier-Adapted Responses**:
-  - Starter: Concise 80-word insights with key findings
-  - Professional: 180-word comprehensive analysis with actionable recommendations
-  - Enterprise: Full strategic analysis with forecasts and ROI estimates
+- **Ultra-Concise Responses by Default**: All tiers receive 1-2 sentence responses (preferably 1 sentence)
+  - Short phrases for maximum insight in minimum words
+  - Professional/Enterprise can toggle extended mode for up to 5 sentences
+  - Focus on key metrics and actionable insights
 - **Dynamic Temperature Adjustment**: AI automatically adjusts creativity based on query type:
   - Data queries: 0.2 (precise)
   - Trend analysis: 0.4 (balanced)

@@ -28,6 +28,8 @@ export interface IStorage {
   getUserByApiToken(token: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
+  updateUserPreferences(id: number, preferences: any): Promise<User | undefined>;
+  getUserById(id: number): Promise<User | undefined>;
   
   // Query tracking operations
   incrementUserQueryCount(userId: number): Promise<void>;
@@ -120,6 +122,19 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user || undefined;
+  }
+  
+  async updateUserPreferences(id: number, preferences: any): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ preferences })
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
+  }
+  
+  async getUserById(id: number): Promise<User | undefined> {
+    return this.getUser(id);
   }
 
   // Query tracking operations

@@ -30,6 +30,15 @@ const registerValidation = [
   handleValidationErrors
 ];
 
+// Preferences validation
+const preferencesValidation = [
+  body('extendedResponses')
+    .optional()
+    .isBoolean()
+    .withMessage('Extended responses must be a boolean'),
+  handleValidationErrors
+];
+
 // Login validation - accepts either email or username
 const loginValidation = [
   body('username')
@@ -235,11 +244,54 @@ router.get('/me', async (req, res) => {
       subscriptionTier: user.subscriptionTier,
       subscriptionStatus: user.subscriptionStatus,
       trialStartDate: user.trialStartDate,
-      trialEndDate: user.trialEndDate
+      trialEndDate: user.trialEndDate,
+      preferences: {
+        extendedResponses: (req.session as any)?.extendedResponses || false
+      }
     });
   } catch (error: any) {
     logger.error('Get current user error', { error, userId: (req.session as any)?.userId });
     res.status(500).json({ error: 'Failed to get user information' });
+  }
+});
+
+// Update preferences endpoint (Professional and Enterprise only)
+router.patch('/preferences', preferencesValidation, async (req, res) => {
+  try {
+    const userId = (req.session as any)?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const user = await storage.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Only Professional and Enterprise users can toggle extended responses
+    if (user.subscriptionTier !== 'professional' && user.subscriptionTier !== 'enterprise') {
+      return res.status(403).json({ 
+        error: 'Extended responses are only available for Professional and Enterprise tiers' 
+      });
+    }
+    
+    const { extendedResponses } = req.body;
+    
+    // Store preference in session
+    (req.session as any).extendedResponses = extendedResponses;
+    
+    logger.info('User preferences updated', { 
+      userId,
+      extendedResponses 
+    });
+    
+    res.json({ 
+      message: 'Preferences updated successfully',
+      preferences: { extendedResponses } 
+    });
+  } catch (error) {
+    logger.error('Error updating preferences:', error);
+    res.status(500).json({ error: 'Failed to update preferences' });
   }
 });
 

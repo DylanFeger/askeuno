@@ -1,6 +1,6 @@
 import { db } from "../db";
-import { dataSources, dataRows, users, chatConversations, chatMessages } from "@shared/schema";
-import { eq, and, desc, gte } from "drizzle-orm";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import { logger } from "../utils/logger";
 import { TIERS } from "./tiers";
 import { checkRateLimit } from "./rate";
@@ -36,12 +36,14 @@ export async function handleChat({
   userId,
   tier,
   message,
-  conversationId
+  conversationId,
+  extendedResponses = false
 }: {
   userId: number;
   tier: string;
   message: string;
   conversationId?: number;
+  extendedResponses?: boolean;
 }): Promise<AiResponse> {
   try {
     // 1. Check rate limits
@@ -115,7 +117,7 @@ export async function handleChat({
 
     // 8. Execute data query based on tier
     const tierConfig = TIERS[tier as keyof typeof TIERS];
-    const result = await executeDataQuery(actualMessage, dataSource, tier, tierConfig, metaphorIntro, metaphorUsed);
+    const result = await executeDataQuery(actualMessage, dataSource, tier, tierConfig, metaphorIntro, metaphorUsed, extendedResponses);
     
     return result;
 
@@ -296,7 +298,8 @@ async function executeDataQuery(
   tier: string,
   tierConfig: any,
   metaphorIntro: string = "",
-  metaphorUsed: boolean = false
+  metaphorUsed: boolean = false,
+  extendedResponses: boolean = false
 ): Promise<AiResponse> {
   try {
     // Get available columns from the data source
@@ -332,7 +335,8 @@ async function executeDataQuery(
         { rows: [], rowCount: 0, tables: dataSource.tables },
         tier,
         tierConfig,
-        sqlPlan.missingColumns // Pass missing columns for educational response
+        sqlPlan.missingColumns, // Pass missing columns for educational response
+        extendedResponses
       );
       
       return {
@@ -355,7 +359,9 @@ async function executeDataQuery(
       message,
       queryResult,
       tier,
-      tierConfig
+      tierConfig,
+      undefined, // missingColumns
+      extendedResponses
     );
     
     // Compose response based on tier
@@ -368,21 +374,6 @@ async function executeDataQuery(
     
     // Add data basis
     responseText = `Data basis: ${queryResult.tables.join(', ')} (${queryResult.rowCount} rows analyzed)\n\n${responseText}`;
-    
-    // Add word count limits
-    if (tier === "beginner") {
-      // Limit to 80 words
-      const words = responseText.split(' ');
-      if (words.length > 80) {
-        responseText = words.slice(0, 80).join(' ') + '...';
-      }
-    } else if (tier === "pro") {
-      // Limit to 180 words
-      const words = responseText.split(' ');
-      if (words.length > 180) {
-        responseText = words.slice(0, 180).join(' ') + '...';
-      }
-    }
     
     // Build response
     const response: AiResponse = {
