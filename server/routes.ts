@@ -512,6 +512,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search conversations (must be before :id routes)
+  app.get('/api/conversations/search', requireAuth, async (req, res) => {
+    try {
+      const userId = (req as AuthenticatedRequest).user.id;
+      const searchTerm = req.query.q as string;
+      
+      if (!searchTerm || searchTerm.trim().length === 0) {
+        return res.json([]);
+      }
+      
+      const results = await storage.searchConversations(userId, searchTerm);
+      res.json(results);
+    } catch (error: any) {
+      console.error('Search conversations error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Get all conversations for the current user
   app.get('/api/conversations', requireAuth, async (req, res) => {
     try {

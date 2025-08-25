@@ -56,6 +56,7 @@ export interface IStorage {
   getMessagesByConversationId(conversationId: number): Promise<ChatMessage[]>;
   deleteConversationsByDataSourceId(dataSourceId: number): Promise<void>;
   deleteConversation(id: number): Promise<void>;
+  searchConversations(userId: number, searchTerm: string): Promise<{ conversation: ChatConversation, messages: ChatMessage[] }[]>;
   
   // Data rows operations
   insertDataRows(dataSourceId: number, rows: any[]): Promise<void>;
@@ -301,6 +302,54 @@ export class DatabaseStorage implements IStorage {
     await db.delete(chatMessages).where(eq(chatMessages.conversationId, id));
     // Then delete the conversation itself
     await db.delete(chatConversations).where(eq(chatConversations.id, id));
+  }
+
+  async searchConversations(userId: number, searchTerm: string): Promise<{ conversation: ChatConversation, messages: ChatMessage[] }[]> {
+    // Search for messages containing the search term
+    const searchPattern = `%${searchTerm.toLowerCase()}%`;
+    
+    // Get all conversations for the user first
+    const userConversations = await db
+      .select()
+      .from(chatConversations)
+      .where(eq(chatConversations.userId, userId));
+    
+    const results = [];
+    
+    // For each conversation, search messages
+    for (const conversation of userConversations) {
+      const matchingMessages = await db
+        .select()
+        .from(chatMessages)
+        .where(
+          and(
+            eq(chatMessages.conversationId, conversation.id),
+            sql`LOWER(${chatMessages.content}) LIKE ${searchPattern}`
+          )
+        )
+        .orderBy(chatMessages.createdAt);
+      
+      // Also check if the conversation title matches
+      const titleMatches = conversation.title && conversation.title.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      if (matchingMessages.length > 0 || titleMatches) {
+        // Get all messages for the conversation to provide context
+        const allMessages = await this.getMessagesByConversationId(conversation.id);
+        results.push({
+          conversation,
+          messages: allMessages
+        });
+      }
+    }
+    
+    // Sort by most recent conversation
+    results.sort((a, b) => {
+      const dateA = new Date(a.conversation.createdAt).getTime();
+      const dateB = new Date(b.conversation.createdAt).getTime();
+      return dateB - dateA;
+    });
+    
+    return results;
   }
 
   async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {

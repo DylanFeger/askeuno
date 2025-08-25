@@ -176,10 +176,11 @@ interface ChatMessage {
 
 interface ChatInterfaceProps {
   conversationId?: number;
+  initialMessages?: ChatMessage[];
   onNewConversation?: () => void;
 }
 
-export default function ChatInterface({ conversationId, onNewConversation }: ChatInterfaceProps) {
+export default function ChatInterface({ conversationId, initialMessages, onNewConversation }: ChatInterfaceProps) {
   const [message, setMessage] = useState('');
   const [currentConversationId, setCurrentConversationId] = useState(conversationId);
   const [expandedFollowUps, setExpandedFollowUps] = useState<Set<number>>(new Set());
@@ -220,10 +221,23 @@ export default function ChatInterface({ conversationId, onNewConversation }: Cha
     enabled: !!currentConversationId,
   });
 
-  const { data: messages = [], refetch } = useQuery<ChatMessage[]>({
+  const { data: fetchedMessages = [], refetch } = useQuery<ChatMessage[]>({
     queryKey: ['/api/conversations', currentConversationId, 'messages'],
-    enabled: !!currentConversationId,
+    enabled: !!currentConversationId && !initialMessages,
   });
+
+  // Use initialMessages if provided, otherwise use fetched messages
+  const messages = initialMessages || fetchedMessages;
+
+  // Update current conversation ID when prop changes
+  useEffect(() => {
+    if (conversationId !== currentConversationId) {
+      setCurrentConversationId(conversationId);
+      if (conversationId && !initialMessages) {
+        refetch();
+      }
+    }
+  }, [conversationId, currentConversationId, initialMessages, refetch]);
 
   // Set selected data source when conversation loads
   useEffect(() => {

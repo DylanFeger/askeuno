@@ -4,23 +4,17 @@ import { Database, Upload, TrendingUp, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import ChatInterface from '@/components/ChatInterface';
-import { ConversationSidebar } from '@/components/ConversationSidebar';
+import { ConversationSearch } from '@/components/ConversationSearch';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { useIsMobile } from '@/hooks/use-mobile';
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import type { DataSource } from '@shared/schema';
+import type { DataSource, ChatMessage } from '@shared/schema';
 
 export default function Chat() {
   const [conversationId, setConversationId] = useState<number | undefined>();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [conversationMessages, setConversationMessages] = useState<ChatMessage[]>([]);
   const { user, isLoading, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
   const isMobile = useIsMobile();
@@ -37,12 +31,9 @@ export default function Chat() {
     enabled: isAuthenticated,
   });
 
-  const handleConversationSelect = (id: number | undefined) => {
+  const handleConversationSelect = (id: number, messages: ChatMessage[]) => {
     setConversationId(id);
-    // Close mobile sidebar when a conversation is selected
-    if (isMobile) {
-      setIsMobileSidebarOpen(false);
-    }
+    setConversationMessages(messages);
   };
 
   if (isLoading) {
@@ -62,71 +53,25 @@ export default function Chat() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       
-      <div className="flex-1 flex">
-        {/* Desktop Sidebar */}
-        {!isMobile && (
-          <ConversationSidebar
-            currentConversationId={conversationId}
-            onConversationSelect={handleConversationSelect}
-            isOpen={isSidebarOpen}
-            onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-          />
-        )}
-
-        {/* Mobile Sidebar in Sheet */}
-        {isMobile && (
-          <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
-            <SheetContent side="left" className="p-0 w-[280px]">
-              <ConversationSidebar
-                currentConversationId={conversationId}
+      <div className="flex-1 flex flex-col">
+        <div className="container mx-auto px-4 py-8 flex-1">
+          <div className="max-w-4xl mx-auto">
+            {/* Welcome message and quick actions */}
+            <div className="mb-8">
+              <div className="text-center mb-6">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  Welcome back, {user?.username}!
+                </h1>
+                <p className="text-gray-600">
+                  Ask me anything about your business data
+                </p>
+              </div>
+              
+              {/* Search Bar */}
+              <ConversationSearch
                 onConversationSelect={handleConversationSelect}
-                isOpen={true}
-                onToggle={() => setIsMobileSidebarOpen(false)}
+                currentConversationId={conversationId}
               />
-            </SheetContent>
-          </Sheet>
-        )}
-
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col">
-          <div className="container mx-auto px-4 py-8 flex-1">
-            <div className="max-w-4xl mx-auto">
-              {/* Welcome message and quick actions */}
-              <div className="mb-8">
-                <div className="flex items-center justify-between mb-4">
-                  {/* Mobile menu button */}
-                  {isMobile && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setIsMobileSidebarOpen(true)}
-                      className="mr-2"
-                    >
-                      <Menu className="w-5 h-5" />
-                    </Button>
-                  )}
-                  
-                  <div className="flex-1 text-center">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                      Welcome back, {user?.username}!
-                    </h1>
-                    <p className="text-gray-600">
-                      Ask me anything about your business data
-                    </p>
-                  </div>
-
-                  {/* Desktop toggle button */}
-                  {!isMobile && !isSidebarOpen && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setIsSidebarOpen(true)}
-                      className="ml-2"
-                    >
-                      <Menu className="w-5 h-5" />
-                    </Button>
-                  )}
-                </div>
                 
                 {dataSources.length === 0 && !conversationId && (
                   <Card className="p-6 mb-8 bg-amber-50 border-amber-200">
@@ -149,14 +94,17 @@ export default function Chat() {
                     </div>
                   </Card>
                 )}
-              </div>
-              
-              {/* Chat Interface - the main focus */}
-              <ChatInterface 
-                conversationId={conversationId} 
-                onNewConversation={() => setConversationId(undefined)}
-              />
             </div>
+            
+            {/* Chat Interface - the main focus */}
+            <ChatInterface 
+              conversationId={conversationId}
+              initialMessages={conversationMessages}
+              onNewConversation={() => {
+                setConversationId(undefined);
+                setConversationMessages([]);
+              }}
+            />
           </div>
         </div>
       </div>
