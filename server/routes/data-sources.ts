@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { storage } from '../storage';
-import { connectToDataSource } from '../services/dataConnector';
+import { connectToDataSourceV2, getAvailableConnectors } from '../services/dataConnectorV2';
 import { logger } from '../utils/logger';
 import { encryptConnectionData, decryptConnectionData } from '../utils/encryption';
 
@@ -15,6 +15,17 @@ router.get('/', requireAuth, async (req: AuthenticatedRequest, res) => {
   } catch (error) {
     logger.error('Error fetching data sources', { error, userId: req.user.id });
     res.status(500).json({ error: 'Failed to fetch data sources' });
+  }
+});
+
+// Get available connector types
+router.get('/connectors', requireAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const connectors = getAvailableConnectors();
+    res.json(connectors);
+  } catch (error) {
+    logger.error('Error fetching available connectors', { error });
+    res.status(500).json({ error: 'Failed to fetch available connectors' });
   }
 });
 
@@ -62,8 +73,8 @@ router.post('/connect', requireAuth, async (req: AuthenticatedRequest, res) => {
       });
     }
 
-    // Test the connection first
-    const testResult = await connectToDataSource(type, connectionData);
+    // Test the connection first using V2 connector framework
+    const testResult = await connectToDataSourceV2(type, connectionData);
     if (!testResult.success) {
       return res.status(400).json({ 
         error: 'Connection test failed', 
@@ -126,8 +137,8 @@ router.post('/:id/sync', requireAuth, async (req: AuthenticatedRequest, res) => 
     // Decrypt connection data
     const connectionData = decryptConnectionData(dataSource.connectionData);
 
-    // Perform sync
-    const syncResult = await connectToDataSource(dataSource.type, connectionData);
+    // Perform sync using V2 connector framework
+    const syncResult = await connectToDataSourceV2(dataSource.type, connectionData);
     
     if (syncResult.success) {
       // Clear old data and insert new

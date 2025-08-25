@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Database, Cloud, Building2, ShoppingCart, BarChart3, FileSpreadsheet, Server, Wifi, AlertCircle, CheckCircle, Upload, FileIcon, Trash2, Shield, TrendingUp } from 'lucide-react';
+import { Database, Cloud, Building2, ShoppingCart, BarChart3, FileSpreadsheet, Server, Wifi, AlertCircle, CheckCircle, Upload, FileIcon, Trash2, Shield, TrendingUp, Users, Mail, Code, DollarSign, Activity, Package, Briefcase, RefreshCw, Loader2, Plus } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -29,26 +29,92 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const dataSourceTypes = [
+  // CRM
+  { id: 'hubspot', name: 'HubSpot', icon: Users, category: 'crm' },
+  { id: 'pipedrive', name: 'Pipedrive', icon: Users, category: 'crm' },
+  { id: 'zoho_crm', name: 'Zoho CRM', icon: Users, category: 'crm' },
+  { id: 'dynamics', name: 'Microsoft Dynamics', icon: Users, category: 'crm' },
+  { id: 'salesforce', name: 'Salesforce', icon: Building2, category: 'crm' },
+  { id: 'intercom', name: 'Intercom', icon: Users, category: 'crm' },
+  { id: 'zendesk', name: 'Zendesk', icon: Users, category: 'crm' },
+  { id: 'freshdesk', name: 'Freshdesk', icon: Users, category: 'crm' },
+  
+  // Marketing
+  { id: 'googleads', name: 'Google Ads', icon: BarChart3, category: 'marketing' },
+  { id: 'facebook_ads', name: 'Facebook Ads', icon: BarChart3, category: 'marketing' },
+  { id: 'instagram', name: 'Instagram', icon: BarChart3, category: 'marketing' },
+  { id: 'linkedin_ads', name: 'LinkedIn Ads', icon: BarChart3, category: 'marketing' },
+  { id: 'twitter_ads', name: 'Twitter Ads', icon: BarChart3, category: 'marketing' },
+  { id: 'mailchimp', name: 'Mailchimp', icon: Mail, category: 'marketing' },
+  { id: 'sendgrid', name: 'SendGrid', icon: Mail, category: 'marketing' },
+  { id: 'klaviyo', name: 'Klaviyo', icon: Mail, category: 'marketing' },
+  { id: 'activecampaign', name: 'ActiveCampaign', icon: Mail, category: 'marketing' },
+  { id: 'constantcontact', name: 'Constant Contact', icon: Mail, category: 'marketing' },
+  { id: 'twilio', name: 'Twilio', icon: Mail, category: 'marketing' },
+  
+  // E-commerce
+  { id: 'shopify', name: 'Shopify', icon: ShoppingCart, category: 'ecommerce' },
+  { id: 'woocommerce', name: 'WooCommerce', icon: ShoppingCart, category: 'ecommerce' },
+  { id: 'amazon_seller', name: 'Amazon Seller', icon: ShoppingCart, category: 'ecommerce' },
+  { id: 'ebay', name: 'eBay', icon: ShoppingCart, category: 'ecommerce' },
+  { id: 'bigcommerce', name: 'BigCommerce', icon: ShoppingCart, category: 'ecommerce' },
+  
+  // Payments
+  { id: 'stripe', name: 'Stripe', icon: DollarSign, category: 'payments' },
+  { id: 'square', name: 'Square', icon: DollarSign, category: 'payments' },
+  { id: 'paypal', name: 'PayPal', icon: DollarSign, category: 'payments' },
+  
+  // Accounting/Finance
+  { id: 'quickbooks', name: 'QuickBooks', icon: Briefcase, category: 'accounting' },
+  { id: 'xero', name: 'Xero', icon: Briefcase, category: 'accounting' },
+  { id: 'netsuite', name: 'NetSuite', icon: Briefcase, category: 'accounting' },
+  { id: 'freshbooks', name: 'FreshBooks', icon: Briefcase, category: 'accounting' },
+  
+  // Analytics
+  { id: 'google_analytics', name: 'Google Analytics', icon: Activity, category: 'analytics' },
+  { id: 'mixpanel', name: 'Mixpanel', icon: Activity, category: 'analytics' },
+  { id: 'segment', name: 'Segment', icon: Activity, category: 'analytics' },
+  { id: 'amplitude', name: 'Amplitude', icon: Activity, category: 'analytics' },
+  { id: 'snowflake', name: 'Snowflake', icon: Activity, category: 'analytics' },
+  { id: 'bigquery', name: 'BigQuery', icon: Activity, category: 'analytics' },
+  { id: 'redshift', name: 'Redshift', icon: Activity, category: 'analytics' },
+  { id: 'datadog', name: 'Datadog', icon: Activity, category: 'analytics' },
+  { id: 'newrelic', name: 'New Relic', icon: Activity, category: 'analytics' },
+  { id: 'sentry', name: 'Sentry', icon: Activity, category: 'analytics' },
+  
+  // Productivity
+  { id: 'slack', name: 'Slack', icon: Package, category: 'productivity' },
+  { id: 'trello', name: 'Trello', icon: Package, category: 'productivity' },
+  { id: 'asana', name: 'Asana', icon: Package, category: 'productivity' },
+  { id: 'jira', name: 'Jira', icon: Package, category: 'productivity' },
+  { id: 'clickup', name: 'ClickUp', icon: Package, category: 'productivity' },
+  { id: 'monday', name: 'Monday.com', icon: Package, category: 'productivity' },
+  { id: 'notion', name: 'Notion', icon: Package, category: 'productivity' },
+  { id: 'airtable', name: 'Airtable', icon: Package, category: 'productivity' },
+  { id: 'github', name: 'GitHub', icon: Code, category: 'productivity' },
+  { id: 'gitlab', name: 'GitLab', icon: Code, category: 'productivity' },
+  { id: 'bitbucket', name: 'Bitbucket', icon: Code, category: 'productivity' },
+  { id: 'pagerduty', name: 'PagerDuty', icon: Package, category: 'productivity' },
+  { id: 'opsgenie', name: 'Opsgenie', icon: Package, category: 'productivity' },
+  
+  // Databases
   { id: 'mysql', name: 'MySQL', icon: Database, category: 'database' },
   { id: 'postgres', name: 'PostgreSQL', icon: Database, category: 'database' },
   { id: 'mongodb', name: 'MongoDB', icon: Database, category: 'database' },
+  
+  // Cloud Storage
   { id: 'googlesheets', name: 'Google Sheets', icon: FileSpreadsheet, category: 'cloud' },
   { id: 's3', name: 'AWS S3', icon: Cloud, category: 'cloud' },
-  { id: 'salesforce', name: 'Salesforce', icon: Building2, category: 'apps' },
-  { id: 'shopify', name: 'Shopify', icon: ShoppingCart, category: 'apps' },
-  { id: 'googleads', name: 'Google Ads', icon: BarChart3, category: 'apps' },
-  { id: 'stripe', name: 'Stripe', icon: ShoppingCart, category: 'payments' },
-  { id: 'square', name: 'Square', icon: ShoppingCart, category: 'payments' },
-  { id: 'paypal', name: 'PayPal', icon: ShoppingCart, category: 'payments' },
-  { id: 'quickbooks', name: 'QuickBooks', icon: Building2, category: 'accounting' },
+  
+  // Generic
   { id: 'api', name: 'Custom API', icon: Server, category: 'api' },
 ];
 
 // Define data source limits per tier
 const DATA_SOURCE_LIMITS = {
   starter: 1,
-  growth: 3,  
-  pro: 10
+  professional: 3,  
+  enterprise: 10
 };
 
 export default function ConnectionsPage() {
