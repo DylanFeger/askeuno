@@ -400,51 +400,6 @@ export default function SubscriptionPage() {
             </div>
           </div>
 
-          {/* Trust Signals */}
-          <div className="mt-16 text-center">
-            <h3 className="text-2xl font-bold mb-8">Why Businesses Choose Euno</h3>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <Shield className="w-6 h-6 text-blue-600" />
-                </div>
-                <h4 className="font-semibold mb-2">Bank-Level Security</h4>
-                <p className="text-sm text-gray-600">
-                  Your data is encrypted at rest and in transit. We never share or sell your information.
-                </p>
-              </div>
-              
-              <div>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <TrendingUp className="w-6 h-6 text-green-600" />
-                </div>
-                <h4 className="font-semibold mb-2">Real Business Impact</h4>
-                <p className="text-sm text-gray-600">
-                  Our customers report 40% time savings on data analysis and 25% increase in revenue insights.
-                </p>
-              </div>
-              
-              <div>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <CreditCard className="w-6 h-6 text-purple-600" />
-                </div>
-                <h4 className="font-semibold mb-2">Fair, Flexible Billing</h4>
-                <p className="text-sm text-gray-600">
-                  No hidden fees. Change or cancel your plan anytime. We believe in earning your business every month.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-8 p-4 bg-gray-100 rounded-lg inline-block">
-              <div className="text-sm text-gray-600 flex items-center justify-center">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                Questions about pricing? Email us at{' '}
-                <span className="ml-1">
-                  <EmailWithCopy email="support@askeuno.com" className="text-primary hover:underline" />
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
