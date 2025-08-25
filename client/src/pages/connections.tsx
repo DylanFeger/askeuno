@@ -687,14 +687,6 @@ export default function ConnectionsPage() {
                     <Wifi className="mr-2 h-4 w-4" />
                     Connect Your First Data Source
                   </Button>
-                  {uploadedFiles.length === 0 && (
-                    <Link href="/start-tracking">
-                      <Button variant="outline">
-                        <TrendingUp className="mr-2 h-4 w-4" />
-                        No data yet? Start tracking now
-                      </Button>
-                    </Link>
-                  )}
                 </div>
               </Card>
             ) : (
