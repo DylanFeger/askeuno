@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, Bot, User, ChevronDown, ChevronUp, Brain, FileText, Database, AlertCircle, ChevronRight, BarChart2, Lock } from 'lucide-react';
-import { ResponseLengthToggle } from './ResponseLengthToggle';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -182,18 +182,31 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
   const [message, setMessage] = useState('');
   const [currentConversationId, setCurrentConversationId] = useState(conversationId);
   const [expandedFollowUps, setExpandedFollowUps] = useState<Set<number>>(new Set());
-  const [extendedThinking, setExtendedThinking] = useState(false);
+  const [extendedResponses, setExtendedResponses] = useState(false);
   const [selectedDataSourceId, setSelectedDataSourceId] = useState<number | null>(null);
   const [includeChart, setIncludeChart] = useState(false);
   const [showRateLimitWarning, setShowRateLimitWarning] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+  const { toast } = useToast();
   
   // Tier access for charts (Professional/Enterprise feature)
   const chartAccess = useTierAccess('professional', 'Visual Charts & Graphs');
   
   // Tier access for extended responses (Professional/Enterprise feature)
   const extendedResponseAccess = useTierAccess('professional', 'Extended AI Responses');
+  
+  // Get user data to check tier and preferences
+  const { data: userData } = useQuery<any>({
+    queryKey: ['/api/auth/me'],
+  });
+  
+  // Initialize extended responses from user preferences
+  useEffect(() => {
+    if (userData?.preferences?.extendedResponses !== undefined) {
+      setExtendedResponses(userData.preferences.extendedResponses);
+    }
+  }, [userData]);
 
   // Fetch available data sources
   const { data: dataSources = [] } = useQuery<DataSource[]>({
@@ -294,13 +307,6 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
 
   return (
     <Card className="p-8">
-      {/* Response length toggle for Professional/Enterprise */}
-      {(user?.subscriptionTier === 'professional' || user?.subscriptionTier === 'enterprise') && (
-        <div className="mb-4">
-          <ResponseLengthToggle />
-        </div>
-      )}
-      
       {/* Data Source Info Bar */}
       <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -364,18 +370,40 @@ export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-semibold text-gray-900">Chat with Euno</h2>
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Brain className="w-4 h-4 text-gray-500" />
-            <Label htmlFor="extended-thinking" className="text-sm text-gray-600 cursor-pointer">
-              Extended Thinking
-            </Label>
-            <Switch
-              id="extended-thinking"
-              checked={extendedThinking}
-              onCheckedChange={setExtendedThinking}
-              className="data-[state=checked]:bg-primary"
-            />
-          </div>
+          {(user?.subscriptionTier === 'professional' || user?.subscriptionTier === 'enterprise') && (
+            <div className="flex items-center space-x-2">
+              <Brain className="w-4 h-4 text-gray-500" />
+              <Label htmlFor="extended-responses" className="text-sm text-gray-600 cursor-pointer">
+                {extendedResponses ? "Extended (5 sentences)" : "Concise (1-2 sentences)"}
+              </Label>
+              <Switch
+                id="extended-responses"
+                checked={extendedResponses}
+                onCheckedChange={async (checked) => {
+                  try {
+                    setExtendedResponses(checked);
+                    await apiRequest('PATCH', '/api/auth/preferences', {
+                      extendedResponses: checked
+                    });
+                    toast({
+                      title: checked ? "Extended responses enabled" : "Concise responses enabled",
+                      description: checked 
+                        ? "AI will provide up to 5 sentences of analysis" 
+                        : "AI will provide 1-2 sentence responses",
+                    });
+                  } catch (error) {
+                    setExtendedResponses(!checked);
+                    toast({
+                      title: "Failed to update preference",
+                      description: "Please try again",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+                className="data-[state=checked]:bg-primary"
+              />
+            </div>
+          )}
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             <span>Online</span>
