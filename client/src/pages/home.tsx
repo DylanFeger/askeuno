@@ -187,7 +187,7 @@ export default function Home() {
                   </div>
                   {/* Text below the logo */}
                   <span className="text-2xl font-bold text-primary group-hover:text-primary/90 transition-colors">
-                    Ask Euno
+                    Try Asking Euno for Free
                   </span>
                 </button>
               </div>
