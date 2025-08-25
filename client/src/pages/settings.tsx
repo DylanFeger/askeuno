@@ -32,7 +32,7 @@ export default function SettingsPage() {
   const [preferences, setPreferences] = useState({
     emailNotifications: true,
     syncFrequency: '60',
-    dataRetention: '90',
+    dataRetention: '0',
     autoAnalysis: true
   });
 
