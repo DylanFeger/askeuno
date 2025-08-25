@@ -177,11 +177,16 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Button 
                   size="lg"
-                  className="px-8 py-6 text-lg font-bold bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                  className="group relative px-10 py-7 text-xl font-bold bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 rounded-xl border-2 border-primary/20 overflow-hidden"
                   onClick={() => setLocation('/signin')}
                 >
-                  Ask Euno
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                  <div className="relative flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                      <EunoLogo className="w-7 h-7 text-white" />
+                    </div>
+                    <span className="text-white">Ask Euno</span>
+                  </div>
                 </Button>
               </div>
               
