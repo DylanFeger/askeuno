@@ -3,9 +3,10 @@ import { requireAuth } from "../middleware/auth";
 import { handleChat } from "../ai/orchestrator";
 import { getActiveDataSource } from "../data/datasource";
 import { db } from "../db";
-import { users } from "@shared/schema";
+import { users, conversations, chatMessages } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { logger } from "../utils/logger";
+import { storage } from "../storage";
 
 const router = Router();
 
@@ -33,15 +34,54 @@ router.post("/chat", requireAuth, async (req, res) => {
     // Use tier directly (default to starter for free users)
     const tier = user.subscriptionTier || 'starter';
     
-    // Handle chat
+    // Get active data source for conversation
+    const dataSource = await getActiveDataSource(userId);
+    const dataSourceId = dataSource.active && dataSource.tables.length > 0 ? 
+      (await storage.getDataSourcesByUserId(userId))[0]?.id : undefined;
+    
+    // Create or get conversation
+    let actualConversationId = conversationId;
+    
+    if (!actualConversationId) {
+      // Create new conversation
+      const newConversation = await storage.createConversation(userId, dataSourceId);
+      actualConversationId = newConversation.id;
+      
+      // Update conversation title based on the message
+      await storage.updateConversation(actualConversationId, {
+        title: message.substring(0, 50) + (message.length > 50 ? '...' : '')
+      });
+    }
+    
+    // Save user message
+    await storage.createChatMessage({
+      conversationId: actualConversationId,
+      role: 'user',
+      content: message,
+      metadata: {}
+    });
+    
+    // Handle chat and get AI response
     const response = await handleChat({
       userId,
       tier,
       message,
-      conversationId
+      conversationId: actualConversationId
     });
     
-    res.json(response);
+    // Save AI response
+    await storage.createChatMessage({
+      conversationId: actualConversationId,
+      role: 'assistant',
+      content: response.text,
+      metadata: response.meta || {}
+    });
+    
+    // Return response with conversation ID
+    res.json({
+      ...response,
+      conversationId: actualConversationId
+    });
     
   } catch (error) {
     logger.error("Chat endpoint error:", error);
