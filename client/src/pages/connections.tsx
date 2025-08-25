@@ -61,35 +61,11 @@ export default function ConnectionsPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   
-  // Redirect to signin if not authenticated
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      setLocation('/signin');
-    }
-  }, [isAuthenticated, isLoading, setLocation]);
-  
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-  
-  // Don't render anything if not authenticated (will redirect)
-  if (!isAuthenticated) {
-    return null;
-  }
-
+  // Move all hooks before conditional returns
   const { data: connections = [] } = useQuery<any[]>({
     queryKey: ['/api/data-sources'],
+    enabled: isAuthenticated, // Only fetch when authenticated
   });
-  
-  // Calculate current usage and limit
-  const userTier = user?.subscriptionTier || 'starter';
-  const dataSourceLimit = DATA_SOURCE_LIMITS[userTier as keyof typeof DATA_SOURCE_LIMITS] || DATA_SOURCE_LIMITS.starter;
-  const canAddMore = connections.length < dataSourceLimit;
 
   const createConnectionMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -138,6 +114,32 @@ export default function ConnectionsPage() {
       });
     },
   });
+
+  // Redirect to signin if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      setLocation('/signin');
+    }
+  }, [isAuthenticated, isLoading, setLocation]);
+  
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+  // Don't render anything if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return null;
+  }
+  
+  // Calculate current usage and limit
+  const userTier = user?.subscriptionTier || 'starter';
+  const dataSourceLimit = DATA_SOURCE_LIMITS[userTier as keyof typeof DATA_SOURCE_LIMITS] || DATA_SOURCE_LIMITS.starter;
+  const canAddMore = connections.length < dataSourceLimit;
 
   const resetForm = () => {
     setSelectedType('');
