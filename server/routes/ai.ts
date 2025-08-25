@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth";
 import { handleChat } from "../ai/orchestrator";
-import { mapTierName } from "../ai/tiers";
 import { getActiveDataSource } from "../data/datasource";
 import { db } from "../db";
 import { users } from "@shared/schema";
@@ -31,8 +30,8 @@ router.post("/chat", requireAuth, async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
     
-    // Map Euno tier names to spec tier names
-    const tier = mapTierName(user.subscriptionTier || 'starter');
+    // Use tier directly (default to starter for free users)
+    const tier = user.subscriptionTier || 'starter';
     
     // Handle chat
     const response = await handleChat({
