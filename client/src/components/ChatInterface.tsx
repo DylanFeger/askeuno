@@ -300,9 +300,13 @@ export default function ChatInterface({ conversationId, onNewConversation }: Cha
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Only scroll when messages actually change in length (new message added)
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    // Only scroll if we have messages and a new one was added
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages.length]);
 
   const selectedDataSource = dataSources.find(ds => ds.id === selectedDataSourceId);
 
