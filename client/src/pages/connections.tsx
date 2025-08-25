@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Database, Cloud, Building2, ShoppingCart, BarChart3, FileSpreadsheet, Server, Wifi, AlertCircle, CheckCircle, Upload, FileIcon, Trash2, Shield, TrendingUp, Users, Mail, Code, DollarSign, Activity, Package, Briefcase, RefreshCw, Loader2, Plus } from 'lucide-react';
+import { Database, Cloud, Building2, ShoppingCart, BarChart3, FileSpreadsheet, Server, Wifi, AlertCircle, CheckCircle, Upload, FileIcon, Trash2, Shield, TrendingUp, Users, Mail, Code, DollarSign, Activity, Package, Briefcase, RefreshCw, Loader2, Plus, Search } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -122,6 +122,8 @@ export default function ConnectionsPage() {
   const [selectedType, setSelectedType] = useState('');
   const [connectionForm, setConnectionForm] = useState<any>({});
   const [deleteConfirmation, setDeleteConfirmation] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -210,6 +212,8 @@ export default function ConnectionsPage() {
   const resetForm = () => {
     setSelectedType('');
     setConnectionForm({});
+    setSearchQuery('');
+    setSelectedCategory('all');
   };
 
   const renderConnectionForm = () => {
@@ -839,26 +843,92 @@ export default function ConnectionsPage() {
             </DialogHeader>
 
             <div className="overflow-y-auto flex-1 pr-2">
-              <Tabs value={selectedType} onValueChange={setSelectedType}>
-                <TabsList className="grid grid-cols-4 mb-4">
+              {/* Search Input */}
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  type="text"
+                  placeholder="Search for a data source..."
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              {/* Category Tabs */}
+              <Tabs value={selectedCategory} onValueChange={(value) => {
+                setSelectedCategory(value);
+                setSelectedType(''); // Clear selection when changing category
+              }}>
+                <TabsList className="grid grid-cols-4 mb-2">
+                  <TabsTrigger value="all">All</TabsTrigger>
                   <TabsTrigger value="database">Databases</TabsTrigger>
-                  <TabsTrigger value="cloud">Cloud Storage</TabsTrigger>
-                  <TabsTrigger value="apps">Apps</TabsTrigger>
-                  <TabsTrigger value="api">APIs</TabsTrigger>
+                  <TabsTrigger value="crm">CRM</TabsTrigger>
+                  <TabsTrigger value="marketing">Marketing</TabsTrigger>
                 </TabsList>
 
-                <div className="grid grid-cols-3 gap-2 mb-4">
-                  {dataSourceTypes.map((ds) => (
-                    <Button
-                      key={ds.id}
-                      variant={selectedType === ds.id ? 'default' : 'outline'}
-                      className="flex flex-col items-center p-4 h-auto"
-                      onClick={() => setSelectedType(ds.id)}
-                    >
-                      <ds.icon className="h-6 w-6 mb-1" />
-                      <span className="text-xs">{ds.name}</span>
-                    </Button>
-                  ))}
+                <TabsList className="grid grid-cols-5 mb-4">
+                  <TabsTrigger value="ecommerce">E-commerce</TabsTrigger>
+                  <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                  <TabsTrigger value="productivity">Productivity</TabsTrigger>
+                  <TabsTrigger value="payments">Payments</TabsTrigger>
+                  <TabsTrigger value="accounting">Finance</TabsTrigger>
+                </TabsList>
+
+                <div className="mb-4">
+                  {(() => {
+                    const filteredSources = dataSourceTypes.filter(ds => {
+                      // Filter by search query
+                      const matchesSearch = searchQuery === '' || 
+                        ds.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        ds.id.toLowerCase().includes(searchQuery.toLowerCase());
+                      
+                      // Filter by category
+                      const matchesCategory = selectedCategory === 'all' || 
+                        ds.category === selectedCategory ||
+                        (selectedCategory === 'cloud' && (ds.category === 'cloud' || ds.category === 'api'));
+                      
+                      return matchesSearch && matchesCategory;
+                    });
+
+                    if (filteredSources.length === 0) {
+                      return (
+                        <div className="text-center py-8 text-gray-500">
+                          <Search className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                          <p className="text-sm">
+                            {searchQuery 
+                              ? `No connectors found matching "${searchQuery}"`
+                              : `No connectors in this category`}
+                          </p>
+                          {searchQuery && (
+                            <Button 
+                              variant="link" 
+                              onClick={() => setSearchQuery('')}
+                              className="mt-2"
+                            >
+                              Clear search
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="grid grid-cols-3 gap-2">
+                        {filteredSources.map((ds) => (
+                          <Button
+                            key={ds.id}
+                            variant={selectedType === ds.id ? 'default' : 'outline'}
+                            className="flex flex-col items-center p-4 h-auto"
+                            onClick={() => setSelectedType(ds.id)}
+                          >
+                            <ds.icon className="h-6 w-6 mb-1" />
+                            <span className="text-xs">{ds.name}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {selectedType && (
