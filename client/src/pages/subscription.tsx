@@ -338,7 +338,7 @@ export default function SubscriptionPage() {
                         <span className="text-2xl font-bold text-primary">
                           {plan.queryLimit === Infinity ? 'Infinite' : plan.queryLimit}
                         </span>
-                        <span className="text-sm text-gray-600 ml-1">queries/month</span>
+                        <span className="text-sm text-gray-600 ml-1">queries/hour</span>
                       </div>
                       
                       <div className="mt-4">
