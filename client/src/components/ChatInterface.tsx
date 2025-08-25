@@ -176,9 +176,10 @@ interface ChatMessage {
 
 interface ChatInterfaceProps {
   conversationId?: number;
+  onNewConversation?: () => void;
 }
 
-export default function ChatInterface({ conversationId }: ChatInterfaceProps) {
+export default function ChatInterface({ conversationId, onNewConversation }: ChatInterfaceProps) {
   const [message, setMessage] = useState('');
   const [currentConversationId, setCurrentConversationId] = useState(conversationId);
   const [expandedFollowUps, setExpandedFollowUps] = useState<Set<number>>(new Set());

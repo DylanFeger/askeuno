@@ -55,6 +55,7 @@ export interface IStorage {
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getMessagesByConversationId(conversationId: number): Promise<ChatMessage[]>;
   deleteConversationsByDataSourceId(dataSourceId: number): Promise<void>;
+  deleteConversation(id: number): Promise<void>;
   
   // Data rows operations
   insertDataRows(dataSourceId: number, rows: any[]): Promise<void>;
@@ -293,6 +294,13 @@ export class DatabaseStorage implements IStorage {
       console.error('Error deleting conversations by data source:', error);
       // Continue with deletion even if conversations fail
     }
+  }
+
+  async deleteConversation(id: number): Promise<void> {
+    // Delete all messages for this conversation first
+    await db.delete(chatMessages).where(eq(chatMessages.conversationId, id));
+    // Then delete the conversation itself
+    await db.delete(chatConversations).where(eq(chatConversations.id, id));
   }
 
   async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
