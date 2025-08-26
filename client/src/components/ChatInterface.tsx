@@ -190,6 +190,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
   const [includeChart, setIncludeChart] = useState(false);
   const [showRateLimitWarning, setShowRateLimitWarning] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -375,7 +376,10 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Scroll the container, not the entire page
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   };
 
   // Only scroll when messages actually change in length (new message added)
@@ -494,7 +498,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
         </div>
       </div>
 
-      <div className="space-y-4 mb-6 max-h-96 overflow-y-auto min-h-[300px]">
+      <div ref={messagesContainerRef} className="space-y-4 mb-6 max-h-96 overflow-y-auto min-h-[300px]">
         {/* Welcome message */}
         {messages.length === 0 && (
           <div className="flex items-start space-x-3">
