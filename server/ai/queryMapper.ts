@@ -12,6 +12,8 @@ export interface QueryMapping {
   timeRange?: string;
   isValid: boolean;
   missingPieces?: string[];
+  needsClarification?: boolean;
+  clarificationNeeded?: string;
 }
 
 export interface SchemaField {
@@ -39,6 +41,28 @@ export async function mapQueryToSchema(
     return { isValid: false, missingPieces: ['data source'] };
   }
 
+  const lowercaseQuery = query.toLowerCase();
+  
+  // Early detection for very general queries that always need clarification
+  const generalQueryPatterns = [
+    'tell me about my data',
+    'tell me about the data',
+    'how are we doing',
+    'how\'s it going',
+    'show me everything',
+    'what\'s happening',
+    'give me an overview',
+    'analyze my data',
+    'what can you tell me',
+    'how\'s business',
+    'summary please',
+    'general report'
+  ];
+  
+  const isVeryGeneral = generalQueryPatterns.some(pattern => 
+    lowercaseQuery === pattern || lowercaseQuery === pattern + '?'
+  );
+
   // Extract available fields from all data sources
   const availableFields: Set<string> = new Set();
   const fieldDescriptions: Map<string, string> = new Map();
@@ -55,6 +79,20 @@ export async function mapQueryToSchema(
   });
 
   const availableFieldsList = Array.from(availableFields);
+  
+  // If it's a very general query, immediately return with clarification needed
+  if (isVeryGeneral) {
+    const clarificationQuestion = await generateClarifyingQuestion(
+      query, 
+      availableFieldsList
+    );
+    return {
+      isValid: true,
+      needsClarification: true,
+      clarificationNeeded: clarificationQuestion,
+      interpretedIntent: "General business overview or status check"
+    };
+  }
   
   // Use OpenAI to intelligently interpret the query
   try {
@@ -80,9 +118,15 @@ IMPORTANT INTERPRETATION RULES:
 4. ONLY mark as invalid if truly unrelated (like "world record for pushups", "capital of France", etc.)
 5. When in doubt, assume the user is asking about their business data
 
+CLARIFICATION RULES:
+- If query is too general (e.g., "tell me about my data"), set needsClarification to true
+- If no time period specified for trend queries, suggest clarification
+- If asking about metrics without specific ones, suggest clarification
+- Generate helpful clarification questions in clarificationNeeded field
+
 Response rules:
 - Set isValid to true for ANY query that could possibly relate to business data
-- For general queries, you can leave metric/segment as null but still mark as valid
+- For general queries, mark as valid but set needsClarification to true
 - Only set isValid to false for truly non-business queries
 
 Respond with JSON only:
@@ -92,7 +136,9 @@ Respond with JSON only:
   "timeRange": "detected time range or null",
   "isValid": true/false,
   "interpretedIntent": "what you think they're asking about",
-  "missingPieces": []
+  "missingPieces": [],
+  "needsClarification": true/false,
+  "clarificationNeeded": "specific question to ask user for clarity or null"
 }`;
 
     const response = await openai.chat.completions.create({
@@ -125,6 +171,47 @@ Respond with JSON only:
     // Default to valid for general queries to avoid false negatives
     return { isValid: true, missingPieces: [] };
   }
+}
+
+/**
+ * Generates clarifying questions for vague or general queries
+ */
+export async function generateClarifyingQuestion(
+  query: string,
+  availableFields: string[],
+  interpretedIntent?: string
+): Promise<string> {
+  const lowercaseQuery = query.toLowerCase();
+  
+  // Check for specific patterns and generate appropriate clarifications
+  if (lowercaseQuery.includes('tell me about') || lowercaseQuery.includes('my data') || 
+      lowercaseQuery.includes('overview') || lowercaseQuery.includes('summary')) {
+    return "I'd be happy to analyze your data! What specifically would you like to know - sales trends, top products, performance by category, or something else?";
+  }
+  
+  if (lowercaseQuery.includes('how are we doing') || lowercaseQuery.includes('how\'s it going') ||
+      lowercaseQuery.includes('performance')) {
+    return "To show you how the business is performing, which time period should I analyze - today, this week, this month, or a custom range?";
+  }
+  
+  if (lowercaseQuery.includes('trend') || lowercaseQuery.includes('over time')) {
+    return "I can analyze trends for you. Which metric would you like to track over time - revenue, sales volume, or another measure?";
+  }
+  
+  if (lowercaseQuery.includes('best') || lowercaseQuery.includes('top') || lowercaseQuery.includes('highest')) {
+    return "I'll find your top performers. Should I look at revenue, units sold, or another metric? And for which time period?";
+  }
+  
+  if (lowercaseQuery.includes('compare')) {
+    return "What would you like to compare - different time periods, product categories, or sales channels?";
+  }
+  
+  if (lowercaseQuery.includes('improve') || lowercaseQuery.includes('better')) {
+    return "To identify improvement opportunities, should I analyze underperforming products, slow periods, or inventory issues?";
+  }
+  
+  // Default clarification for general queries
+  return "I understand you want insights about your business. Could you be more specific - are you interested in sales performance, inventory levels, customer patterns, or a particular time period?";
 }
 
 /**

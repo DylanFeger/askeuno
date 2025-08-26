@@ -11,7 +11,8 @@ import { TIERS } from '../ai/tiers';
 import { v4 as uuidv4 } from 'uuid';
 import { 
   mapQueryToSchema, 
-  generateRewriteRequest, 
+  generateRewriteRequest,
+  generateClarifyingQuestion, 
   generateExampleQuestions, 
   logScopeMismatch,
   type DataSourceInfo 
@@ -116,7 +117,7 @@ router.post('/send', requireAuth, async (req: Request, res: Response) => {
       responseContent = "Please connect a database or upload a file first. Go to the Data Sources page to add your data.";
       responseMetadata.intent = 'no_data';
     } else if (!queryMapping.isValid) {
-      // Query doesn't align with data
+      // Query doesn't align with data - only for truly unrelated queries
       const sourceNames = dataSourceInfos.map(ds => ds.name).join(', ');
       responseContent = `That question doesn't align with the data you've connected. I analyze your ${sourceNames}. Try a metric + segment + time range.`;
       
@@ -137,6 +138,22 @@ router.post('/send', requireAuth, async (req: Request, res: Response) => {
       
       responseMetadata.intent = 'scope_mismatch';
       responseMetadata.examples = examples;
+    } else if (queryMapping.needsClarification) {
+      // Query needs clarification for better accuracy
+      const availableFields = dataSourceInfos.flatMap(ds => 
+        Object.values(ds.schema || {}).map((col: any) => col.name)
+      );
+      
+      // Generate intelligent clarifying question based on query context
+      responseContent = queryMapping.clarificationNeeded || 
+                       await generateClarifyingQuestion(
+                         message, 
+                         availableFields,
+                         queryMapping.interpretedIntent
+                       );
+      
+      responseMetadata.intent = 'needs_clarification';
+      responseMetadata.interpretedIntent = queryMapping.interpretedIntent;
     } else if (queryMapping.missingPieces && queryMapping.missingPieces.length > 0) {
       // Missing information for valid query
       responseContent = await generateRewriteRequest(message, queryMapping.missingPieces);

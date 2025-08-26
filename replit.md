@@ -15,6 +15,12 @@ Euno is a secure, easy-to-use data platform for small businesses to upload, stor
   - **Consistent OpenAI Settings**: All mapping uses temperature=0 and top_p=1 for deterministic results
   - **Scope Mismatch Logging**: Still tracks truly off-topic queries for analytics
   - **Tier Gates on Features Only**: Tier restrictions apply only to advanced features (charts, forecasts), not basic chat scope
+  - **Smart Clarification System**: AI now asks clarifying questions when queries are too general or lack specifics
+    - Detects vague queries like "tell me about my data" and asks what specifically to analyze
+    - Requests time periods for trend analysis when not specified
+    - Asks for specific metrics when queries are too broad
+    - Provides context-aware clarification questions based on query type
+    - Improves accuracy by ensuring AI has the right parameters before analysis
 - **Chat System Reliability Overhaul**: Implemented comprehensive improvements for reliable chat functionality:
   - **Message Deduplication**: Server-generated unique message IDs prevent duplicate messages
   - **Request-based Caching**: Request IDs with TTL cache prevent duplicate processing  
@@ -108,6 +114,7 @@ Key principles:
 - Metaphorical intelligence for interpreting casual queries
 - Proactive insights and action-oriented recommendations
 - Toggle-able extended thinking for AI responses
+- Smart clarification system that asks for specifics when queries are too general
 
 ## System Architecture
 
