@@ -28,7 +28,7 @@ export interface DataSourceInfo {
 }
 
 /**
- * Maps a user query to available data fields using strict field matching
+ * Maps a user query to available data fields using intelligent interpretation
  * Returns a mapping with metric, segment, and time range if available
  */
 export async function mapQueryToSchema(
@@ -56,21 +56,34 @@ export async function mapQueryToSchema(
 
   const availableFieldsList = Array.from(availableFields);
   
-  // Use OpenAI to map the query to available fields with strict instructions
+  // Use OpenAI to intelligently interpret the query
   try {
     const mappingPrompt = `
-You are a strict data field mapper. Your job is to map user queries to ONLY the available data fields.
+You are an intelligent business data analyst who helps users understand their data.
+Your job is to interpret what the user is asking about and relate it to their connected business data.
 
-Available fields: ${availableFieldsList.join(', ')}
+Available fields in their data: ${availableFieldsList.join(', ')}
 
 User query: "${query}"
 
-Rules:
-1. ONLY use fields that exist in the available fields list
-2. Map the query to: metric (what to measure), segment (how to group), timeRange (when)
-3. If a required piece is missing, note it in missingPieces
-4. If the query cannot be mapped to available fields, set isValid to false
-5. Never invent or assume fields that don't exist
+IMPORTANT INTERPRETATION RULES:
+1. Be VERY liberal in interpreting queries as business-related
+2. Metaphorical queries should be interpreted as business questions:
+   - "How's the weather?" = How is business performing?
+   - "Tell me about my data" = Give overview of the data
+   - "How are we doing?" = Current business performance
+   - "Where are we headed?" = Business trends and direction
+   - "How can we improve?" = Performance optimization opportunities
+   - "What's cooking?" = What products/trends are hot
+   - "Are we healthy?" = Business health metrics
+3. General questions about "data", "performance", "trends" are ALWAYS valid
+4. ONLY mark as invalid if truly unrelated (like "world record for pushups", "capital of France", etc.)
+5. When in doubt, assume the user is asking about their business data
+
+Response rules:
+- Set isValid to true for ANY query that could possibly relate to business data
+- For general queries, you can leave metric/segment as null but still mark as valid
+- Only set isValid to false for truly non-business queries
 
 Respond with JSON only:
 {
@@ -78,7 +91,8 @@ Respond with JSON only:
   "segment": "field_name or null", 
   "timeRange": "detected time range or null",
   "isValid": true/false,
-  "missingPieces": ["list of missing pieces"]
+  "interpretedIntent": "what you think they're asking about",
+  "missingPieces": []
 }`;
 
     const response = await openai.chat.completions.create({
@@ -86,7 +100,7 @@ Respond with JSON only:
       messages: [
         { 
           role: 'system', 
-          content: 'You are a strict data field mapper. Only map to fields that actually exist. Never invent fields.'
+          content: 'You are an intelligent business analyst who interprets queries liberally. Assume users are asking about their business data unless clearly unrelated.'
         },
         { role: 'user', content: mappingPrompt }
       ],
@@ -97,26 +111,19 @@ Respond with JSON only:
 
     const mapping = JSON.parse(response.choices[0].message.content || '{}');
     
-    // Validate that mapped fields actually exist
-    if (mapping.metric && !availableFields.has(mapping.metric.toLowerCase())) {
-      mapping.metric = null;
-      mapping.missingPieces = mapping.missingPieces || [];
-      mapping.missingPieces.push('valid metric field');
+    // Be lenient - if the query could possibly be business-related, it's valid
+    // Only truly unrelated queries should be marked invalid
+    if (mapping.interpretedIntent && 
+        !mapping.interpretedIntent.toLowerCase().includes('unrelated') &&
+        !mapping.interpretedIntent.toLowerCase().includes('non-business')) {
+      mapping.isValid = true;
     }
-    
-    if (mapping.segment && !availableFields.has(mapping.segment.toLowerCase())) {
-      mapping.segment = null;
-      mapping.missingPieces = mapping.missingPieces || [];
-      mapping.missingPieces.push('valid segment field');
-    }
-    
-    // Check if we have enough to answer
-    mapping.isValid = !!(mapping.metric || (mapping.segment && mapping.timeRange));
     
     return mapping;
   } catch (error) {
     logger.error('Error mapping query to schema', { error, query });
-    return { isValid: false, missingPieces: ['unable to process query'] };
+    // Default to valid for general queries to avoid false negatives
+    return { isValid: true, missingPieces: [] };
   }
 }
 

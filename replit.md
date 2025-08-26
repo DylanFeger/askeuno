@@ -4,15 +4,16 @@
 Euno is a secure, easy-to-use data platform for small businesses to upload, store, and analyze their data. It offers a secure upload portal, cloud storage integration, ETL processing, and AI-powered insights via a conversational interface. Euno aims to provide a fast, reliable, and accurate experience without complex dashboards, focusing on delivering concise, AI-driven business intelligence. The platform supports both file uploads and live data integrations, enabling real-time data sync and advanced analysis.
 
 ## Recent Updates (August 26, 2025)
-- **Uniform Off-Topic Handling**: Implemented consistent off-topic handling across all subscription tiers:
-  - **Intelligent Query Mapping**: Maps user queries to available data fields using strict field matching
-  - **Uniform Workflow**: Same off-topic detection and response for all tiers (Starter/Pro/Enterprise)
-  - **Smart Field Detection**: Identifies metrics, segments, and time ranges from connected data sources
-  - **Helpful Rewrite Requests**: Generates one-sentence clarifications when information is missing
-  - **Example Question Generation**: Creates 4-6 contextual examples based on available data fields
-  - **Scope Mismatch Logging**: Tracks off-topic queries with user_id, tier, source_list, and timestamp
+- **Intelligent Query Interpretation**: Enhanced AI to better understand user intent and relate queries to connected data:
+  - **Liberal Query Mapping**: AI now interprets queries very liberally, assuming business intent unless clearly unrelated
+  - **Metaphorical Understanding**: Recognizes casual/metaphorical language ("how's the weather" = business climate)
+  - **General Query Support**: Handles broad queries like "tell me about my data" or "how are we doing"
+  - **Minimal Off-Topic Responses**: Only truly unrelated queries (e.g., "world record for pushups") get off-topic response
+  - **Expert Data Analyst Behavior**: AI acts as helpful expert, always trying to provide business insights
+  - **Smart Intent Detection**: Defaults to treating queries as data-related unless explicitly irrelevant
+  - **Improved User Experience**: Reduces frustrating "doesn't align with data" messages
   - **Consistent OpenAI Settings**: All mapping uses temperature=0 and top_p=1 for deterministic results
-  - **No External Tools**: Off-topic requests never trigger external tool calls
+  - **Scope Mismatch Logging**: Still tracks truly off-topic queries for analytics
   - **Tier Gates on Features Only**: Tier restrictions apply only to advanced features (charts, forecasts), not basic chat scope
 - **Chat System Reliability Overhaul**: Implemented comprehensive improvements for reliable chat functionality:
   - **Message Deduplication**: Server-generated unique message IDs prevent duplicate messages

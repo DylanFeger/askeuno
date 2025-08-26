@@ -213,24 +213,41 @@ function getMetaphorIntro(originalMessage: string, metaphorType: string): string
 function detectIntent(message: string): "data_query" | "faq_product" | "irrelevant" {
   const lowercaseMsg = message.toLowerCase();
   
-  // Data query keywords
+  // Expanded data query keywords - be VERY inclusive
   const dataKeywords = [
     'sum', 'avg', 'average', 'count', 'filter', 'group', 'by', 'where', 
     'top', 'trend', 'growth', 'forecast', 'cohort', 'conversion', 
     'revenue', 'orders', 'sessions', 'cac', 'ltv', 'churn', 'arpu',
     'sales', 'profit', 'customer', 'product', 'total', 'calculate',
-    'show', 'display', 'list', 'find', 'analyze', 'compare'
+    'show', 'display', 'list', 'find', 'analyze', 'compare',
+    // General data-related terms
+    'data', 'business', 'performance', 'metric', 'number', 'result',
+    'tell', 'about', 'my', 'our', 'how', 'what', 'when', 'where',
+    'overview', 'summary', 'report', 'insight', 'pattern', 'analysis',
+    'doing', 'going', 'headed', 'improve', 'better', 'worse',
+    // Metaphorical terms that relate to business
+    'weather', 'health', 'temperature', 'cooking', 'winning', 'score',
+    'journey', 'path', 'speed', 'foundation', 'bloom', 'grow'
   ];
   
   // FAQ/product keywords
   const faqKeywords = [
     'pricing', 'features', 'connection', 'setup', 'billing', 
-    'limits', 'subscription', 'tier', 'plan', 'upgrade', 'how to'
+    'limits', 'subscription', 'tier', 'plan', 'upgrade', 'how to connect',
+    'how to upload', 'how does euno', 'what is euno'
   ];
   
-  // Check for data query keywords
-  if (dataKeywords.some(keyword => lowercaseMsg.includes(keyword))) {
-    return "data_query";
+  // Truly irrelevant keywords - only mark as irrelevant if these are present
+  const irrelevantKeywords = [
+    'world record', 'capital of', 'president of', 'population of',
+    'recipe for', 'how to cook', 'movie', 'song', 'book', 'author',
+    'sports score', 'weather forecast', 'news today', 'stock market',
+    'cryptocurrency', 'bitcoin', 'define', 'meaning of', 'translate'
+  ];
+  
+  // Check for truly irrelevant queries first
+  if (irrelevantKeywords.some(keyword => lowercaseMsg.includes(keyword))) {
+    return "irrelevant";
   }
   
   // Check for FAQ keywords
@@ -238,8 +255,9 @@ function detectIntent(message: string): "data_query" | "faq_product" | "irreleva
     return "faq_product";
   }
   
-  // Default to irrelevant
-  return "irrelevant";
+  // Default to data_query for everything else
+  // This ensures we try to interpret most queries as business-related
+  return "data_query";
 }
 
 function guardDataAvailability(intent: string, dataSource: any): { allowed: boolean; message: string } {
