@@ -25,6 +25,7 @@ export default function Footer() {
               <li><Link href="/security" className="hover:text-white transition-colors">Security</Link></li>
               <li><Link href="/integrations" className="hover:text-white transition-colors">Integrations</Link></li>
               <li><Link href="/cost-of-bad-query" className="hover:text-white transition-colors">The Cost of a Bad Query</Link></li>
+              <li><Link href="/responsible-ai" className="hover:text-white transition-colors">Responsible AI</Link></li>
             </ul>
           </div>
           

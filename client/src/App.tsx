@@ -34,6 +34,7 @@ import CostOfBadQuery from "@/pages/cost-of-bad-query";
 import TeamPage from "@/pages/team";
 import AcceptInvite from "@/pages/accept-invite";
 import About from "@/pages/about";
+import ResponsibleAI from "@/pages/ResponsibleAI";
 
 function Router() {
   return (
@@ -63,6 +64,7 @@ function Router() {
       <Route path="/blog" component={BlogHomepage} />
       <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/cost-of-bad-query" component={CostOfBadQuery} />
+      <Route path="/responsible-ai" component={ResponsibleAI} />
       <Route path="/team" component={TeamPage} />
       <Route path="/accept-invite/:token" component={AcceptInvite} />
       <Route path="/about" component={About} />
