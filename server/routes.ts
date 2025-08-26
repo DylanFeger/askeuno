@@ -22,6 +22,7 @@ import healthRoutes from "./routes/health";
 import blogRoutes from "./routes/blog";
 import aiRoutes from "./routes/ai";
 import teamRoutes from "./routes/team";
+import chatV2Routes from "./routes/chatV2";
 import { initializeScheduler, shutdownScheduler } from "./services/scheduler";
 import { sendContactFormEmail } from "./services/awsSes";
 
@@ -108,6 +109,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // AI Chat routes
   app.use('/api/ai', aiRoutes);
+  
+  // Improved Chat V2 routes with deduplication
+  app.use('/api/chat/v2', chatV2Routes);
 
   // Team management routes
   app.use('/api', teamRoutes);

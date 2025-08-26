@@ -58,6 +58,9 @@ export const chatMessages = pgTable("chat_messages", {
   role: text("role").notNull(), // user, assistant
   content: text("content").notNull(),
   metadata: jsonb("metadata"), // query results, charts, etc.
+  messageHash: text("message_hash"), // Hash for deduplication
+  requestId: text("request_id"), // Unique request ID for deduplication
+  isComplete: boolean("is_complete").default(false), // For streaming messages
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

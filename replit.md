@@ -3,6 +3,18 @@
 ## Overview
 Euno is a secure, easy-to-use data platform for small businesses to upload, store, and analyze their data. It offers a secure upload portal, cloud storage integration, ETL processing, and AI-powered insights via a conversational interface. Euno aims to provide a fast, reliable, and accurate experience without complex dashboards, focusing on delivering concise, AI-driven business intelligence. The platform supports both file uploads and live data integrations, enabling real-time data sync and advanced analysis.
 
+## Recent Updates (August 26, 2025)
+- **Chat System Reliability Overhaul**: Implemented comprehensive improvements for reliable chat functionality:
+  - **Message Deduplication**: Server-generated unique message IDs prevent duplicate messages
+  - **Request-based Caching**: Request IDs with TTL cache prevent duplicate processing  
+  - **Message Hash System**: SHA-256 hashing ensures message uniqueness in database
+  - **Streaming Support**: Real-time SSE streaming for AI responses
+  - **Strict Tier Enforcement**: Both client and server validate tier restrictions for every request
+  - **OpenAI Consistency**: All AI calls use temperature=0 and top_p=1 for deterministic responses
+  - **Improved State Management**: Chat service handles conversation creation and message ordering
+  - **Comprehensive Testing**: Created test suite covering all chat improvements
+  - **V2 Chat API**: New `/api/chat/v2/` endpoints with enhanced reliability
+
 ## Recent Updates (August 25, 2025)
 - **Enhanced AI with Metaphorical Intelligence**: AI now creatively interprets casual phrases as business insights:
   - Weather metaphors ("How's the weather?") → Business climate analysis

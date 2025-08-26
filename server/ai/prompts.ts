@@ -98,7 +98,8 @@ Remember:
         { role: "system", content: SYSTEM_SQL },
         { role: "user", content: prompt }
       ],
-      temperature: 0.1,
+      temperature: 0,
+      top_p: 1,
       max_tokens: 500
     });
 
@@ -208,7 +209,8 @@ Provide your analysis based ONLY on the data above.
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt }
       ],
-      temperature: getDynamicTemperature(question, tier),
+      temperature: 0,
+      top_p: 1,
       max_tokens: 800
     });
 
