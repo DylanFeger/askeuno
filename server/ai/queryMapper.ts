@@ -43,26 +43,6 @@ export async function mapQueryToSchema(
 
   const lowercaseQuery = query.toLowerCase();
   
-  // Early detection for very general queries that always need clarification
-  const generalQueryPatterns = [
-    'tell me about my data',
-    'tell me about the data',
-    'how are we doing',
-    'how\'s it going',
-    'show me everything',
-    'what\'s happening',
-    'give me an overview',
-    'analyze my data',
-    'what can you tell me',
-    'how\'s business',
-    'summary please',
-    'general report'
-  ];
-  
-  const isVeryGeneral = generalQueryPatterns.some(pattern => 
-    lowercaseQuery === pattern || lowercaseQuery === pattern + '?'
-  );
-
   // Extract available fields from all data sources
   const availableFields: Set<string> = new Set();
   const fieldDescriptions: Map<string, string> = new Map();
@@ -79,20 +59,6 @@ export async function mapQueryToSchema(
   });
 
   const availableFieldsList = Array.from(availableFields);
-  
-  // If it's a very general query, immediately return with clarification needed
-  if (isVeryGeneral) {
-    const clarificationQuestion = await generateClarifyingQuestion(
-      query, 
-      availableFieldsList
-    );
-    return {
-      isValid: true,
-      needsClarification: true,
-      clarificationNeeded: clarificationQuestion,
-      interpretedIntent: "General business overview or status check"
-    };
-  }
   
   // Use OpenAI to intelligently interpret the query
   try {
@@ -119,10 +85,11 @@ IMPORTANT INTERPRETATION RULES:
 5. When in doubt, assume the user is asking about their business data
 
 CLARIFICATION RULES:
-- If query is too general (e.g., "tell me about my data"), set needsClarification to true
-- If no time period specified for trend queries, suggest clarification
-- If asking about metrics without specific ones, suggest clarification
-- Generate helpful clarification questions in clarificationNeeded field
+- ONLY set needsClarification to true when you absolutely cannot provide ANY useful answer
+- Try to answer general queries with overview/summary data instead of asking for clarification
+- For queries like "current stock levels" or "how are we doing", provide a general answer rather than asking which specific item
+- Only suggest clarification (max 1-2 questions) when the answer would be completely wrong without more info
+- Examples when NOT to clarify: "current stock levels" (show all/low stock), "how's business" (show key metrics)
 
 Response rules:
 - Set isValid to true for ANY query that could possibly relate to business data

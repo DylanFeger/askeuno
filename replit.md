@@ -4,6 +4,12 @@
 Euno is a secure, easy-to-use data platform for small businesses to upload, store, and analyze their data. It offers a secure upload portal, cloud storage integration, ETL processing, and AI-powered insights via a conversational interface. Euno aims to provide a fast, reliable, and accurate experience without complex dashboards, focusing on delivering concise, AI-driven business intelligence. The platform supports both file uploads and live data integrations, enabling real-time data sync and advanced analysis.
 
 ## Recent Updates (August 26, 2025)
+- **Refined AI Behavior**: Improved AI to provide immediate answers instead of asking for clarification:
+  - **Answer-First Approach**: AI now attempts to provide useful answers even for general queries
+  - **Minimal Clarification**: Only asks 1-2 follow-up questions when absolutely necessary for accuracy
+  - **Context-Specific Suggestions**: Follow-up suggestions now directly relate to the topic just discussed
+  - **Smart Defaults**: For queries like "current stock levels", shows all/low stock items instead of asking which product
+  - **General Query Handling**: "How's business" now shows key metrics overview rather than asking for specifics
 - **Intelligent Query Interpretation**: Enhanced AI to better understand user intent and relate queries to connected data:
   - **Liberal Query Mapping**: AI now interprets queries very liberally, assuming business intent unless clearly unrelated
   - **Metaphorical Understanding**: Recognizes casual/metaphorical language ("how's the weather" = business climate)

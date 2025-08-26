@@ -11,6 +11,37 @@ export interface FollowUpSuggestion {
 }
 
 /**
+ * Generates basic schema-based suggestions when no AI response is available
+ */
+export function generateSchemaBasedSuggestions(schema: any): FollowUpSuggestion[] {
+  const suggestions: FollowUpSuggestion[] = [];
+  const fields = Object.values(schema || {}).map((f: any) => f.name);
+  
+  // Find key fields in schema
+  const hasPrice = fields.some((f: string) => f.toLowerCase().includes('price'));
+  const hasStock = fields.some((f: string) => f.toLowerCase().includes('stock') || f.toLowerCase().includes('inventory'));
+  const hasCategory = fields.some((f: string) => f.toLowerCase().includes('category') || f.toLowerCase().includes('type'));
+  const hasDate = fields.some((f: string) => f.toLowerCase().includes('date') || f.toLowerCase().includes('time'));
+  
+  // Generate contextual suggestions based on available fields
+  if (hasStock) {
+    suggestions.push({ text: "Show low stock items", category: 'action' });
+  }
+  if (hasPrice && hasCategory) {
+    suggestions.push({ text: "Compare prices by category", category: 'comparison' });
+  }
+  if (hasDate) {
+    suggestions.push({ text: "Show recent activity", category: 'deep_dive' });
+  }
+  if (hasCategory) {
+    suggestions.push({ text: "Top performing categories", category: 'next_step' });
+  }
+  
+  // Return up to 4 suggestions
+  return suggestions.slice(0, 4);
+}
+
+/**
  * Generates intelligent follow-up suggestions based on the query and response context
  */
 export async function generateFollowUpSuggestions(
@@ -25,24 +56,24 @@ export async function generateFollowUpSuggestions(
     
     const prompt = `
 You are a business analyst helping users explore their data more deeply.
-Based on this conversation, generate ${maxSuggestions} follow-up questions that would be valuable next steps.
+Based on this specific conversation, generate ${maxSuggestions} highly relevant follow-up questions.
 
 Original Question: "${originalQuery}"
 AI Response: "${aiResponse}"
 Available Data Fields: ${availableFields.join(', ')}
 
-Generate follow-up suggestions that:
-1. Deep dive into the topic (drill down on specifics)
-2. Explore related metrics (logical next questions)
-3. Compare different segments or time periods
-4. Take actionable next steps
+Generate follow-up suggestions that DIRECTLY relate to what was just discussed:
+1. If discussing stock levels → suggest checking reorder points, low stock alerts, or specific product stock
+2. If discussing sales → suggest time comparisons, top products, or customer segments
+3. If discussing trends → suggest forecasts, seasonality, or growth rates
+4. If discussing products → suggest inventory, pricing, or performance metrics
 
 Rules:
-- Each suggestion should be 5-10 words max
-- Make them specific to the business context
-- Use natural, conversational language
-- Focus on actionable insights
-- Vary the types (don't make all comparisons, etc.)
+- Each suggestion must be DIRECTLY RELATED to the current topic
+- Keep them 5-10 words max
+- Be specific - mention actual metrics or segments discussed
+- Don't be generic - tailor to the exact conversation
+- Example: If discussing "necklace sales", suggest "Compare necklace styles" not "View all products"
 
 Return JSON array of suggestions with categories:
 [
@@ -137,34 +168,3 @@ function getDefaultSuggestions(query: string, fields: string[]): FollowUpSuggest
   ];
 }
 
-/**
- * Generates smart suggestions based on the data schema
- */
-export function generateSchemaBasedSuggestions(
-  schema: Record<string, any>
-): FollowUpSuggestion[] {
-  const suggestions: FollowUpSuggestion[] = [];
-  const fields = Object.values(schema).map((field: any) => field.name.toLowerCase());
-  
-  // Price/Revenue suggestions
-  if (fields.some(f => f.includes('price') || f.includes('revenue') || f.includes('amount'))) {
-    suggestions.push({ text: "Analyze pricing trends", category: "deep_dive" });
-  }
-  
-  // Date/Time suggestions
-  if (fields.some(f => f.includes('date') || f.includes('time'))) {
-    suggestions.push({ text: "Show monthly patterns", category: "comparison" });
-  }
-  
-  // Category/Type suggestions
-  if (fields.some(f => f.includes('category') || f.includes('type') || f.includes('group'))) {
-    suggestions.push({ text: "Compare categories", category: "comparison" });
-  }
-  
-  // Stock/Inventory suggestions
-  if (fields.some(f => f.includes('stock') || f.includes('inventory') || f.includes('quantity'))) {
-    suggestions.push({ text: "Check stock levels", category: "action" });
-  }
-  
-  return suggestions.slice(0, 4);
-}
