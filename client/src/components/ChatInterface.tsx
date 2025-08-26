@@ -599,46 +599,56 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
                 </div>
               )}
               
-              {msg.role === 'assistant' && msg.metadata?.suggestedFollowUps && (
+              {/* Display follow-up suggestions */}
+              {msg.role === 'assistant' && (msg.metadata?.suggestions || msg.metadata?.suggestedFollowUps) && (
                 <div className="mt-3">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-primary hover:text-primary/90 p-0"
-                    onClick={() => {
-                      const newExpanded = new Set(expandedFollowUps);
-                      if (expandedFollowUps.has(msg.id)) {
-                        newExpanded.delete(msg.id);
-                      } else {
-                        newExpanded.add(msg.id);
-                      }
-                      setExpandedFollowUps(newExpanded);
-                    }}
-                  >
-                    {expandedFollowUps.has(msg.id) ? (
-                      <ChevronUp className="w-4 h-4 mr-1" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 mr-1" />
+                  <div className="flex flex-wrap gap-2">
+                    {/* Handle new suggestion format */}
+                    {msg.metadata?.suggestions && msg.metadata.suggestions.length > 0 && (
+                      <>
+                        <p className="text-xs text-gray-500 w-full mb-1">Next steps:</p>
+                        {msg.metadata.suggestions.map((suggestion: any, index: number) => (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              setMessage(suggestion.text || suggestion);
+                              handleSendMessage(false);
+                            }}
+                            className={`inline-flex items-center space-x-1 text-xs px-3 py-1.5 rounded-full 
+                              transition-all hover:scale-105 
+                              ${suggestion.category === 'action' 
+                                ? 'bg-primary text-white hover:bg-primary/90' 
+                                : suggestion.category === 'deep_dive'
+                                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                : suggestion.category === 'comparison'
+                                ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              }`}
+                          >
+                            {suggestion.category === 'action' && <ChevronRight className="w-3 h-3" />}
+                            {suggestion.category === 'deep_dive' && <BarChart2 className="w-3 h-3" />}
+                            <span>{suggestion.text || suggestion}</span>
+                          </button>
+                        ))}
+                      </>
                     )}
-                    {expandedFollowUps.has(msg.id) ? 'Hide' : 'Show'} suggested questions
-                  </Button>
-                  
-                  {expandedFollowUps.has(msg.id) && (
-                    <div className="mt-2 space-y-2">
-                      {msg.metadata.suggestedFollowUps.map((followUp, index) => (
+                    
+                    {/* Handle old suggestion format (fallback) */}
+                    {!msg.metadata?.suggestions && msg.metadata?.suggestedFollowUps && (
+                      msg.metadata.suggestedFollowUps.map((followUp: string, index: number) => (
                         <button
                           key={index}
                           onClick={() => {
                             setMessage(followUp);
                             handleSendMessage(false);
                           }}
-                          className="block w-full text-left text-sm bg-primary/10 hover:bg-primary/20 text-primary p-2 rounded border border-primary/30 transition-colors"
+                          className="inline-flex items-center text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all hover:scale-105"
                         >
                           {followUp}
                         </button>
-                      ))}
-                    </div>
-                  )}
+                      ))
+                    )}
+                  </div>
                 </div>
               )}
             </div>

@@ -17,6 +17,11 @@ import {
   logScopeMismatch,
   type DataSourceInfo 
 } from '../ai/queryMapper';
+import { 
+  generateFollowUpSuggestions,
+  generateSchemaBasedSuggestions,
+  type FollowUpSuggestion 
+} from '../ai/suggestionGenerator';
 
 const router = Router();
 
@@ -152,13 +157,22 @@ router.post('/send', requireAuth, async (req: Request, res: Response) => {
                          queryMapping.interpretedIntent
                        );
       
+      // Generate smart follow-up suggestions for clarification
+      const clarificationSuggestions = generateSchemaBasedSuggestions(dataSourceInfos[0]?.schema || {});
+      
       responseMetadata.intent = 'needs_clarification';
       responseMetadata.interpretedIntent = queryMapping.interpretedIntent;
+      responseMetadata.suggestions = clarificationSuggestions;
     } else if (queryMapping.missingPieces && queryMapping.missingPieces.length > 0) {
       // Missing information for valid query
       responseContent = await generateRewriteRequest(message, queryMapping.missingPieces);
+      
+      // Generate contextual suggestions based on what's missing
+      const contextSuggestions = generateSchemaBasedSuggestions(dataSourceInfos[0]?.schema || {});
+      
       responseMetadata.intent = 'missing_info';
       responseMetadata.missingPieces = queryMapping.missingPieces;
+      responseMetadata.suggestions = contextSuggestions;
     } else {
       // Valid query - process with AI
       const extendedResponses = (req.session as any)?.extendedResponses || false;
@@ -176,10 +190,24 @@ router.post('/send', requireAuth, async (req: Request, res: Response) => {
       
       // Filter response based on tier restrictions (only for advanced features)
       responseContent = aiResponse.text;
+      
+      // Generate follow-up suggestions based on context
+      const availableFields = dataSourceInfos.flatMap(ds => 
+        Object.values(ds.schema || {}).map((col: any) => col.name)
+      );
+      
+      const followUpSuggestions = await generateFollowUpSuggestions(
+        message,
+        aiResponse.text,
+        availableFields,
+        tier
+      );
+      
       responseMetadata = {
         ...responseMetadata,
         ...aiResponse.meta,
         chart: tierFeatures.allowCharts ? aiResponse.chart : undefined,
+        suggestions: followUpSuggestions,
         tierRestrictions: {
           chartsBlocked: !tierFeatures.allowCharts && !!aiResponse.chart,
           forecastBlocked: !tierFeatures.allowForecast && aiResponse.meta?.forecast

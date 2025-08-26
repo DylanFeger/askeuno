@@ -21,6 +21,13 @@ Euno is a secure, easy-to-use data platform for small businesses to upload, stor
     - Asks for specific metrics when queries are too broad
     - Provides context-aware clarification questions based on query type
     - Improves accuracy by ensuring AI has the right parameters before analysis
+  - **Intelligent Follow-Up Suggestions**: AI provides smart next-step questions after each response
+    - Categorized suggestions: Action items, Deep dives, Comparisons, Next steps
+    - Context-aware based on current query and available data
+    - Visual distinction with color-coded suggestion chips
+    - Click-to-send functionality for seamless conversation flow
+    - Tier-based limits: 2 suggestions for Starter, 4 for Professional/Enterprise
+    - Dynamic suggestions based on data schema and conversation context
 - **Chat System Reliability Overhaul**: Implemented comprehensive improvements for reliable chat functionality:
   - **Message Deduplication**: Server-generated unique message IDs prevent duplicate messages
   - **Request-based Caching**: Request IDs with TTL cache prevent duplicate processing  
