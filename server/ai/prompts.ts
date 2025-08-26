@@ -6,19 +6,9 @@ const openai = new OpenAI({
 });
 
 function getDynamicTemperature(question: string, tier?: string): number {
-  const lowercaseQ = question.toLowerCase();
-  
-  // Only allow higher temperature for Enterprise users doing forecasts/predictions
-  if (tier === 'enterprise' && 
-      (lowercaseQ.includes('forecast') || lowercaseQ.includes('predict') || 
-       lowercaseQ.includes('will') || lowercaseQ.includes('future') ||
-       lowercaseQ.includes('projection') || lowercaseQ.includes('estimate'))) {
-    return 0.6; // Creative for predictions
-  }
-  
-  // All other queries use low temperature for accuracy and consistency
-  // This ensures data queries always return the same results
-  return 0.1;
+  // Uniform temperature setting for all queries and tiers
+  // Using temperature=0 for maximum consistency as per requirements
+  return 0;
 }
 
 export const SYSTEM_SQL = `

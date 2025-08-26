@@ -3,12 +3,19 @@ import { requireAuth } from '../middleware/auth';
 import { handleChat } from '../ai/orchestrator';
 import { getActiveDataSource } from '../data/datasource';
 import { db } from '../db';
-import { users } from '@shared/schema';
+import { users, dataSources } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { logger } from '../utils/logger';
 import * as chatService from '../services/chatService';
 import { TIERS } from '../ai/tiers';
 import { v4 as uuidv4 } from 'uuid';
+import { 
+  mapQueryToSchema, 
+  generateRewriteRequest, 
+  generateExampleQuestions, 
+  logScopeMismatch,
+  type DataSourceInfo 
+} from '../ai/queryMapper';
 
 const router = Router();
 
@@ -25,7 +32,7 @@ function enforceTierRestrictions(tier: string, features: any) {
   };
 }
 
-// POST /api/chat/v2/send - Send message with deduplication
+// POST /api/chat/v2/send - Send message with deduplication and uniform off-topic handling
 router.post('/send', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user!.id;
@@ -54,13 +61,21 @@ router.post('/send', requireAuth, async (req: Request, res: Response) => {
     
     const tier = user.subscriptionTier || 'starter';
     
-    // Enforce tier restrictions
-    const tierFeatures = enforceTierRestrictions(tier, { requestChart, requestForecast });
+    // Load connected data sources and schemas
+    const userDataSources = await db
+      .select()
+      .from(dataSources)
+      .where(eq(dataSources.userId, userId));
     
-    // Get active data source
-    const dataSource = await getActiveDataSource(userId);
-    const dataSourceId = dataSource.active && dataSource.tables.length > 0 ? 
-      (await db.query.dataSources.findFirst({ where: eq(users.id, userId) }))?.id : undefined;
+    const dataSourceInfos: DataSourceInfo[] = userDataSources.map(ds => ({
+      id: ds.id,
+      name: ds.name,
+      type: ds.type,
+      schema: ds.schema || {}
+    }));
+    
+    // Map query to available schema fields (uniform across all tiers)
+    const queryMapping = await mapQueryToSchema(message, dataSourceInfos);
     
     // Save user message (with deduplication)
     const userMessage = await chatService.saveUserMessage({
@@ -68,7 +83,7 @@ router.post('/send', requireAuth, async (req: Request, res: Response) => {
       conversationId,
       content: message,
       requestId,
-      dataSourceId
+      dataSourceId: dataSourceInfos[0]?.id
     });
     
     // If message was a duplicate, try to find existing AI response
@@ -86,51 +101,88 @@ router.post('/send', requireAuth, async (req: Request, res: Response) => {
       }
     }
     
-    // Get extended responses preference
-    const extendedResponses = (req.session as any)?.extendedResponses || false;
-    
-    // Create placeholder AI message for streaming
+    // Create placeholder AI message
     const aiMessageId = await chatService.createAIMessage(
       userMessage.conversationId,
       requestId
     );
     
-    // Process with AI
-    const aiResponse = await handleChat({
-      userId,
-      tier,
-      message,
-      conversationId: userMessage.conversationId,
-      extendedResponses
-    });
+    let responseContent: string;
+    let responseMetadata: any = { tier, mappingResult: queryMapping };
     
-    // Filter response based on tier restrictions
-    const filteredResponse = {
-      text: aiResponse.text,
-      chart: tierFeatures.allowCharts ? aiResponse.chart : undefined,
-      meta: {
+    // Handle based on mapping result (uniform across all tiers)
+    if (dataSourceInfos.length === 0) {
+      // No data sources connected
+      responseContent = "Please connect a database or upload a file first. Go to the Data Sources page to add your data.";
+      responseMetadata.intent = 'no_data';
+    } else if (!queryMapping.isValid) {
+      // Query doesn't align with data
+      const sourceNames = dataSourceInfos.map(ds => ds.name).join(', ');
+      responseContent = `That question doesn't align with the data you've connected. I analyze your ${sourceNames}. Try a metric + segment + time range.`;
+      
+      // Add example questions
+      const examples = generateExampleQuestions(dataSourceInfos);
+      if (examples.length > 0) {
+        responseContent += '\n\nExample questions:\n• ' + examples.join('\n• ');
+      }
+      
+      // Log scope mismatch
+      logScopeMismatch(
+        userId,
+        tier,
+        dataSourceInfos.map(ds => ds.name),
+        queryMapping,
+        message
+      );
+      
+      responseMetadata.intent = 'scope_mismatch';
+      responseMetadata.examples = examples;
+    } else if (queryMapping.missingPieces && queryMapping.missingPieces.length > 0) {
+      // Missing information for valid query
+      responseContent = await generateRewriteRequest(message, queryMapping.missingPieces);
+      responseMetadata.intent = 'missing_info';
+      responseMetadata.missingPieces = queryMapping.missingPieces;
+    } else {
+      // Valid query - process with AI
+      const extendedResponses = (req.session as any)?.extendedResponses || false;
+      
+      // Get tier features for advanced functionality (charts, forecasts)
+      const tierFeatures = enforceTierRestrictions(tier, { requestChart, requestForecast });
+      
+      const aiResponse = await handleChat({
+        userId,
+        tier,
+        message,
+        conversationId: userMessage.conversationId,
+        extendedResponses
+      });
+      
+      // Filter response based on tier restrictions (only for advanced features)
+      responseContent = aiResponse.text;
+      responseMetadata = {
+        ...responseMetadata,
         ...aiResponse.meta,
+        chart: tierFeatures.allowCharts ? aiResponse.chart : undefined,
         tierRestrictions: {
           chartsBlocked: !tierFeatures.allowCharts && !!aiResponse.chart,
           forecastBlocked: !tierFeatures.allowForecast && aiResponse.meta?.forecast
         }
-      }
-    };
+      };
+    }
     
     // Update AI message with complete response
     await chatService.updateAIMessage(
       aiMessageId,
-      filteredResponse.text,
-      filteredResponse.meta,
+      responseContent,
+      responseMetadata,
       true
     );
     
     res.json({
       conversationId: userMessage.conversationId,
       messageId: aiMessageId,
-      content: filteredResponse.text,
-      chart: filteredResponse.chart,
-      metadata: filteredResponse.meta,
+      content: responseContent,
+      metadata: responseMetadata,
       isDuplicate: false,
       tier
     });
