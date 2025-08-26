@@ -171,7 +171,8 @@ interface ChatMessage {
       config?: any;
     };
   };
-  createdAt: string;
+  createdAt?: string | Date;
+  conversationId?: number;
 }
 
 interface ChatInterfaceProps {
@@ -221,13 +222,35 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
     enabled: !!currentConversationId,
   });
 
+  // Local message state for immediate display
+  const [localMessages, setLocalMessages] = useState<ChatMessage[]>(initialMessages || []);
+  
   const { data: fetchedMessages = [], refetch } = useQuery<ChatMessage[]>({
-    queryKey: ['/api/conversations', currentConversationId, 'messages'],
+    queryKey: ['/api/chat/v2/messages', currentConversationId],
     enabled: !!currentConversationId && !initialMessages,
+    queryFn: async () => {
+      if (!currentConversationId) return [];
+      const response = await apiRequest('GET', `/api/chat/v2/messages/${currentConversationId}`);
+      const data = await response.json();
+      return data.messages || [];
+    },
   });
 
-  // Use initialMessages if provided, otherwise use fetched messages
-  const messages = initialMessages || fetchedMessages;
+  // Use local messages for immediate display, sync with fetched when available
+  useEffect(() => {
+    if (fetchedMessages && fetchedMessages.length > 0) {
+      setLocalMessages(fetchedMessages);
+    }
+  }, [fetchedMessages]);
+  
+  // Use initialMessages if provided
+  useEffect(() => {
+    if (initialMessages) {
+      setLocalMessages(initialMessages);
+    }
+  }, [initialMessages]);
+  
+  const messages = localMessages;
 
   // Update current conversation ID when prop changes
   useEffect(() => {
@@ -265,16 +288,46 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
   const sendMessageMutation = useMutation({
     mutationFn: async ({ messageContent, forceChart = false }: { messageContent: string; forceChart?: boolean }) => {
       const finalMessage = forceChart ? `Create a chart or graph for: ${messageContent}` : messageContent;
-      const response = await apiRequest('POST', '/api/ai/chat', {
+      
+      // Generate a unique request ID for deduplication
+      const requestId = `${Date.now()}-${Math.random()}`;
+      
+      const response = await apiRequest('POST', '/api/chat/v2/send', {
         message: finalMessage,
         conversationId: currentConversationId,
+        dataSourceId: selectedDataSourceId,
+        requestId,
+        extendedResponses,
+        includeChart: forceChart || includeChart,
       });
       return response.json();
     },
     onSuccess: (data) => {
       setCurrentConversationId(data.conversationId);
-      refetch();
+      
+      // Add the AI response to local messages immediately
+      const aiMessage: ChatMessage = {
+        id: data.messageId,
+        role: 'assistant',
+        content: data.content,
+        metadata: data.metadata,
+        createdAt: new Date(),
+        conversationId: data.conversationId,
+      };
+      
+      setLocalMessages(prev => [...prev, aiMessage]);
       setIncludeChart(false);
+      
+      // Invalidate queries to sync with server
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/v2/messages', data.conversationId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to send message",
+        description: error?.message || "Please try again later",
+        variant: "destructive",
+      });
     },
   });
 
@@ -299,6 +352,17 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
     const messageContent = message;
     setMessage('');
     setShowRateLimitWarning(false);
+    
+    // Add user message to local messages immediately
+    const userMessage: ChatMessage = {
+      id: Date.now(), // Temporary ID, will be replaced by server ID
+      role: 'user',
+      content: messageContent,
+      createdAt: new Date(),
+      conversationId: currentConversationId || 0,
+    };
+    
+    setLocalMessages(prev => [...prev, userMessage]);
     
     sendMessageMutation.mutate({ messageContent, forceChart: forceChart || includeChart });
   };
