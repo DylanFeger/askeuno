@@ -54,6 +54,7 @@ const dataSourceTypes = [
   
   // E-commerce
   { id: 'shopify', name: 'Shopify', icon: ShoppingCart, category: 'ecommerce' },
+  { id: 'lightspeed', name: 'Lightspeed', icon: ShoppingCart, category: 'ecommerce' },
   { id: 'woocommerce', name: 'WooCommerce', icon: ShoppingCart, category: 'ecommerce' },
   { id: 'amazon_seller', name: 'Amazon Seller', icon: ShoppingCart, category: 'ecommerce' },
   { id: 'ebay', name: 'eBay', icon: ShoppingCart, category: 'ecommerce' },
@@ -363,6 +364,66 @@ export default function ConnectionsPage() {
                 onChange={(e) => setConnectionForm({ ...connectionForm, secretAccessKey: e.target.value })}
               />
             </div>
+          </div>
+        );
+
+      case 'lightspeed':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-sage-50 dark:bg-sage-900/20 border-sage-200 dark:border-sage-800">
+              <Shield className="h-4 w-4 text-sage-600 dark:text-sage-400" />
+              <AlertDescription>
+                <strong>Lightspeed Retail POS Integration</strong><br />
+                Connect your Lightspeed account to sync sales, inventory, customer data, and product catalogs in real-time.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="accountId">Account ID</Label>
+              <Input
+                id="accountId"
+                placeholder="Your Lightspeed Account ID"
+                value={connectionForm.accountId || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, accountId: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="clientId">Client ID</Label>
+              <Input
+                id="clientId"
+                placeholder="OAuth Client ID from Lightspeed"
+                value={connectionForm.clientId || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, clientId: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="clientSecret">Client Secret</Label>
+              <Input
+                id="clientSecret"
+                type="password"
+                placeholder="••••••••"
+                value={connectionForm.clientSecret || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, clientSecret: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="refreshToken">Refresh Token (Optional)</Label>
+              <Input
+                id="refreshToken"
+                type="password"
+                placeholder="Existing refresh token if available"
+                value={connectionForm.refreshToken || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, refreshToken: e.target.value })}
+              />
+            </div>
+            <Alert className="mt-2">
+              <AlertDescription className="text-sm">
+                <strong>How to get credentials:</strong><br />
+                1. Log in to your Lightspeed Back Office<br />
+                2. Go to Settings → API Access<br />
+                3. Create a new API client for Euno<br />
+                4. Copy your Client ID and Client Secret
+              </AlertDescription>
+            </Alert>
           </div>
         );
 
