@@ -907,8 +907,400 @@ export default function ConnectionsPage() {
           </div>
         );
 
+      // Default case for all other connectors that need API keys
+      case 'instagram':
+      case 'facebook':
+      case 'twitter':
+      case 'linkedin':
+      case 'pinterest':
+      case 'youtube':
+      case 'tiktok':
+      case 'snapchat':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-sage-50 dark:bg-sage-900/20 border-sage-200 dark:border-sage-800">
+              <Shield className="h-4 w-4 text-sage-600 dark:text-sage-400" />
+              <AlertDescription>
+                <strong>{dataSourceTypes.find(ds => ds.id === selectedType)?.name} Live Connection</strong><br />
+                Connect your account for real-time data sync and analytics.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
+              <Input
+                id="connectionName"
+                placeholder={`My ${dataSourceTypes.find(ds => ds.id === selectedType)?.name} Account`}
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="accessToken">Access Token</Label>
+              <Input
+                id="accessToken"
+                type="password"
+                placeholder="Your access token or API key"
+                value={connectionForm.apiKey || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, apiKey: e.target.value })}
+              />
+            </div>
+            <Alert>
+              <AlertDescription className="text-sm">
+                <strong>How to get your access token:</strong><br />
+                1. Go to your {dataSourceTypes.find(ds => ds.id === selectedType)?.name} Developer Portal<br />
+                2. Create an app or project for Euno<br />
+                3. Generate an access token with analytics permissions<br />
+                4. Copy and paste it above
+              </AlertDescription>
+            </Alert>
+          </div>
+        );
+
+      case 'pipedrive':
+      case 'hubspot':
+      case 'zendesk':
+      case 'intercom':
+      case 'freshdesk':
+      case 'zoho':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-sage-50 dark:bg-sage-900/20 border-sage-200 dark:border-sage-800">
+              <Shield className="h-4 w-4 text-sage-600 dark:text-sage-400" />
+              <AlertDescription>
+                <strong>{dataSourceTypes.find(ds => ds.id === selectedType)?.name} CRM Connection</strong><br />
+                Connect your CRM for real-time access to contacts, deals, and sales pipeline data.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
+              <Input
+                id="connectionName"
+                placeholder={`${dataSourceTypes.find(ds => ds.id === selectedType)?.name} CRM`}
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="apiToken">API Token</Label>
+              <Input
+                id="apiToken"
+                type="password"
+                placeholder="Your API token"
+                value={connectionForm.apiKey || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, apiKey: e.target.value })}
+              />
+            </div>
+            {(selectedType === 'pipedrive' || selectedType === 'hubspot' || selectedType === 'zoho') && (
+              <div>
+                <Label htmlFor="domain">Company Domain</Label>
+                <Input
+                  id="domain"
+                  placeholder={selectedType === 'pipedrive' ? 'mycompany.pipedrive.com' : 'mycompany'}
+                  value={connectionForm.domain || ''}
+                  onChange={(e) => setConnectionForm({ ...connectionForm, domain: e.target.value })}
+                />
+              </div>
+            )}
+            <Alert>
+              <AlertDescription className="text-sm">
+                <strong>How to get your API token:</strong><br />
+                1. Go to Settings → API or Integrations<br />
+                2. Generate a new API token for Euno<br />
+                3. Grant read permissions for contacts, deals, and activities<br />
+                4. Copy the token above
+              </AlertDescription>
+            </Alert>
+          </div>
+        );
+
+      case 'mailchimp':
+      case 'sendgrid':
+      case 'mailgun':
+      case 'sendinblue':
+      case 'activecampaign':
+      case 'constantcontact':
+      case 'klaviyo':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-sage-50 dark:bg-sage-900/20 border-sage-200 dark:border-sage-800">
+              <Shield className="h-4 w-4 text-sage-600 dark:text-sage-400" />
+              <AlertDescription>
+                <strong>{dataSourceTypes.find(ds => ds.id === selectedType)?.name} Email Marketing Connection</strong><br />
+                Connect your email platform for campaign analytics and subscriber insights.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
+              <Input
+                id="connectionName"
+                placeholder={`${dataSourceTypes.find(ds => ds.id === selectedType)?.name} Account`}
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="apiKey">API Key</Label>
+              <Input
+                id="apiKey"
+                type="password"
+                placeholder="Your API key"
+                value={connectionForm.apiKey || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, apiKey: e.target.value })}
+              />
+            </div>
+            {selectedType === 'mailchimp' && (
+              <div>
+                <Label htmlFor="serverPrefix">Server Prefix</Label>
+                <Input
+                  id="serverPrefix"
+                  placeholder="us1, us2, etc. (found in your API key)"
+                  value={connectionForm.serverPrefix || ''}
+                  onChange={(e) => setConnectionForm({ ...connectionForm, serverPrefix: e.target.value })}
+                />
+              </div>
+            )}
+            <Alert>
+              <AlertDescription className="text-sm">
+                <strong>How to get your API key:</strong><br />
+                1. Go to Account Settings → API Keys<br />
+                2. Create a new API key for Euno<br />
+                3. Copy the full API key<br />
+                {selectedType === 'mailchimp' && '4. The server prefix is the part after the dash in your API key (e.g., us1)'}
+              </AlertDescription>
+            </Alert>
+          </div>
+        );
+
+      case 'quickbooks':
+      case 'xero':
+      case 'wave':
+      case 'freshbooks':
+      case 'sage':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-sage-50 dark:bg-sage-900/20 border-sage-200 dark:border-sage-800">
+              <Shield className="h-4 w-4 text-sage-600 dark:text-sage-400" />
+              <AlertDescription>
+                <strong>{dataSourceTypes.find(ds => ds.id === selectedType)?.name} Accounting Connection</strong><br />
+                Connect your accounting software for financial data and reporting.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
+              <Input
+                id="connectionName"
+                placeholder={`${dataSourceTypes.find(ds => ds.id === selectedType)?.name} Account`}
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+              />
+            </div>
+            {selectedType === 'quickbooks' ? (
+              <Button 
+                className="w-full" 
+                variant="default"
+                onClick={() => {
+                  sessionStorage.setItem('quickbooksConnectionName', connectionForm.name || 'QuickBooks Connection');
+                  window.location.href = `/api/auth/quickbooks/connect?redirect=${encodeURIComponent(window.location.origin + '/connections')}`;
+                }}
+                disabled={!connectionForm.name}
+              >
+                <Shield className="mr-2 h-4 w-4" />
+                Connect with QuickBooks
+              </Button>
+            ) : (
+              <>
+                <div>
+                  <Label htmlFor="clientId">Client ID</Label>
+                  <Input
+                    id="clientId"
+                    placeholder="Your OAuth Client ID"
+                    value={connectionForm.clientId || ''}
+                    onChange={(e) => setConnectionForm({ ...connectionForm, clientId: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="clientSecret">Client Secret</Label>
+                  <Input
+                    id="clientSecret"
+                    type="password"
+                    placeholder="Your OAuth Client Secret"
+                    value={connectionForm.clientSecret || ''}
+                    onChange={(e) => setConnectionForm({ ...connectionForm, clientSecret: e.target.value })}
+                  />
+                </div>
+              </>
+            )}
+            <Alert>
+              <AlertDescription className="text-sm">
+                <strong>Financial data includes:</strong><br />
+                • Invoices and payments<br />
+                • Expenses and bills<br />
+                • P&L and balance sheets<br />
+                • Tax reports
+              </AlertDescription>
+            </Alert>
+          </div>
+        );
+
+      case 'googledrive':
+      case 'onedrive':
+      case 'dropbox':
+      case 'box':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-sage-50 dark:bg-sage-900/20 border-sage-200 dark:border-sage-800">
+              <Shield className="h-4 w-4 text-sage-600 dark:text-sage-400" />
+              <AlertDescription>
+                <strong>{dataSourceTypes.find(ds => ds.id === selectedType)?.name} File Storage Connection</strong><br />
+                Connect your cloud storage to analyze files and documents.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
+              <Input
+                id="connectionName"
+                placeholder={`My ${dataSourceTypes.find(ds => ds.id === selectedType)?.name}`}
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+              />
+            </div>
+            <Button 
+              className="w-full" 
+              variant="default"
+              onClick={() => {
+                const provider = selectedType.replace('drive', '').replace('onedrive', 'microsoft');
+                sessionStorage.setItem(`${provider}ConnectionName`, connectionForm.name || `${dataSourceTypes.find(ds => ds.id === selectedType)?.name} Connection`);
+                window.location.href = `/api/auth/${provider}/connect?redirect=${encodeURIComponent(window.location.origin + '/connections')}`;
+              }}
+              disabled={!connectionForm.name}
+            >
+              <Shield className="mr-2 h-4 w-4" />
+              Connect with {dataSourceTypes.find(ds => ds.id === selectedType)?.name}
+            </Button>
+            <Alert>
+              <AlertDescription className="text-sm">
+                <strong>We'll be able to:</strong><br />
+                • Analyze spreadsheets and CSVs<br />
+                • Extract data from documents<br />
+                • Monitor file changes<br />
+                • Process reports automatically
+              </AlertDescription>
+            </Alert>
+          </div>
+        );
+
+      case 'excel':
+      case 'csv':
+      case 'json':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+              <FileSpreadsheet className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <AlertDescription>
+                <strong>File Upload Required</strong><br />
+                {selectedType.toUpperCase()} files need to be uploaded directly. Please use the "Upload Files" tab to add your {selectedType.toUpperCase()} files.
+              </AlertDescription>
+            </Alert>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                setIsDialogOpen(false);
+                setSelectedType('');
+                setConnectionForm({});
+              }}
+            >
+              Go to Upload Files Tab
+            </Button>
+          </div>
+        );
+
+      case 'googleanalytics':
+      case 'googleadsense':
+      case 'googlesearchconsole':
+      case 'facebookads':
+      case 'linkedinads':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-sage-50 dark:bg-sage-900/20 border-sage-200 dark:border-sage-800">
+              <Shield className="h-4 w-4 text-sage-600 dark:text-sage-400" />
+              <AlertDescription>
+                <strong>{dataSourceTypes.find(ds => ds.id === selectedType)?.name} Analytics Connection</strong><br />
+                Connect your analytics platform for performance insights and metrics.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
+              <Input
+                id="connectionName"
+                placeholder={`${dataSourceTypes.find(ds => ds.id === selectedType)?.name} Account`}
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+              />
+            </div>
+            <Button 
+              className="w-full" 
+              variant="default"
+              onClick={() => {
+                const provider = selectedType.includes('google') ? 'google' : selectedType.replace('ads', '');
+                sessionStorage.setItem(`${selectedType}ConnectionName`, connectionForm.name || `${dataSourceTypes.find(ds => ds.id === selectedType)?.name} Connection`);
+                window.location.href = `/api/auth/${provider}/${selectedType}?redirect=${encodeURIComponent(window.location.origin + '/connections')}`;
+              }}
+              disabled={!connectionForm.name}
+            >
+              <Shield className="mr-2 h-4 w-4" />
+              Connect with {dataSourceTypes.find(ds => ds.id === selectedType)?.name}
+            </Button>
+            <Alert>
+              <AlertDescription className="text-sm">
+                <strong>Analytics data includes:</strong><br />
+                • Traffic and user behavior<br />
+                • Conversion tracking<br />
+                • Campaign performance<br />
+                • Revenue attribution
+              </AlertDescription>
+            </Alert>
+          </div>
+        );
+
       default:
-        return null;
+        // Generic form for any remaining connectors
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-sage-50 dark:bg-sage-900/20 border-sage-200 dark:border-sage-800">
+              <Shield className="h-4 w-4 text-sage-600 dark:text-sage-400" />
+              <AlertDescription>
+                <strong>{dataSourceTypes.find(ds => ds.id === selectedType)?.name} Connection</strong><br />
+                Connect your account for real-time data sync and analytics.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
+              <Input
+                id="connectionName"
+                placeholder="My Connection"
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="apiKey">API Key / Access Token</Label>
+              <Input
+                id="apiKey"
+                type="password"
+                placeholder="Your API key or access token"
+                value={connectionForm.apiKey || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, apiKey: e.target.value })}
+              />
+            </div>
+            <Alert>
+              <AlertDescription className="text-sm">
+                Please refer to your {dataSourceTypes.find(ds => ds.id === selectedType)?.name} account settings to generate an API key or access token for Euno.
+              </AlertDescription>
+            </Alert>
+          </div>
+        );
     }
   };
 
