@@ -1,116 +1,7 @@
 # Euno - Data Platform for Small Businesses
 
 ## Overview
-Euno is a secure, easy-to-use data platform for small businesses to upload, store, and analyze their data. It offers a secure upload portal, cloud storage integration, ETL processing, and AI-powered insights via a conversational interface. Euno aims to provide a fast, reliable, and accurate experience without complex dashboards, focusing on delivering concise, AI-driven business intelligence. The platform supports both file uploads and live data integrations, enabling real-time data sync and advanced analysis.
-
-## Recent Updates (August 26, 2025)
-- **Refined AI Behavior**: Improved AI to provide immediate answers instead of asking for clarification:
-  - **Answer-First Approach**: AI now attempts to provide useful answers even for general queries
-  - **Minimal Clarification**: Only asks 1-2 follow-up questions when absolutely necessary for accuracy
-  - **Context-Specific Suggestions**: Follow-up suggestions now directly relate to the topic just discussed
-  - **Smart Defaults**: For queries like "current stock levels", shows all/low stock items instead of asking which product
-  - **General Query Handling**: "How's business" now shows key metrics overview rather than asking for specifics
-- **Intelligent Query Interpretation**: Enhanced AI to better understand user intent and relate queries to connected data:
-  - **Liberal Query Mapping**: AI now interprets queries very liberally, assuming business intent unless clearly unrelated
-  - **Metaphorical Understanding**: Recognizes casual/metaphorical language ("how's the weather" = business climate)
-  - **General Query Support**: Handles broad queries like "tell me about my data" or "how are we doing"
-  - **Minimal Off-Topic Responses**: Only truly unrelated queries (e.g., "world record for pushups") get off-topic response
-  - **Expert Data Analyst Behavior**: AI acts as helpful expert, always trying to provide business insights
-  - **Smart Intent Detection**: Defaults to treating queries as data-related unless explicitly irrelevant
-  - **Improved User Experience**: Reduces frustrating "doesn't align with data" messages
-  - **Consistent OpenAI Settings**: All mapping uses temperature=0 and top_p=1 for deterministic results
-  - **Scope Mismatch Logging**: Still tracks truly off-topic queries for analytics
-  - **Tier Gates on Features Only**: Tier restrictions apply only to advanced features (charts, forecasts), not basic chat scope
-  - **Smart Clarification System**: AI now asks clarifying questions when queries are too general or lack specifics
-    - Detects vague queries like "tell me about my data" and asks what specifically to analyze
-    - Requests time periods for trend analysis when not specified
-    - Asks for specific metrics when queries are too broad
-    - Provides context-aware clarification questions based on query type
-    - Improves accuracy by ensuring AI has the right parameters before analysis
-  - **Intelligent Follow-Up Suggestions**: AI provides smart next-step questions after each response
-    - Categorized suggestions: Action items, Deep dives, Comparisons, Next steps
-    - Context-aware based on current query and available data
-    - Visual distinction with color-coded suggestion chips
-    - Click-to-send functionality for seamless conversation flow
-    - Tier-based limits: 2 suggestions for Starter, 4 for Professional/Enterprise
-    - Dynamic suggestions based on data schema and conversation context
-- **Chat System Reliability Overhaul**: Implemented comprehensive improvements for reliable chat functionality:
-  - **Message Deduplication**: Server-generated unique message IDs prevent duplicate messages
-  - **Request-based Caching**: Request IDs with TTL cache prevent duplicate processing  
-  - **Message Hash System**: SHA-256 hashing ensures message uniqueness in database
-  - **Streaming Support**: Real-time SSE streaming for AI responses
-  - **Strict Tier Enforcement**: Both client and server validate tier restrictions for every request
-  - **OpenAI Consistency**: All AI calls use temperature=0 and top_p=1 for deterministic responses
-  - **Improved State Management**: Chat service handles conversation creation and message ordering
-  - **Comprehensive Testing**: Created test suite covering all chat improvements
-  - **V2 Chat API**: New `/api/chat/v2/` endpoints with enhanced reliability
-
-## Recent Updates (August 25, 2025)
-- **Enhanced AI with Metaphorical Intelligence**: AI now creatively interprets casual phrases as business insights:
-  - Weather metaphors ("How's the weather?") → Business climate analysis
-  - Health metaphors ("Are we healthy?") → Financial wellness check
-  - Food metaphors ("What's cooking?") → Trending products analysis
-  - Sports metaphors ("Are we winning?") → Competitive performance
-  - Casual greetings ("How are we doing?") → Comprehensive business overview
-- **Expert Data Analyst Personality**: Euno AI now acts as a senior data analyst with 15+ years experience:
-  - Proactive insights beyond what's asked
-  - Conversational yet professional tone
-  - Action-oriented recommendations
-  - Context-aware responses based on time of day
-- **Ultra-Concise Responses by Default**: All tiers receive 1-2 sentence responses (preferably 1 sentence)
-  - Short phrases for maximum insight in minimum words
-  - Professional/Enterprise can toggle extended mode for up to 5 sentences
-  - Focus on key metrics and actionable insights
-- **Dynamic Temperature Adjustment**: AI automatically adjusts creativity based on query type:
-  - Data queries: 0.2 (precise)
-  - Trend analysis: 0.4 (balanced)
-  - Predictions/casual: 0.6 (creative)
-
-## Previous Updates (August 21, 2025)
-- **Authentication System Overhaul**: Updated authentication flow for improved user experience:
-  - Login now accepts BOTH email OR username + password (backwards compatible with existing users)
-  - Registration still requires email + username + password for account verification
-  - Sessions now persist user_id, username, and subscription_tier for proper rate limiting
-  - Duplicate prevention for both email and username with clear error messages
-  - Frontend forms updated to reflect new login flow (shows "Email or Username" with subtle placeholder hint)
-  - No existing users need to create new accounts - they can continue using their email to login
-
-## Previous Updates (August 19, 2025)
-- **Adjusted Query Limits**: Updated tier-based query limits per user request:
-  - Starter: 5 queries/hour (reduced from 20)
-  - Professional: 25 queries/hour (reduced from 120)
-  - Enterprise: Unlimited (unchanged)
-- **Enhanced Missing Data Education System**: Improved AI responses when data columns are missing:
-  - Intelligent column detection identifies what business metrics users are trying to analyze
-  - Educational responses explain exactly which columns are needed (e.g., "cost", "profit_margin" for profit analysis)
-  - Provides specific data type requirements and real-world examples for each missing column
-  - Suggests alternatives and workarounds using existing data
-  - Lists what analyses CAN be done with current data to keep users productive
-  - Available to ALL subscription tiers (not just Pro/Elite) to help all users improve their datasets
-  - Created comprehensive column-detector module for common business metrics (profit, conversion, CLV, churn, inventory)
-- **Gated Database-Aware Analytics Chat**: Implemented comprehensive AI chat system with strict data source requirements:
-  - Intent detection system categorizes queries as data_query, faq_product, or irrelevant
-  - Chat only responds when database or file is actively selected
-  - Tier-based behavior: Starter (5 queries/hr, 80 words), Pro (25 queries/hr, 180 words, suggestions), Elite (unlimited, charts, forecasts)
-  - Rate limiting with LRU cache and spam protection
-  - SQL generation with forbidden operations whitelist (SELECT/WITH only)
-  - Strict accuracy controls - never fabricates data, explicitly states missing columns
-  - Frontend guards disable chat when no data source selected
-  - Auto-switches active data source when user changes selection
-
-## Previous Updates (August 9, 2025)
-- **Port Configuration**: Updated Express server to use `process.env.PORT` with fallback to 5000 for flexible deployment across different platforms
-
-## Previous Updates (August 7, 2025)
-- **SEO-Optimized Resources Section**: Added comprehensive `/resources` hub with educational content to improve search engine visibility and customer experience:
-  - SQL for Small Business guide - explains SQL and how AskEuno automates it
-  - Data-Driven Decisions guide - framework for making strategic business decisions
-  - Business Analytics 101 guide - comprehensive introduction to analytics concepts
-  - Dynamic SEO component for proper meta tag management
-  - Full content with FAQs, internal linking, and CTAs for conversion
-- **AI Acting as Senior Data Analyst**: Expert personality with 15+ years experience providing proactive, actionable insights
-- **Unified Conversation Interface**: Removed separate tabs (Sales, Trends, Predictions) to provide a single, continuous conversation memory that remembers all context
-- **Business-Only Focus**: AI strictly responds to business-related queries and politely redirects non-business questions
+Euno is a secure, easy-to-use data platform for small businesses to upload, store, and analyze their data. It offers a secure upload portal, cloud storage integration, ETL processing, and AI-powered insights via a conversational interface. Euno aims to provide a fast, reliable, and accurate experience without complex dashboards, focusing on delivering concise, AI-driven business intelligence. The platform supports both file uploads and live data integrations, enabling real-time data sync and advanced analysis. Euno also provides multi-source database blending capabilities, allowing AI to automatically detect common fields and provide cross-database insights through natural language queries.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -145,18 +36,14 @@ Key principles:
 - **Language**: TypeScript with ES modules
 - **Database**: PostgreSQL with Drizzle ORM
 - **File Processing**: Multer for uploads, XLSX for Excel files, CSV parser
-- **AI Integration**: OpenAI API for data insights and analysis
-  - Dynamic temperature adjustment based on query type (0.2 for SQL/analysis, 0.4 for trends, 0.6 for predictions)
-  - Business-focused system prompt that refuses non-business questions
-  - Automatic conversation categorization with smart tab-switch suggestions
-  - Query type detection using keyword analysis
-- **Core Systems**: Data ingestion pipeline (schema detection, data quality checks), AI chat engine with context awareness and response length control, robust authentication and authorization with session management, subscription tier enforcement (query limits, connection limits), and comprehensive logging.
-- **Data Flow**: Files are uploaded, validated, processed (parsed, AI schema analysis), and stored in PostgreSQL/AWS S3. Users query data via the AI chat interface, which provides analysis, recommendations, and optional visual charts.
+- **AI Integration**: OpenAI API for data insights and analysis. The AI acts as a senior data analyst, providing immediate, ultra-concise (1-2 sentences) responses by default. It uses an answer-first approach, liberal query mapping, metaphorical intelligence (interpreting casual phrases as business insights), and asks minimal, context-specific follow-up questions. Dynamic temperature adjustment (0.2 for precise data queries, 0.4 for balanced trend analysis, 0.6 for creative predictions/casual queries) is employed. Conversation memory is unified, and the AI strictly focuses on business-related queries.
+- **Core Systems**: Data ingestion pipeline (schema detection, data quality checks), AI chat engine with context awareness and response length control, robust authentication and authorization with session management, subscription tier enforcement (query limits, connection limits, multi-source blending), message deduplication, and comprehensive logging.
+- **Data Flow**: Files are uploaded, validated, processed (parsed, AI schema analysis), and stored in PostgreSQL/AWS S3. Users query data via the AI chat interface, which provides analysis, recommendations, and optional visual charts. Multi-source database blending is supported by AI automatically detecting common fields and correlating data across connected sources.
 
 ### Database Design
 - **Users**: Authentication, subscription, and query tracking.
-- **Data Sources**: Metadata for uploaded files and live connections.
-- **Chat System**: Conversations (with category field for Sales/Trends/Predictions), messages, and AI-generated titles.
+- **Data Sources**: Metadata for uploaded files and live connections, including `conversation_data_sources` for multi-source blending.
+- **Chat System**: Conversations, messages, and AI-generated titles.
 - **Data Rows**: Structured storage of processed data.
 
 ### Security
@@ -165,12 +52,12 @@ Key principles:
 
 ## External Dependencies
 
-- **Database**: Neon PostgreSQL (serverless PostgreSQL)
+- **Database**: Neon PostgreSQL
 - **AI Services**: OpenAI API
-- **Cloud Storage**: AWS S3 (for user file uploads)
-- **Email Service**: AWS SES (Simple Email Service for transactional emails and contact form)
-- **Payment Processing**: Stripe (for subscription management)
+- **Cloud Storage**: AWS S3
+- **Email Service**: AWS SES
+- **Payment Processing**: Stripe
 - **Component Library**: Radix UI primitives
 - **Icons**: Lucide React icons
 - **Forms**: React Hook Form with Zod validation
-- **Charting Library**: Recharts (for visual data representation)
+- **Charting Library**: Recharts

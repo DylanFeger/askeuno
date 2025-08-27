@@ -8,6 +8,7 @@ import { getActiveDataSource, runSQL } from "../data/datasource";
 import { generateSQLPlan, generateAnalysis } from "./prompts";
 import { detectMissingColumns } from "./column-detector";
 import { findMetaphorMapping, getMetaphoricalBusinessQuery, shouldRedirectToBusinessQuery } from "./metaphors";
+import { multiSourceService } from "../services/multiSourceService";
 import OpenAI from "openai";
 
 const openai = new OpenAI({ 
@@ -92,8 +93,41 @@ export async function handleChat({
       };
     }
 
-    // 5. Get active data source
-    const dataSource = await getActiveDataSource(userId);
+    // 5. Check for multi-source support and get data sources
+    const canUseMultiSource = multiSourceService.canUseMultiSource(tier);
+    let dataSource = null;
+    let multiSources = null;
+    
+    if (canUseMultiSource) {
+      // For Professional and Enterprise tiers, get all active data sources
+      const allSources = await multiSourceService.getUserDataSources(userId, tier);
+      
+      if (allSources.length > 1) {
+        // Multi-source mode
+        multiSources = allSources;
+        // Create a virtual combined data source for backward compatibility
+        dataSource = {
+          active: true,
+          tables: allSources.flatMap(s => {
+            // Convert schema to tables format
+            const tableName = s.name.toLowerCase().replace(/\s+/g, '_');
+            return [{
+              name: tableName,
+              columns: s.schema || {}
+            }];
+          }),
+          totalRows: allSources.reduce((sum, s) => sum + s.rowCount, 0)
+        };
+      } else if (allSources.length === 1) {
+        // Single source mode
+        dataSource = await getActiveDataSource(userId);
+      } else {
+        dataSource = await getActiveDataSource(userId);
+      }
+    } else {
+      // Starter tier - single source only
+      dataSource = await getActiveDataSource(userId);
+    }
     
     // 6. Guard data availability
     const dataGuard = guardDataAvailability(intent, dataSource);
@@ -117,9 +151,31 @@ export async function handleChat({
 
     // 8. Execute data query based on tier
     const tierConfig = TIERS[tier as keyof typeof TIERS];
-    const result = await executeDataQuery(actualMessage, dataSource, tier, tierConfig, metaphorIntro, metaphorUsed, extendedResponses);
     
-    return result;
+    // Check if multi-source query is needed
+    if (multiSources && multiSources.length > 1) {
+      const result = await executeMultiSourceDataQuery(
+        actualMessage, 
+        multiSources, 
+        tier, 
+        tierConfig, 
+        metaphorIntro, 
+        metaphorUsed, 
+        extendedResponses
+      );
+      return result;
+    } else {
+      const result = await executeDataQuery(
+        actualMessage, 
+        dataSource, 
+        tier, 
+        tierConfig, 
+        metaphorIntro, 
+        metaphorUsed, 
+        extendedResponses
+      );
+      return result;
+    }
 
   } catch (error) {
     logger.error("Chat orchestration error:", error);
@@ -308,6 +364,149 @@ function handleFAQQuery(message: string, tier: string): AiResponse {
       limited: false
     }
   };
+}
+
+async function executeMultiSourceDataQuery(
+  message: string,
+  sources: any[],
+  tier: string,
+  tierConfig: any,
+  metaphorIntro: string = "",
+  metaphorUsed: boolean = false,
+  extendedResponses: boolean = false
+): Promise<AiResponse> {
+  try {
+    // Generate multi-source query plan
+    const queryPlan = multiSourceService.generateMultiSourceQueryPlan(message, sources);
+    
+    // Build a description of available sources for the user
+    const sourceDescriptions = sources.map(s => `${s.name} (${s.rowCount} rows)`).join(', ');
+    
+    // Check for correlation fields
+    const correlationFields = queryPlan.correlationFields;
+    const hasCorrelations = correlationFields.size > 0;
+    
+    // If question asks about relationships/correlations but no fields match
+    const questionLower = message.toLowerCase();
+    const asksForCorrelation = questionLower.includes('affect') || 
+                               questionLower.includes('impact') || 
+                               questionLower.includes('correlat') ||
+                               questionLower.includes('relationship');
+    
+    if (asksForCorrelation && !hasCorrelations) {
+      return {
+        text: `I'm analyzing across ${sources.length} data sources (${sourceDescriptions}), but I cannot find matching fields to correlate them. To enable cross-source analysis, ensure your data sources have common identifiers like product IDs, dates, or customer IDs.`,
+        meta: {
+          intent: "data_query",
+          tier,
+          tables: sources.map(s => s.name),
+          rows: sources.reduce((sum, s) => sum + s.rowCount, 0),
+          limited: false
+        }
+      };
+    }
+    
+    // Generate SQL for each source
+    const sqlQueries = new Map<number, string>();
+    
+    for (const source of sources) {
+      // Create a dataSource object that matches the expected format
+      const sourceDataFormat = {
+        tables: [{
+          name: source.name.toLowerCase().replace(/\s+/g, '_'),
+          columns: source.schema || {}
+        }]
+      };
+      
+      const sqlPlan = await generateSQLPlan(message, sourceDataFormat);
+      if (sqlPlan.sql && !sqlPlan.missingColumns?.length) {
+        sqlQueries.set(source.id, sqlPlan.sql);
+      }
+    }
+    
+    // Execute multi-source query
+    const multiResult = await multiSourceService.executeMultiSourceQuery(sources, sqlQueries);
+    
+    if (multiResult.error) {
+      return {
+        text: `Error executing multi-source query: ${multiResult.error}`,
+        meta: {
+          intent: "data_query",
+          tier,
+          tables: sources.map(s => s.name),
+          rows: 0,
+          limited: false
+        }
+      };
+    }
+    
+    // Generate analysis with cross-source context
+    const queryResult = {
+      rows: multiResult.correlatedData || [],
+      rowCount: multiResult.correlatedData?.length || 0,
+      tables: sources.map(s => s.name)
+    };
+    
+    const analysis = await generateAnalysis(
+      message,
+      queryResult,
+      tier,
+      tierConfig,
+      undefined,
+      extendedResponses
+    );
+    
+    // Build response with multi-source context
+    let responseText = analysis.text;
+    
+    // Add multi-source context
+    responseText = `Multi-source analysis across ${sources.length} databases: ${sourceDescriptions}\n${hasCorrelations ? `Correlated by: ${Array.from(correlationFields.keys()).join(', ')}` : ''}\n\n${responseText}`;
+    
+    // Add metaphor intro if used
+    if (metaphorIntro) {
+      responseText = `${metaphorIntro}\n\n${responseText}`;
+    }
+    
+    const response: AiResponse = {
+      text: responseText,
+      meta: {
+        intent: "data_query",
+        tier,
+        tables: queryResult.tables,
+        rows: queryResult.rowCount,
+        limited: queryResult.rowCount >= 5000,
+        metaphorUsed
+      }
+    };
+    
+    // Add tier-specific features
+    if (tier === "enterprise" && tierConfig.allowCharts && analysis.chart) {
+      response.chart = analysis.chart;
+    }
+    
+    if ((tier === "professional" || tier === "enterprise") && tierConfig.allowSuggestions && analysis.suggestions) {
+      response.text += `\n\nSuggestions: ${analysis.suggestions}`;
+    }
+    
+    if (tier === "enterprise" && tierConfig.allowForecast && analysis.forecast) {
+      response.text += `\n\nForecast: ${analysis.forecast}`;
+    }
+    
+    return response;
+    
+  } catch (error) {
+    logger.error("Multi-source query execution error:", error);
+    return {
+      text: "I encountered an error while analyzing across multiple data sources. Please try rephrasing your question.",
+      meta: {
+        intent: "error",
+        tier,
+        tables: [],
+        rows: 0,
+        limited: false
+      }
+    };
+  }
 }
 
 async function executeDataQuery(

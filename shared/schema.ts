@@ -127,6 +127,15 @@ export const teamInvitations = pgTable("team_invitations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Junction table for multi-source support in conversations
+export const conversationDataSources = pgTable("conversation_data_sources", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").references(() => chatConversations.id, { onDelete: "cascade" }).notNull(),
+  dataSourceId: integer("data_source_id").references(() => dataSources.id, { onDelete: "cascade" }).notNull(),
+  isPrimary: boolean("is_primary").default(false).notNull(), // Mark primary source for backward compatibility
+  addedAt: timestamp("added_at").defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   dataSources: many(dataSources),
@@ -152,6 +161,7 @@ export const chatConversationsRelations = relations(chatConversations, ({ one, m
     references: [dataSources.id],
   }),
   messages: many(chatMessages),
+  conversationDataSources: many(conversationDataSources),
 }));
 
 export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
@@ -164,6 +174,17 @@ export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
 export const dataRowsRelations = relations(dataRows, ({ one }) => ({
   dataSource: one(dataSources, {
     fields: [dataRows.dataSourceId],
+    references: [dataSources.id],
+  }),
+}));
+
+export const conversationDataSourcesRelations = relations(conversationDataSources, ({ one }) => ({
+  conversation: one(chatConversations, {
+    fields: [conversationDataSources.conversationId],
+    references: [chatConversations.id],
+  }),
+  dataSource: one(dataSources, {
+    fields: [conversationDataSources.dataSourceId],
     references: [dataSources.id],
   }),
 }));
