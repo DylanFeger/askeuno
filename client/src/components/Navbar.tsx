@@ -53,7 +53,6 @@ export default function Navbar() {
     navItems = [
       { path: '/chat', label: 'Chat', icon: MessageCircle },
       { path: '/connections', label: 'Data Sources', icon: Database },
-      { path: '/resources', label: 'Resources', icon: TrendingUp },
     ];
   }
 
