@@ -160,9 +160,40 @@ export default function SubscriptionPage() {
     }
   };
 
-  const handleSubscribe = (tier: string) => {
-    setSelectedTier(tier);
-    setShowSubscribeModal(true);
+  const handleSubscribe = async (tier: string) => {
+    // Handle free tier downgrade directly without payment modal
+    if (tier === 'starter') {
+      setSelectedTier(tier); // Set selected tier for loading state
+      setIsProcessing(true);
+      try {
+        const response = await apiRequest('POST', '/api/subscription/get-or-create-subscription', {
+          tier: 'starter'
+        });
+        if (response.ok) {
+          const data = await response.json();
+          toast({
+            title: "Successfully Downgraded",
+            description: "You have been downgraded to the free Starter plan.",
+          });
+          refetch(); // Refresh user data
+        } else {
+          throw new Error('Failed to downgrade to free tier');
+        }
+      } catch (error) {
+        toast({
+          title: "Downgrade Failed",
+          description: error instanceof Error ? error.message : "Failed to downgrade to free tier",
+          variant: "destructive",
+        });
+      } finally {
+        setIsProcessing(false);
+        setSelectedTier(''); // Clear selected tier
+      }
+    } else {
+      // For paid tiers, show the subscribe modal
+      setSelectedTier(tier);
+      setShowSubscribeModal(true);
+    }
   };
 
   const handleSubscribeSuccess = () => {
@@ -372,9 +403,19 @@ export default function SubscriptionPage() {
                             className="w-full" 
                             variant={plan.popular ? 'default' : 'outline'}
                             onClick={() => handleSubscribe(plan.id)}
+                            disabled={isProcessing}
                           >
-                            {plan.id === 'starter' ? 'Downgrade to Free' :
-                             plan.monthlyPrice < (plans.find(p => p.id === currentPlan)?.monthlyPrice || 0) ? 'Downgrade' : 'Upgrade'}
+                            {isProcessing && selectedTier === plan.id ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                {plan.id === 'starter' ? 'Downgrade to Free' :
+                                 plan.monthlyPrice < (plans.find(p => p.id === currentPlan)?.monthlyPrice || 0) ? 'Downgrade' : 'Upgrade'}
+                              </>
+                            )}
                           </Button>
                         )}
                       </div>
