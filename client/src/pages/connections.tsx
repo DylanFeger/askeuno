@@ -1435,6 +1435,15 @@ export default function ConnectionsPage() {
                         {connection.errorMessage && (
                           <p className="text-sm text-red-600 mt-2">{connection.errorMessage}</p>
                         )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteDataSource(connection)}
+                          className="mt-3 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Disconnect
+                        </Button>
                       </CardContent>
                     </Card>
                   );
@@ -1515,9 +1524,14 @@ export default function ConnectionsPage() {
       <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Data Source</AlertDialogTitle>
+            <AlertDialogTitle>
+              {deleteConfirmation?.connectionType === 'live' ? 'Disconnect Data Source' : 'Remove Data Source'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove "{deleteConfirmation?.name}"? This will permanently delete all associated data and cannot be undone.
+              Are you sure you want to {deleteConfirmation?.connectionType === 'live' ? 'disconnect' : 'remove'} "{deleteConfirmation?.name}"? 
+              {deleteConfirmation?.connectionType === 'live' 
+                ? ' This will stop syncing data from this source. You can reconnect it later.'
+                : ' This will permanently delete the uploaded file and all associated data.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1526,7 +1540,7 @@ export default function ConnectionsPage() {
               onClick={confirmDelete}
               className="bg-red-600 hover:bg-red-700"
             >
-              Remove
+              {deleteConfirmation?.connectionType === 'live' ? 'Disconnect' : 'Remove'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
