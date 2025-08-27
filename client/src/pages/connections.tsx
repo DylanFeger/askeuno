@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Database, Cloud, Building2, ShoppingCart, BarChart3, FileSpreadsheet, Server, Wifi, AlertCircle, CheckCircle, Upload, FileIcon, Trash2, Shield, TrendingUp, Users, Mail, Code, DollarSign, Activity, Package, Briefcase, RefreshCw, Loader2, Plus, Search } from 'lucide-react';
+import { FaGoogle } from 'react-icons/fa';
 import { Link, useLocation } from 'wouter';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
