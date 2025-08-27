@@ -344,15 +344,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Define query limits per tier
   const QUERY_LIMITS = {
     starter: 5,
-    growth: 20,
-    pro: 50
+    professional: 20,
+    enterprise: 50
   };
 
   // Define data source limits per tier
   const DATA_SOURCE_LIMITS = {
     starter: 1,
-    growth: 3,
-    pro: 10
+    professional: 3,
+    enterprise: 10
   };
 
   // Chat endpoint - protected with AI rate limiting
