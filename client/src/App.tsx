@@ -35,6 +35,7 @@ import TeamPage from "@/pages/team";
 import AcceptInvite from "@/pages/accept-invite";
 import About from "@/pages/about";
 import ResponsibleAI from "@/pages/ResponsibleAI";
+import OAuthCallback from "@/pages/oauth-callback";
 
 function Router() {
   return (
@@ -68,6 +69,7 @@ function Router() {
       <Route path="/team" component={TeamPage} />
       <Route path="/accept-invite/:token" component={AcceptInvite} />
       <Route path="/about" component={About} />
+      <Route path="/auth/callback/:provider" component={OAuthCallback} />
       <Route component={NotFound} />
     </Switch>
   );
