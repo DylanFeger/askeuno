@@ -66,11 +66,26 @@ const dataSourceTypes = [
   { id: 'square', name: 'Square', icon: DollarSign, category: 'payments' },
   { id: 'paypal', name: 'PayPal', icon: DollarSign, category: 'payments' },
   
+  // POS/Retail Systems
+  { id: 'toast', name: 'Toast POS', icon: ShoppingCart, category: 'pos' },
+  { id: 'clover', name: 'Clover', icon: ShoppingCart, category: 'pos' },
+  { id: 'revel', name: 'Revel Systems', icon: ShoppingCart, category: 'pos' },
+  { id: 'square_pos', name: 'Square POS', icon: ShoppingCart, category: 'pos' },
+  
+  // Banking & Financial Data
+  { id: 'plaid', name: 'Plaid (Bank Connections)', icon: Building2, category: 'banking' },
+  { id: 'mercury', name: 'Mercury', icon: Building2, category: 'banking' },
+  { id: 'wise', name: 'Wise', icon: Building2, category: 'banking' },
+  
   // Accounting/Finance
   { id: 'quickbooks', name: 'QuickBooks', icon: Briefcase, category: 'accounting' },
   { id: 'xero', name: 'Xero', icon: Briefcase, category: 'accounting' },
+  { id: 'wave', name: 'Wave', icon: Briefcase, category: 'accounting' },
+  { id: 'zoho_books', name: 'Zoho Books', icon: Briefcase, category: 'accounting' },
+  { id: 'sage', name: 'Sage Business Cloud', icon: Briefcase, category: 'accounting' },
   { id: 'netsuite', name: 'NetSuite', icon: Briefcase, category: 'accounting' },
   { id: 'freshbooks', name: 'FreshBooks', icon: Briefcase, category: 'accounting' },
+  { id: 'square_books', name: 'Square Books', icon: Briefcase, category: 'accounting' },
   
   // Analytics
   { id: 'google_analytics', name: 'Google Analytics', icon: Activity, category: 'analytics' },
@@ -84,7 +99,7 @@ const dataSourceTypes = [
   { id: 'newrelic', name: 'New Relic', icon: Activity, category: 'analytics' },
   { id: 'sentry', name: 'Sentry', icon: Activity, category: 'analytics' },
   
-  // Productivity
+  // Productivity & Project Management
   { id: 'slack', name: 'Slack', icon: Package, category: 'productivity' },
   { id: 'trello', name: 'Trello', icon: Package, category: 'productivity' },
   { id: 'asana', name: 'Asana', icon: Package, category: 'productivity' },
@@ -98,6 +113,23 @@ const dataSourceTypes = [
   { id: 'bitbucket', name: 'Bitbucket', icon: Code, category: 'productivity' },
   { id: 'pagerduty', name: 'PagerDuty', icon: Package, category: 'productivity' },
   { id: 'opsgenie', name: 'Opsgenie', icon: Package, category: 'productivity' },
+  
+  // Time Tracking
+  { id: 'harvest', name: 'Harvest', icon: Activity, category: 'time_tracking' },
+  { id: 'toggl', name: 'Toggl Track', icon: Activity, category: 'time_tracking' },
+  { id: 'clockify', name: 'Clockify', icon: Activity, category: 'time_tracking' },
+  { id: 'timely', name: 'Timely', icon: Activity, category: 'time_tracking' },
+  
+  // Inventory Management
+  { id: 'tradegecko', name: 'TradeGecko/QB Commerce', icon: Package, category: 'inventory' },
+  { id: 'cin7', name: 'Cin7', icon: Package, category: 'inventory' },
+  { id: 'fishbowl', name: 'Fishbowl', icon: Package, category: 'inventory' },
+  { id: 'zoho_inventory', name: 'Zoho Inventory', icon: Package, category: 'inventory' },
+  
+  // Industry Specific
+  { id: 'servicetitan', name: 'ServiceTitan', icon: Briefcase, category: 'industry' },
+  { id: 'simplepractice', name: 'SimplePractice', icon: Briefcase, category: 'industry' },
+  { id: 'mindbody', name: 'Mindbody', icon: Briefcase, category: 'industry' },
   
   // Databases
   { id: 'mysql', name: 'MySQL', icon: Database, category: 'database' },
@@ -130,6 +162,49 @@ export default function ConnectionsPage() {
   const queryClient = useQueryClient();
   const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
+  
+  // Check for OAuth errors in URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    
+    if (error) {
+      let errorMessage = 'Connection failed. Please try again.';
+      let errorTitle = 'Connection Error';
+      
+      switch (error) {
+        case 'config_error':
+          errorTitle = 'OAuth Setup Required';
+          errorMessage = 'Google OAuth is not configured yet. To enable Google Sheets connections, OAuth credentials need to be set up on the server.';
+          break;
+        case 'auth_required':
+          errorMessage = 'Please sign in to connect your accounts.';
+          break;
+        case 'unknown_provider':
+          errorMessage = 'This connection type is not supported yet.';
+          break;
+        case 'oauth_denied':
+          errorMessage = 'Authorization was denied. Please try again if you want to connect this service.';
+          break;
+        case 'invalid_state':
+          errorMessage = 'Session expired. Please try connecting again.';
+          break;
+        case 'oauth_init_failed':
+          errorMessage = 'Failed to start the connection process. Please try again.';
+          break;
+      }
+      
+      toast({
+        title: errorTitle,
+        description: errorMessage,
+        variant: error === 'config_error' ? 'default' : 'destructive'
+      });
+      
+      // Clean up URL
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  }, [toast]);
   
   // Move all hooks before conditional returns
   const { data: connections = [] } = useQuery<any[]>({
@@ -869,6 +944,272 @@ export default function ConnectionsPage() {
           </div>
         );
 
+      case 'plaid':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+              <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <AlertDescription>
+                <strong>Plaid Banking Connection</strong><br />
+                Connect to any bank account for transaction data and financial insights. Supports 12,000+ financial institutions.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
+              <Input
+                id="connectionName"
+                placeholder="Business Banking Account"
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+              />
+            </div>
+            <Button 
+              className="w-full" 
+              variant="default"
+              onClick={() => {
+                // This would trigger Plaid Link modal
+                window.location.href = `/api/auth/plaid/connect?name=${encodeURIComponent(connectionForm.name || 'Banking Connection')}`;
+              }}
+              disabled={!connectionForm.name}
+            >
+              <Shield className="mr-2 h-4 w-4" />
+              Connect Bank Account via Plaid
+            </Button>
+            <p className="text-sm text-muted-foreground">
+              Secure connection powered by Plaid. Your banking credentials are never stored on our servers.
+            </p>
+          </div>
+        );
+
+      case 'toast':
+      case 'clover':
+      case 'revel':
+      case 'square_pos':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800">
+              <ShoppingCart className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+              <AlertDescription>
+                <strong>{dataSourceTypes.find(ds => ds.id === selectedType)?.name} POS Integration</strong><br />
+                Connect your point-of-sale system for real-time sales, inventory, and customer data.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
+              <Input
+                id="connectionName"
+                placeholder={`${dataSourceTypes.find(ds => ds.id === selectedType)?.name} System`}
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="apiKey">API Key</Label>
+              <Input
+                id="apiKey"
+                type="password"
+                placeholder="Your POS API key"
+                value={connectionForm.apiKey || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, apiKey: e.target.value })}
+              />
+            </div>
+            {selectedType === 'toast' && (
+              <div>
+                <Label htmlFor="restaurantId">Restaurant ID</Label>
+                <Input
+                  id="restaurantId"
+                  placeholder="Your Toast restaurant ID"
+                  value={connectionForm.restaurantId || ''}
+                  onChange={(e) => setConnectionForm({ ...connectionForm, restaurantId: e.target.value })}
+                />
+              </div>
+            )}
+            {selectedType === 'square_pos' && (
+              <div>
+                <Label htmlFor="locationId">Location ID</Label>
+                <Input
+                  id="locationId"
+                  placeholder="Your Square location ID"
+                  value={connectionForm.locationId || ''}
+                  onChange={(e) => setConnectionForm({ ...connectionForm, locationId: e.target.value })}
+                />
+              </div>
+            )}
+          </div>
+        );
+
+      case 'harvest':
+      case 'toggl':
+      case 'clockify':
+      case 'timely':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800">
+              <Activity className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+              <AlertDescription>
+                <strong>{dataSourceTypes.find(ds => ds.id === selectedType)?.name} Time Tracking</strong><br />
+                Connect your time tracking tool for project analytics and resource management.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
+              <Input
+                id="connectionName"
+                placeholder={`${dataSourceTypes.find(ds => ds.id === selectedType)?.name} Account`}
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="apiToken">API Token</Label>
+              <Input
+                id="apiToken"
+                type="password"
+                placeholder="Your personal access token"
+                value={connectionForm.apiToken || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, apiToken: e.target.value })}
+              />
+            </div>
+            {selectedType === 'harvest' && (
+              <div>
+                <Label htmlFor="accountId">Account ID</Label>
+                <Input
+                  id="accountId"
+                  placeholder="Your Harvest account ID"
+                  value={connectionForm.accountId || ''}
+                  onChange={(e) => setConnectionForm({ ...connectionForm, accountId: e.target.value })}
+                />
+              </div>
+            )}
+          </div>
+        );
+
+      case 'tradegecko':
+      case 'cin7':
+      case 'fishbowl':
+      case 'zoho_inventory':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+              <Package className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <AlertDescription>
+                <strong>{dataSourceTypes.find(ds => ds.id === selectedType)?.name} Inventory Management</strong><br />
+                Track inventory levels, orders, and supply chain data across all channels.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
+              <Input
+                id="connectionName"
+                placeholder={`${dataSourceTypes.find(ds => ds.id === selectedType)?.name} Inventory`}
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="apiKey">API Key</Label>
+              <Input
+                id="apiKey"
+                type="password"
+                placeholder="Your API key or access token"
+                value={connectionForm.apiKey || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, apiKey: e.target.value })}
+              />
+            </div>
+            {(selectedType === 'tradegecko' || selectedType === 'cin7') && (
+              <div>
+                <Label htmlFor="subdomain">Subdomain</Label>
+                <Input
+                  id="subdomain"
+                  placeholder="yourcompany"
+                  value={connectionForm.subdomain || ''}
+                  onChange={(e) => setConnectionForm({ ...connectionForm, subdomain: e.target.value })}
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Found in your {dataSourceTypes.find(ds => ds.id === selectedType)?.name} URL
+                </p>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'mercury':
+      case 'wise':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+              <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <AlertDescription>
+                <strong>{dataSourceTypes.find(ds => ds.id === selectedType)?.name} Banking</strong><br />
+                {selectedType === 'mercury' && 'Business banking platform for startups.'}
+                {selectedType === 'wise' && 'International money transfers and multi-currency accounts.'}
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
+              <Input
+                id="connectionName"
+                placeholder={`${dataSourceTypes.find(ds => ds.id === selectedType)?.name} Account`}
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="apiToken">API Token</Label>
+              <Input
+                id="apiToken"
+                type="password"
+                placeholder="Your API access token"
+                value={connectionForm.apiToken || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, apiToken: e.target.value })}
+              />
+            </div>
+            <Alert>
+              <AlertDescription className="text-sm">
+                Generate an API token from your {dataSourceTypes.find(ds => ds.id === selectedType)?.name} settings.
+              </AlertDescription>
+            </Alert>
+          </div>
+        );
+
+      case 'servicetitan':
+      case 'simplepractice':
+      case 'mindbody':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800">
+              <Briefcase className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <AlertDescription>
+                <strong>{dataSourceTypes.find(ds => ds.id === selectedType)?.name} Industry Platform</strong><br />
+                {selectedType === 'servicetitan' && 'Home services management platform for contractors and service businesses.'}
+                {selectedType === 'simplepractice' && 'Practice management for healthcare providers and therapists.'}
+                {selectedType === 'mindbody' && 'Business management for fitness, wellness, and beauty businesses.'}
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
+              <Input
+                id="connectionName"
+                placeholder={`${dataSourceTypes.find(ds => ds.id === selectedType)?.name} Account`}
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+              />
+            </div>
+            <Button 
+              className="w-full" 
+              variant="default"
+              onClick={() => {
+                sessionStorage.setItem(`${selectedType}ConnectionName`, connectionForm.name || `${selectedType} Connection`);
+                window.location.href = `/api/auth/${selectedType}/connect`;
+              }}
+              disabled={!connectionForm.name}
+            >
+              <Shield className="mr-2 h-4 w-4" />
+              Connect with {dataSourceTypes.find(ds => ds.id === selectedType)?.name}
+            </Button>
+          </div>
+        );
+
       case 'api':
         return (
           <div className="space-y-4">
@@ -1077,6 +1418,8 @@ export default function ConnectionsPage() {
       case 'wave':
       case 'freshbooks':
       case 'sage':
+      case 'zoho_books':
+      case 'square_books':
         return (
           <div className="space-y-4">
             <Alert className="mb-4 bg-sage-50 dark:bg-sage-900/20 border-sage-200 dark:border-sage-800">
