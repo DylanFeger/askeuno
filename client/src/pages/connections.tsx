@@ -223,53 +223,119 @@ export default function ConnectionsPage() {
       case 'postgres':
         return (
           <div className="space-y-4">
+            <Alert className="mb-4 bg-sage-50 dark:bg-sage-900/20 border-sage-200 dark:border-sage-800">
+              <Database className="h-4 w-4 text-sage-600 dark:text-sage-400" />
+              <AlertDescription>
+                <strong>{selectedType === 'postgres' ? 'PostgreSQL' : 'MySQL'} Live Database Connection</strong><br />
+                Connect directly to your database for real-time queries and analytics. Data stays in your database - we only read when you ask questions.
+              </AlertDescription>
+            </Alert>
             <div>
-              <Label htmlFor="host">Host</Label>
+              <Label htmlFor="connectionName">Connection Name</Label>
               <Input
-                id="host"
-                placeholder="localhost or database.example.com"
-                value={connectionForm.host || ''}
-                onChange={(e) => setConnectionForm({ ...connectionForm, host: e.target.value })}
+                id="connectionName"
+                placeholder="Production Database"
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
               />
             </div>
-            <div>
-              <Label htmlFor="port">Port</Label>
-              <Input
-                id="port"
-                type="number"
-                placeholder={selectedType === 'mysql' ? '3306' : '5432'}
-                value={connectionForm.port || ''}
-                onChange={(e) => setConnectionForm({ ...connectionForm, port: e.target.value })}
-              />
+            <Tabs value={connectionForm.connectionMethod || 'manual'} onValueChange={(value) => setConnectionForm({ ...connectionForm, connectionMethod: value })}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="manual">Manual Configuration</TabsTrigger>
+                <TabsTrigger value="string">Connection String</TabsTrigger>
+              </TabsList>
+              <TabsContent value="manual" className="space-y-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="host">Host</Label>
+                    <Input
+                      id="host"
+                      placeholder="db.example.com"
+                      value={connectionForm.host || ''}
+                      onChange={(e) => setConnectionForm({ ...connectionForm, host: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="port">Port</Label>
+                    <Input
+                      id="port"
+                      type="number"
+                      placeholder={selectedType === 'mysql' ? '3306' : '5432'}
+                      value={connectionForm.port || ''}
+                      onChange={(e) => setConnectionForm({ ...connectionForm, port: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="database">Database Name</Label>
+                  <Input
+                    id="database"
+                    placeholder="production_db"
+                    value={connectionForm.database || ''}
+                    onChange={(e) => setConnectionForm({ ...connectionForm, database: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    placeholder="db_user"
+                    value={connectionForm.username || ''}
+                    onChange={(e) => setConnectionForm({ ...connectionForm, username: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={connectionForm.password || ''}
+                    onChange={(e) => setConnectionForm({ ...connectionForm, password: e.target.value })}
+                  />
+                </div>
+              </TabsContent>
+              <TabsContent value="string" className="space-y-2">
+                <div>
+                  <Label htmlFor="connectionString">Connection String</Label>
+                  <Input
+                    id="connectionString"
+                    type="password"
+                    placeholder={selectedType === 'postgres' 
+                      ? 'postgresql://user:password@host:5432/database'
+                      : 'mysql://user:password@host:3306/database'}
+                    value={connectionForm.connectionString || ''}
+                    onChange={(e) => setConnectionForm({ ...connectionForm, connectionString: e.target.value })}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Your connection string is encrypted and stored securely</p>
+                </div>
+              </TabsContent>
+            </Tabs>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="sslMode"
+                  checked={connectionForm.sslMode || false}
+                  onChange={(e) => setConnectionForm({ ...connectionForm, sslMode: e.target.checked })}
+                />
+                <Label htmlFor="sslMode" className="text-sm">Use SSL/TLS encryption (recommended for production)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="readOnly"
+                  checked={connectionForm.readOnly !== false}
+                  onChange={(e) => setConnectionForm({ ...connectionForm, readOnly: e.target.checked })}
+                />
+                <Label htmlFor="readOnly" className="text-sm">Read-only access (recommended for safety)</Label>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="database">Database Name</Label>
-              <Input
-                id="database"
-                placeholder="my_database"
-                value={connectionForm.database || ''}
-                onChange={(e) => setConnectionForm({ ...connectionForm, database: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                placeholder="db_user"
-                value={connectionForm.username || ''}
-                onChange={(e) => setConnectionForm({ ...connectionForm, username: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={connectionForm.password || ''}
-                onChange={(e) => setConnectionForm({ ...connectionForm, password: e.target.value })}
-              />
-            </div>
+            <Alert>
+              <AlertDescription className="text-sm">
+                <strong>Security Note:</strong> We recommend creating a dedicated read-only user for Euno. This ensures your data remains safe while enabling powerful analytics.
+              </AlertDescription>
+            </Alert>
           </div>
         );
 
@@ -291,36 +357,50 @@ export default function ConnectionsPage() {
       case 'googlesheets':
         return (
           <div className="space-y-4">
-            <Alert className="mb-4">
-              <FileSpreadsheet className="h-4 w-4" />
+            <Alert className="mb-4 bg-sage-50 dark:bg-sage-900/20 border-sage-200 dark:border-sage-800">
+              <Shield className="h-4 w-4 text-sage-600 dark:text-sage-400" />
               <AlertDescription>
-                <strong>Simple Google Sheets Integration</strong><br />
-                Download your Google Sheet as CSV or Excel, then upload it using the "Upload Files" tab. This keeps things simple - no complex authentication needed!
+                <strong>Google Sheets Live Connection</strong><br />
+                Connect your Google Sheets for real-time data sync. Changes in your sheets are automatically reflected in your analytics.
               </AlertDescription>
             </Alert>
-            <div className="space-y-3 text-sm text-muted-foreground">
-              <p>📥 <strong>How to connect your Google Sheets:</strong></p>
-              <ol className="list-decimal list-inside space-y-2 ml-4">
-                <li>Open your Google Sheet</li>
-                <li>Go to File → Download → Microsoft Excel (.xlsx)</li>
-                <li>Switch to the "Upload Files" tab above</li>
-                <li>Drag and drop your downloaded file</li>
-              </ol>
-              <p className="mt-4">Your data will be instantly available for AI analysis!</p>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
+              <Input
+                id="connectionName"
+                placeholder="My Sales Data"
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+              />
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full mt-4"
+            <Button 
+              className="w-full" 
+              variant="default"
               onClick={() => {
-                setIsDialogOpen(false);
-                // Reset form
-                setSelectedType('');
-                setConnectionForm({});
+                // Store connection name in session for OAuth callback
+                sessionStorage.setItem('googleSheetsConnectionName', connectionForm.name || 'Google Sheets Connection');
+                // Initiate OAuth2 flow
+                window.location.href = `/api/auth/google/sheets?redirect=${encodeURIComponent(window.location.origin + '/connections')}`;
               }}
+              disabled={!connectionForm.name}
             >
-              Go to Upload Files Tab
+              <FaGoogle className="mr-2" />
+              Connect with Google Account
             </Button>
+            <div className="text-sm text-gray-600 space-y-2">
+              <p className="font-semibold">After authorization:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Select any spreadsheet from your Google Drive</li>
+                <li>Data syncs automatically every 5 minutes</li>
+                <li>Real-time AI analysis of live data</li>
+                <li>No manual downloads or uploads needed</li>
+              </ul>
+            </div>
+            <Alert>
+              <AlertDescription className="text-sm">
+                <strong>Privacy:</strong> We only request read access to spreadsheets you explicitly select.
+              </AlertDescription>
+            </Alert>
           </div>
         );
 
@@ -428,28 +508,190 @@ export default function ConnectionsPage() {
         );
 
       case 'salesforce':
-      case 'shopify':
-      case 'googleads':
         return (
           <div className="space-y-4">
+            <Alert className="mb-4 bg-sage-50 dark:bg-sage-900/20 border-sage-200 dark:border-sage-800">
+              <Shield className="h-4 w-4 text-sage-600 dark:text-sage-400" />
+              <AlertDescription>
+                <strong>Salesforce Live Connection</strong><br />
+                Connect your Salesforce CRM for real-time access to leads, opportunities, accounts, and custom objects.
+              </AlertDescription>
+            </Alert>
             <div>
-              <Label htmlFor="apiKey">API Key</Label>
+              <Label htmlFor="connectionName">Connection Name</Label>
               <Input
-                id="apiKey"
-                type="password"
-                placeholder="••••••••"
-                value={connectionForm.apiKey || ''}
-                onChange={(e) => setConnectionForm({ ...connectionForm, apiKey: e.target.value })}
+                id="connectionName"
+                placeholder="Salesforce Production"
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
               />
             </div>
             <div>
-              <Label htmlFor="domain">Domain/Instance</Label>
+              <Label htmlFor="environment">Environment</Label>
+              <Select
+                value={connectionForm.environment || 'production'}
+                onValueChange={(value) => setConnectionForm({ ...connectionForm, environment: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="production">Production</SelectItem>
+                  <SelectItem value="sandbox">Sandbox</SelectItem>
+                  <SelectItem value="developer">Developer Edition</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button 
+              className="w-full" 
+              variant="default"
+              onClick={() => {
+                sessionStorage.setItem('salesforceConnectionName', connectionForm.name || 'Salesforce Connection');
+                sessionStorage.setItem('salesforceEnvironment', connectionForm.environment || 'production');
+                const loginUrl = connectionForm.environment === 'sandbox' ? 'test.salesforce.com' : 'login.salesforce.com';
+                window.location.href = `/api/auth/salesforce/connect?loginUrl=${loginUrl}&redirect=${encodeURIComponent(window.location.origin + '/connections')}`;
+              }}
+              disabled={!connectionForm.name}
+            >
+              <Shield className="mr-2 h-4 w-4" />
+              Connect with Salesforce
+            </Button>
+            <div className="text-sm text-gray-600 space-y-2">
+              <p className="font-semibold">Live data access includes:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Real-time CRM data sync</li>
+                <li>Leads, Opportunities, and Accounts</li>
+                <li>Custom objects and fields</li>
+                <li>Reports and dashboards data</li>
+                <li>Activity and task tracking</li>
+              </ul>
+            </div>
+          </div>
+        );
+
+      case 'shopify':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-sage-50 dark:bg-sage-900/20 border-sage-200 dark:border-sage-800">
+              <Shield className="h-4 w-4 text-sage-600 dark:text-sage-400" />
+              <AlertDescription>
+                <strong>Shopify Live Store Connection</strong><br />
+                Connect your Shopify store for real-time access to orders, products, customers, and inventory data.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
               <Input
-                id="domain"
-                placeholder={selectedType === 'shopify' ? 'mystore.myshopify.com' : 'mycompany.my.salesforce.com'}
-                value={connectionForm.domain || ''}
-                onChange={(e) => setConnectionForm({ ...connectionForm, domain: e.target.value })}
+                id="connectionName"
+                placeholder="My Shopify Store"
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
               />
+            </div>
+            <div>
+              <Label htmlFor="storeDomain">Store Domain</Label>
+              <Input
+                id="storeDomain"
+                placeholder="mystore.myshopify.com"
+                value={connectionForm.storeDomain || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, storeDomain: e.target.value })}
+              />
+            </div>
+            <Tabs value={connectionForm.authMethod || 'oauth'} onValueChange={(value) => setConnectionForm({ ...connectionForm, authMethod: value })}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="oauth">OAuth (Recommended)</TabsTrigger>
+                <TabsTrigger value="private">Private App</TabsTrigger>
+              </TabsList>
+              <TabsContent value="oauth" className="space-y-2">
+                <Button 
+                  className="w-full" 
+                  variant="default"
+                  onClick={() => {
+                    sessionStorage.setItem('shopifyConnectionName', connectionForm.name || 'Shopify Store');
+                    sessionStorage.setItem('shopifyStoreDomain', connectionForm.storeDomain || '');
+                    window.location.href = `/api/auth/shopify/connect?shop=${connectionForm.storeDomain}&redirect=${encodeURIComponent(window.location.origin + '/connections')}`;
+                  }}
+                  disabled={!connectionForm.name || !connectionForm.storeDomain}
+                >
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  Install Euno App on Shopify
+                </Button>
+              </TabsContent>
+              <TabsContent value="private" className="space-y-2">
+                <div>
+                  <Label htmlFor="adminApiToken">Admin API Access Token</Label>
+                  <Input
+                    id="adminApiToken"
+                    type="password"
+                    placeholder="shpat_..."
+                    value={connectionForm.adminApiToken || ''}
+                    onChange={(e) => setConnectionForm({ ...connectionForm, adminApiToken: e.target.value })}
+                  />
+                </div>
+                <Alert>
+                  <AlertDescription className="text-sm">
+                    <strong>How to create a Private App:</strong><br />
+                    1. Go to Settings → Apps → Develop apps<br />
+                    2. Create a private app for Euno<br />
+                    3. Grant read access to required scopes<br />
+                    4. Copy the Admin API access token
+                  </AlertDescription>
+                </Alert>
+              </TabsContent>
+            </Tabs>
+            <div className="text-sm text-gray-600 space-y-2">
+              <p className="font-semibold">Live store data includes:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Real-time order tracking</li>
+                <li>Product catalog and variants</li>
+                <li>Customer profiles and segments</li>
+                <li>Inventory levels</li>
+                <li>Sales analytics and trends</li>
+              </ul>
+            </div>
+          </div>
+        );
+
+      case 'googleads':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4 bg-sage-50 dark:bg-sage-900/20 border-sage-200 dark:border-sage-800">
+              <Shield className="h-4 w-4 text-sage-600 dark:text-sage-400" />
+              <AlertDescription>
+                <strong>Google Ads Live Connection</strong><br />
+                Connect your Google Ads account for real-time campaign performance and ad spend analytics.
+              </AlertDescription>
+            </Alert>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
+              <Input
+                id="connectionName"
+                placeholder="Google Ads Account"
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+              />
+            </div>
+            <Button 
+              className="w-full" 
+              variant="default"
+              onClick={() => {
+                sessionStorage.setItem('googleAdsConnectionName', connectionForm.name || 'Google Ads Connection');
+                window.location.href = `/api/auth/google/ads?redirect=${encodeURIComponent(window.location.origin + '/connections')}`;
+              }}
+              disabled={!connectionForm.name}
+            >
+              <FaGoogle className="mr-2" />
+              Connect with Google Ads
+            </Button>
+            <div className="text-sm text-gray-600 space-y-2">
+              <p className="font-semibold">Live advertising data includes:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Campaign performance metrics</li>
+                <li>Ad spend and budget tracking</li>
+                <li>Keyword performance</li>
+                <li>Conversion tracking</li>
+                <li>ROI and ROAS analytics</li>
+              </ul>
             </div>
           </div>
         );
@@ -457,42 +699,61 @@ export default function ConnectionsPage() {
       case 'stripe':
         return (
           <div className="space-y-4">
-            <Alert className="mb-4">
-              <Shield className="h-4 w-4" />
+            <Alert className="mb-4 bg-sage-50 dark:bg-sage-900/20 border-sage-200 dark:border-sage-800">
+              <Shield className="h-4 w-4 text-sage-600 dark:text-sage-400" />
               <AlertDescription>
-                <strong>Stripe Integration</strong><br />
-                Connect your Stripe account to automatically sync payment data including transactions, customers, and revenue analytics.
+                <strong>Stripe Live Data Connection</strong><br />
+                Connect your Stripe account for real-time payment analytics. Automatically sync transactions, customers, subscriptions, and revenue data.
               </AlertDescription>
             </Alert>
+            <div>
+              <Label htmlFor="connectionName">Connection Name</Label>
+              <Input
+                id="connectionName"
+                placeholder="Stripe Production"
+                value={connectionForm.name || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
+              />
+            </div>
             <div>
               <Label htmlFor="stripeSecretKey">Secret Key</Label>
               <Input
                 id="stripeSecretKey"
                 type="password"
-                placeholder="sk_live_..."
+                placeholder="sk_live_... or sk_test_..."
                 value={connectionForm.apiKey || ''}
                 onChange={(e) => setConnectionForm({ ...connectionForm, apiKey: e.target.value })}
               />
-              <p className="text-sm text-muted-foreground mt-1">
-                Find this in your Stripe Dashboard → Developers → API keys
-              </p>
+              <p className="text-xs text-gray-500 mt-1">Use sk_test_ for testing or sk_live_ for production data</p>
             </div>
             <div>
-              <Label htmlFor="syncMode">Sync Mode</Label>
-              <Select
-                value={connectionForm.syncMode || 'daily'}
-                onValueChange={(value) => setConnectionForm({ ...connectionForm, syncMode: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="realtime">Real-time (via webhooks)</SelectItem>
-                  <SelectItem value="daily">Daily sync</SelectItem>
-                  <SelectItem value="manual">Manual sync only</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="webhookEndpoint">Webhook Endpoint (Optional)</Label>
+              <Input
+                id="webhookEndpoint"
+                placeholder="https://your-domain.com/webhooks/stripe"
+                value={connectionForm.webhookEndpoint || ''}
+                onChange={(e) => setConnectionForm({ ...connectionForm, webhookEndpoint: e.target.value })}
+              />
+              <p className="text-xs text-gray-500 mt-1">For real-time event updates (we'll set this up for you)</p>
             </div>
+            <div className="text-sm text-gray-600 space-y-2">
+              <p className="font-semibold">Live data includes:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Real-time payment transactions</li>
+                <li>Customer profiles and lifetime value</li>
+                <li>Subscription metrics and MRR</li>
+                <li>Refunds and dispute tracking</li>
+                <li>Revenue analytics and forecasts</li>
+              </ul>
+            </div>
+            <Alert>
+              <AlertDescription className="text-sm">
+                <strong>How to get your API key:</strong><br />
+                1. Go to <a href="https://dashboard.stripe.com/apikeys" target="_blank" rel="noopener noreferrer" className="underline text-sage-600">Stripe Dashboard → API Keys</a><br />
+                2. Copy your Secret key (starts with sk_)<br />
+                3. Use Restricted keys for enhanced security
+              </AlertDescription>
+            </Alert>
           </div>
         );
 
@@ -978,28 +1239,7 @@ export default function ConnectionsPage() {
 
                 {selectedType && (
                   <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="name">Connection Name</Label>
-                      <Input
-                        id="name"
-                        placeholder="My Data Connection"
-                        value={connectionForm.name || ''}
-                        onChange={(e) => setConnectionForm({ ...connectionForm, name: e.target.value })}
-                      />
-                    </div>
-
                     {renderConnectionForm()}
-
-                    <div>
-                      <Label htmlFor="syncFrequency">Sync Frequency (minutes)</Label>
-                      <Input
-                        id="syncFrequency"
-                        type="number"
-                        placeholder="60"
-                        value={connectionForm.syncFrequency || ''}
-                        onChange={(e) => setConnectionForm({ ...connectionForm, syncFrequency: parseInt(e.target.value) })}
-                      />
-                    </div>
 
                     <div className="flex justify-end space-x-2 pt-4">
                       <Button variant="outline" onClick={resetForm}>
