@@ -737,7 +737,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
             disabled={!selectedDataSourceId || dataSources.length === 0}
           />
         </div>
-        {(user?.subscriptionTier === 'professional' || user?.subscriptionTier === 'enterprise') && (
+        {user?.subscriptionTier === 'enterprise' && (
           <Button
             onClick={() => handleSendMessage(true)}
             disabled={!message.trim() || sendMessageMutation.isPending || !selectedDataSourceId}
