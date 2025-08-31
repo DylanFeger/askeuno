@@ -383,7 +383,15 @@ export default function ConnectionsPage() {
                   <Card 
                     key={connection.id} 
                     className={`border ${isConnected ? 'opacity-50' : ''} hover:shadow-lg transition-shadow cursor-pointer`}
-                    onClick={() => !isConnected && setSelectedConnection(connection)}
+                    onClick={() => {
+                      if (!isConnected) {
+                        if (connection.id === 'csv_excel') {
+                          setLocation('/upload');
+                        } else {
+                          setSelectedConnection(connection);
+                        }
+                      }
+                    }}
                   >
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
