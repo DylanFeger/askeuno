@@ -115,6 +115,25 @@ export const blogPosts = pgTable("blog_posts", {
   status: text("status").notNull().default("published"), // 'draft', 'published'
 });
 
+// Connection Manager for secure OAuth connections
+export const connectionManager = pgTable("connection_manager", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  provider: text("provider").notNull(), // google_sheets, lightspeed, quickbooks, stripe
+  accountLabel: text("account_label").notNull(), // user-friendly name
+  scopesGranted: jsonb("scopes_granted").notNull(), // array of OAuth scopes
+  tokenMetadata: text("token_metadata"), // encrypted tokens (access, refresh)
+  connectionString: text("connection_string"), // encrypted DB connection (for direct DB only)
+  isReadOnly: boolean("is_read_only").default(true).notNull(), // verified read-only access
+  status: text("status").notNull().default("active"), // active, expired, revoked, error
+  lastUsedAt: timestamp("last_used_at"),
+  lastHealthCheck: timestamp("last_health_check"),
+  healthStatus: text("health_status"), // healthy, unhealthy, unknown
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at"), // token expiration
+  revokedAt: timestamp("revoked_at"), // when user disconnected
+});
+
 export const teamInvitations = pgTable("team_invitations", {
   id: serial("id").primaryKey(),
   inviterId: integer("inviter_id").references(() => users.id).notNull(),
@@ -223,6 +242,11 @@ export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
   updatedAt: true,
 });
 
+export const insertConnectionManagerSchema = createInsertSchema(connectionManager).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -234,3 +258,5 @@ export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type DataRow = typeof dataRows.$inferSelect;
 export type BlogPost = typeof blogPosts.$inferSelect;
 export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
+export type ConnectionManager = typeof connectionManager.$inferSelect;
+export type InsertConnectionManager = z.infer<typeof insertConnectionManagerSchema>;

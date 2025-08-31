@@ -1,222 +1,339 @@
 import { Router } from 'express';
-import { storage } from '../storage';
-import { logger } from '../utils/logger';
+import { db } from '../db';
+import { connectionManager } from '@shared/schema';
 import crypto from 'crypto';
 
 const router = Router();
 
-// OAuth configuration for different providers
-const OAUTH_CONFIG = {
-  google: {
-    authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
-    tokenUrl: 'https://oauth2.googleapis.com/token',
-    scopes: {
-      sheets: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-      ads: ['https://www.googleapis.com/auth/adwords'],
-      analytics: ['https://www.googleapis.com/auth/analytics.readonly'],
-      drive: ['https://www.googleapis.com/auth/drive.readonly'],
-    }
-  },
-  quickbooks: {
-    authUrl: 'https://appcenter.intuit.com/connect/oauth2',
-    tokenUrl: 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer',
-    scopes: ['com.intuit.quickbooks.accounting']
-  },
-  xero: {
-    authUrl: 'https://login.xero.com/identity/connect/authorize',
-    tokenUrl: 'https://identity.xero.com/connect/token',
-    scopes: ['accounting.transactions.read', 'accounting.reports.read']
-  },
-  stripe: {
-    authUrl: 'https://connect.stripe.com/oauth/authorize',
-    tokenUrl: 'https://connect.stripe.com/oauth/token',
-    scopes: ['read_only']
-  },
-  facebook: {
-    authUrl: 'https://www.facebook.com/v18.0/dialog/oauth',
-    tokenUrl: 'https://graph.facebook.com/v18.0/oauth/access_token',
-    scopes: ['pages_show_list', 'pages_read_engagement', 'read_insights']
-  },
-  instagram: {
-    authUrl: 'https://api.instagram.com/oauth/authorize',
-    tokenUrl: 'https://api.instagram.com/oauth/access_token',
-    scopes: ['business_basic', 'business_manage_messages', 'business_manage_comments']
+// PKCE helpers
+function generateCodeVerifier(): string {
+  return crypto.randomBytes(32).toString('base64url');
+}
+
+function generateCodeChallenge(verifier: string): string {
+  return crypto.createHash('sha256').update(verifier).digest('base64url');
+}
+
+// Generate state for CSRF protection
+function generateState(): string {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+// Encryption helpers (reuse from connections.ts)
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');
+const IV_LENGTH = 16;
+
+function encrypt(text: string): string {
+  const iv = crypto.randomBytes(IV_LENGTH);
+  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
+  let encrypted = cipher.update(text);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  return iv.toString('hex') + ':' + encrypted.toString('hex');
+}
+
+// OAuth endpoints for each provider
+
+// Google Sheets OAuth
+router.get('/auth/google_sheets/connect', (req, res) => {
+  if (!req.user) {
+    return res.redirect('/signin?error=unauthorized');
   }
-};
 
-// Store OAuth states temporarily (in production, use Redis or database)
-const oauthStates = new Map<string, { userId: number; service: string; redirect: string; timestamp: number }>();
+  const state = generateState();
+  const codeVerifier = generateCodeVerifier();
+  const codeChallenge = generateCodeChallenge(codeVerifier);
 
-// Clean up old states periodically
-setInterval(() => {
-  const now = Date.now();
-  oauthStates.forEach((data, state) => {
-    if (now - data.timestamp > 600000) { // 10 minutes
-      oauthStates.delete(state);
-    }
+  // Store state and verifier in session for validation
+  req.session.oauthState = state;
+  req.session.codeVerifier = codeVerifier;
+  req.session.oauthProvider = 'google_sheets';
+
+  const params = new URLSearchParams({
+    client_id: process.env.GOOGLE_CLIENT_ID || '',
+    redirect_uri: `${process.env.APP_URL}/api/auth/google/callback`,
+    response_type: 'code',
+    scope: 'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/drive.readonly',
+    access_type: 'offline',
+    prompt: 'consent',
+    state: state,
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256',
   });
-}, 60000); // Check every minute
 
-// Generic OAuth initiation handler
-router.get('/auth/:provider/:service', async (req, res) => {
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+  res.redirect(authUrl);
+});
+
+// QuickBooks OAuth
+router.get('/auth/quickbooks/connect', (req, res) => {
+  if (!req.user) {
+    return res.redirect('/signin?error=unauthorized');
+  }
+
+  const state = generateState();
+  const codeVerifier = generateCodeVerifier();
+  const codeChallenge = generateCodeChallenge(codeVerifier);
+
+  req.session.oauthState = state;
+  req.session.codeVerifier = codeVerifier;
+  req.session.oauthProvider = 'quickbooks';
+
+  const params = new URLSearchParams({
+    client_id: process.env.QUICKBOOKS_CLIENT_ID || '',
+    redirect_uri: `${process.env.APP_URL}/api/auth/quickbooks/callback`,
+    response_type: 'code',
+    scope: 'com.intuit.quickbooks.accounting.read',
+    state: state,
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256',
+  });
+
+  const authUrl = `https://appcenter.intuit.com/connect/oauth2?${params}`;
+  res.redirect(authUrl);
+});
+
+// Lightspeed OAuth
+router.get('/auth/lightspeed/connect', (req, res) => {
+  if (!req.user) {
+    return res.redirect('/signin?error=unauthorized');
+  }
+
+  const state = generateState();
+  req.session.oauthState = state;
+  req.session.oauthProvider = 'lightspeed';
+
+  const params = new URLSearchParams({
+    client_id: process.env.LIGHTSPEED_CLIENT_ID || '',
+    redirect_uri: `${process.env.APP_URL}/api/auth/lightspeed/callback`,
+    response_type: 'code',
+    scope: 'employee:reports employee:inventory employee:customers',
+    state: state,
+  });
+
+  const authUrl = `https://cloud.lightspeedapp.com/oauth/authorize?${params}`;
+  res.redirect(authUrl);
+});
+
+// Stripe OAuth (uses Stripe Connect)
+router.get('/auth/stripe/connect', (req, res) => {
+  if (!req.user) {
+    return res.redirect('/signin?error=unauthorized');
+  }
+
+  const state = generateState();
+  req.session.oauthState = state;
+  req.session.oauthProvider = 'stripe';
+
+  const params = new URLSearchParams({
+    client_id: process.env.STRIPE_CLIENT_ID || '',
+    redirect_uri: `${process.env.APP_URL}/api/auth/stripe/callback`,
+    response_type: 'code',
+    scope: 'read_only',
+    state: state,
+  });
+
+  const authUrl = `https://connect.stripe.com/oauth/authorize?${params}`;
+  res.redirect(authUrl);
+});
+
+// Generic OAuth callback handler
+router.get('/auth/:provider/callback', async (req, res) => {
+  if (!req.user) {
+    return res.redirect('/signin?error=unauthorized');
+  }
+
+  const { provider } = req.params;
+  const { code, state, error } = req.query;
+
+  // Handle OAuth errors
+  if (error) {
+    console.error(`OAuth error for ${provider}:`, error);
+    return res.redirect(`/connections?error=${error}`);
+  }
+
+  // Verify state for CSRF protection
+  if (state !== req.session.oauthState) {
+    console.error('State mismatch in OAuth callback');
+    return res.redirect('/connections?error=state_mismatch');
+  }
+
+  // Verify provider matches
+  if (provider !== req.session.oauthProvider) {
+    console.error('Provider mismatch in OAuth callback');
+    return res.redirect('/connections?error=provider_mismatch');
+  }
+
   try {
-    const { provider, service } = req.params;
-    const { redirect } = req.query;
-    
-    // Get user from session
-    const userId = (req.session as any)?.userId;
-    if (!userId) {
-      return res.redirect('/signin?error=auth_required');
+    let tokenData: any = {};
+    let accountLabel = '';
+    let scopes: string[] = [];
+
+    // Exchange code for tokens based on provider
+    switch (provider) {
+      case 'google':
+        tokenData = await exchangeGoogleCode(code as string, req.session.codeVerifier);
+        accountLabel = 'Google Sheets';
+        scopes = ['spreadsheets.readonly', 'drive.readonly'];
+        break;
+      
+      case 'quickbooks':
+        tokenData = await exchangeQuickBooksCode(code as string, req.session.codeVerifier);
+        accountLabel = 'QuickBooks Online';
+        scopes = ['accounting.read'];
+        break;
+      
+      case 'lightspeed':
+        tokenData = await exchangeLightspeedCode(code as string);
+        accountLabel = 'Lightspeed';
+        scopes = ['reports', 'inventory', 'customers'];
+        break;
+      
+      case 'stripe':
+        tokenData = await exchangeStripeCode(code as string);
+        accountLabel = 'Stripe';
+        scopes = ['read_only'];
+        break;
+      
+      default:
+        throw new Error('Unknown provider');
     }
 
-    // Generate state for CSRF protection
-    const state = crypto.randomBytes(32).toString('hex');
-    oauthStates.set(state, {
-      userId,
-      service: `${provider}/${service}`,
-      redirect: redirect as string || '/connections',
-      timestamp: Date.now()
+    // Encrypt tokens before storing
+    const encryptedTokens = encrypt(JSON.stringify({
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+      expires_at: tokenData.expires_at,
+    }));
+
+    // Store connection in database
+    await db.insert(connectionManager).values({
+      userId: req.user.id,
+      provider: provider === 'google' ? 'google_sheets' : provider,
+      accountLabel: accountLabel,
+      scopesGranted: scopes,
+      tokenMetadata: encryptedTokens,
+      status: 'active',
+      healthStatus: 'healthy',
+      expiresAt: tokenData.expires_at ? new Date(tokenData.expires_at) : null,
     });
 
-    // Get OAuth configuration
-    const config = OAUTH_CONFIG[provider as keyof typeof OAUTH_CONFIG];
-    if (!config) {
-      logger.error('Unknown OAuth provider', { provider });
-      return res.redirect('/connections?error=unknown_provider');
-    }
+    // Clean up session
+    delete req.session.oauthState;
+    delete req.session.codeVerifier;
+    delete req.session.oauthProvider;
 
-    // Build authorization URL based on provider
-    let authUrl = config.authUrl;
-    const params = new URLSearchParams();
-
-    // Get client credentials from environment
-    const clientId = process.env[`${provider.toUpperCase()}_CLIENT_ID`];
-    const redirectUri = `${process.env.VITE_APP_URL || 'http://localhost:5173'}/auth/callback/${provider}`;
-
-    if (!clientId) {
-      logger.error('Missing OAuth client ID', { provider });
-      return res.redirect('/connections?error=config_error');
-    }
-
-    // Common OAuth parameters
-    params.append('client_id', clientId);
-    params.append('redirect_uri', redirectUri);
-    params.append('state', state);
-    params.append('response_type', 'code');
-    
-    // Add scopes based on service
-    const serviceScopes = config.scopes && config.scopes[service as keyof typeof config.scopes];
-    const scopes = serviceScopes || [];
-    if (Array.isArray(scopes) && scopes.length > 0) {
-      params.append('scope', scopes.join(' '));
-    }
-
-    // Provider-specific parameters
-    if (provider === 'google') {
-      params.append('access_type', 'offline');
-      params.append('prompt', 'consent');
-    } else if (provider === 'quickbooks') {
-      params.append('response_type', 'code');
-    } else if (provider === 'xero') {
-      params.append('response_type', 'code');
-    }
-
-    // Redirect to OAuth provider
-    const fullAuthUrl = `${authUrl}?${params.toString()}`;
-    res.redirect(fullAuthUrl);
-
+    res.redirect('/connections?success=true');
   } catch (error) {
-    logger.error('OAuth initiation error', { error });
-    res.redirect('/connections?error=oauth_init_failed');
+    console.error(`Error in OAuth callback for ${provider}:`, error);
+    res.redirect('/connections?error=token_exchange_failed');
   }
 });
 
-// OAuth callback handler
-router.get('/callback/:provider', async (req, res) => {
-  try {
-    const { provider } = req.params;
-    const { code, state, error } = req.query;
+// Token exchange functions for each provider
+async function exchangeGoogleCode(code: string, codeVerifier: string): Promise<any> {
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      code,
+      client_id: process.env.GOOGLE_CLIENT_ID || '',
+      client_secret: process.env.GOOGLE_CLIENT_SECRET || '',
+      redirect_uri: `${process.env.APP_URL}/api/auth/google/callback`,
+      grant_type: 'authorization_code',
+      code_verifier: codeVerifier,
+    }),
+  });
 
-    // Handle OAuth errors
-    if (error) {
-      logger.error('OAuth callback error', { provider, error });
-      return res.redirect('/connections?error=oauth_denied');
-    }
-
-    // Verify state
-    const stateData = oauthStates.get(state as string);
-    if (!stateData) {
-      logger.error('Invalid OAuth state', { state });
-      return res.redirect('/connections?error=invalid_state');
-    }
-
-    // Clean up state
-    oauthStates.delete(state as string);
-
-    // Exchange code for token
-    const config = OAUTH_CONFIG[provider as keyof typeof OAUTH_CONFIG];
-    if (!config) {
-      return res.redirect('/connections?error=unknown_provider');
-    }
-
-    const clientId = process.env[`${provider.toUpperCase()}_CLIENT_ID`];
-    const clientSecret = process.env[`${provider.toUpperCase()}_CLIENT_SECRET`];
-    const redirectUri = `${process.env.VITE_APP_URL || 'http://localhost:5173'}/auth/callback/${provider}`;
-
-    if (!clientId || !clientSecret) {
-      logger.error('Missing OAuth credentials', { provider });
-      return res.redirect('/connections?error=config_error');
-    }
-
-    // Exchange authorization code for access token
-    const tokenParams = new URLSearchParams();
-    tokenParams.append('grant_type', 'authorization_code');
-    tokenParams.append('code', code as string);
-    tokenParams.append('redirect_uri', redirectUri);
-    tokenParams.append('client_id', clientId);
-    tokenParams.append('client_secret', clientSecret);
-
-    const tokenResponse = await fetch(config.tokenUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: tokenParams.toString(),
-    });
-
-    if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      logger.error('Token exchange failed', { provider, error: errorText });
-      return res.redirect('/connections?error=token_exchange_failed');
-    }
-
-    const tokenData = await tokenResponse.json();
-
-    // Store the connection in the database
-    const [serviceName] = stateData.service.split('/');
-    await storage.createDataSource({
-      userId: stateData.userId,
-      name: `${serviceName.charAt(0).toUpperCase() + serviceName.slice(1)} Connection`,
-      type: serviceName,
-      connectionType: 'live',
-      connectionData: {
-        accessToken: tokenData.access_token,
-        refreshToken: tokenData.refresh_token,
-        expiresAt: tokenData.expires_in ? Date.now() + (tokenData.expires_in * 1000) : null,
-        scope: tokenData.scope
-      },
-      status: 'active'
-    });
-
-    logger.info('OAuth connection established', { provider, userId: stateData.userId });
-
-    // Redirect back to connections page with success
-    res.redirect(`${stateData.redirect}?success=connected`);
-
-  } catch (error) {
-    logger.error('OAuth callback processing error', { error });
-    res.redirect('/connections?error=oauth_callback_failed');
+  if (!response.ok) {
+    throw new Error('Failed to exchange Google code');
   }
-});
+
+  const data = await response.json();
+  return {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: Date.now() + (data.expires_in * 1000),
+  };
+}
+
+async function exchangeQuickBooksCode(code: string, codeVerifier: string): Promise<any> {
+  const credentials = Buffer.from(
+    `${process.env.QUICKBOOKS_CLIENT_ID}:${process.env.QUICKBOOKS_CLIENT_SECRET}`
+  ).toString('base64');
+
+  const response = await fetch('https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer', {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': `Basic ${credentials}`,
+    },
+    body: new URLSearchParams({
+      code,
+      redirect_uri: `${process.env.APP_URL}/api/auth/quickbooks/callback`,
+      grant_type: 'authorization_code',
+      code_verifier: codeVerifier,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to exchange QuickBooks code');
+  }
+
+  const data = await response.json();
+  return {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: Date.now() + (data.expires_in * 1000),
+  };
+}
+
+async function exchangeLightspeedCode(code: string): Promise<any> {
+  const response = await fetch('https://cloud.lightspeedapp.com/oauth/access_token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      code,
+      client_id: process.env.LIGHTSPEED_CLIENT_ID || '',
+      client_secret: process.env.LIGHTSPEED_CLIENT_SECRET || '',
+      redirect_uri: `${process.env.APP_URL}/api/auth/lightspeed/callback`,
+      grant_type: 'authorization_code',
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to exchange Lightspeed code');
+  }
+
+  const data = await response.json();
+  return {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: Date.now() + (data.expires_in * 1000),
+  };
+}
+
+async function exchangeStripeCode(code: string): Promise<any> {
+  const response = await fetch('https://connect.stripe.com/oauth/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      code,
+      client_secret: process.env.STRIPE_CLIENT_SECRET || '',
+      grant_type: 'authorization_code',
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to exchange Stripe code');
+  }
+
+  const data = await response.json();
+  return {
+    access_token: data.stripe_user_id, // Stripe uses account ID as identifier
+    refresh_token: data.refresh_token,
+    expires_at: null, // Stripe tokens don't expire
+  };
+}
 
 export default router;

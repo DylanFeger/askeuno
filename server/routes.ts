@@ -24,6 +24,7 @@ import blogRoutes from "./routes/blog";
 import aiRoutes from "./routes/ai";
 import teamRoutes from "./routes/team";
 import chatV2Routes from "./routes/chatV2";
+import connectionRoutes from "./routes/connections";
 import { initializeScheduler, shutdownScheduler } from "./services/scheduler";
 import { sendContactFormEmail } from "./services/awsSes";
 
@@ -86,6 +87,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // OAuth routes for external service connections
   app.use('/api', oauthRoutes); // OAuth routes handle their own paths
+  
+  // Connection management routes
+  app.use('/api', connectionRoutes); // Connection routes for data integrations
   
   // Subscription routes
   app.use('/api/subscription', subscriptionRoutes);
