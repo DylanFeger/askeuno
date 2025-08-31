@@ -66,14 +66,7 @@ const CONNECTIONS = [
     scopes: ['com.intuit.quickbooks.accounting.read'],
     category: 'accounting'
   },
-  {
-    id: 'stripe',
-    name: 'Stripe',
-    icon: DollarSign,
-    description: 'Read payment and customer data',
-    scopes: ['read_only'],
-    category: 'payments'
-  },
+
   {
     id: 'csv_excel',
     name: 'Upload CSV/Excel',
