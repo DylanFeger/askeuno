@@ -151,32 +151,79 @@ Example: "Revenue up 15% to $45K this week, Widget A leading at $12K."
     } else if (tier === "professional") {
       if (extendedResponses) {
         instructions = `
-MAXIMUM 5 sentences.
-Structure: Key finding → Supporting data → Trend → Action.
-${tierConfig.allowSuggestions ? "Include 1-2 specific recommendations." : ""}
-Be comprehensive but concise.
+FORMATTING RULES:
+- Use bullet points (•) or numbered lists for multiple items
+- Separate sections with line breaks for clarity
+- Keep each point concise and actionable
+
+STRUCTURE:
+• Key finding with specific metrics
+• Supporting data points (use list format if multiple)
+• Trend analysis
+• Action items
+
+${tierConfig.allowSuggestions ? "Include 1-2 specific recommendations as bullet points." : ""}
+
+Example for top products query:
+"Top selling products:
+1. Widget A - $12K revenue (26% of total)
+2. Widget B - $8K revenue (17% of total)  
+3. Widget C - $6K revenue (13% of total)
+
+Trend: Top 3 products account for 56% of revenue.
+Action: Focus inventory on these high performers."
 `;
       } else {
         instructions = `
-MAXIMUM 1-2 sentences (prefer 1 sentence).
-State the key finding with specific numbers and one action.
-Example: "Sales up 12% ($45K), driven by Widget A; focus marketing on this momentum."
+For lists (top products, rankings, etc.): Use numbered format.
+For single insights: 1-2 sentences with key metrics.
+
+Examples:
+- List: "Top 3: 1) Widget A ($12K), 2) Widget B ($8K), 3) Widget C ($6K)"
+- Insight: "Sales up 12% ($45K), driven by Widget A; focus marketing here."
 `;
       }
     } else if (tier === "enterprise") {
       if (extendedResponses) {
         instructions = `
-MAXIMUM 5 sentences.
-Structure: Executive summary → Key findings → Critical trends → Top recommendations.
-${tierConfig.allowSuggestions ? "Include 2-3 strategic actions with ROI." : ""}
-${tierConfig.allowCharts ? "Mention best visualization in final sentence." : ""}
-${tierConfig.allowForecast ? "Include forecast in one sentence." : ""}
+FORMATTING RULES:
+- Use structured sections with clear headers
+- Bullet points for multiple insights
+- Tables for comparisons (format as text table)
+- Line breaks between sections
+
+STRUCTURE:
+
+📊 Executive Summary:
+[One-line key finding]
+
+📈 Key Metrics:
+• [Metric 1 with value and change]
+• [Metric 2 with value and change]
+• [Metric 3 with value and change]
+
+🎯 Recommendations:
+1. [Strategic action with expected ROI]
+2. [Secondary action with rationale]
+${tierConfig.allowSuggestions ? "3. [Additional strategic initiative]" : ""}
+
+${tierConfig.allowCharts ? "📉 Visualization: [Best chart type for this data]" : ""}
+${tierConfig.allowForecast ? "🔮 Forecast: [Next period projection with confidence level]" : ""}
+
+For comparisons, use simple text tables:
+Product | Revenue | Growth
+--------|---------|-------
+Item A  | $45K    | +15%
+Item B  | $32K    | +8%
 `;
       } else {
         instructions = `
-MAXIMUM 1-2 sentences (prefer 1 sentence).
-Provide executive-level insight with key metric and strategic action.
-Example: "Revenue $250K (+18% YoY), wholesale channel outperforming by 35%; double down on B2B partnerships."
+For lists: Use concise numbered format with key metrics.
+For insights: Executive summary with strategic action.
+
+Examples:
+- List: "Top performers: 1) Region A ($250K, +18%), 2) Region B ($180K, +12%)"
+- Insight: "Revenue $250K (+18% YoY); wholesale up 35% - double B2B focus."
 `;
       }
     }
