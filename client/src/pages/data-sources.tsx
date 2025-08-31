@@ -157,7 +157,7 @@ export default function DataSources() {
         {/* Add new data source buttons */}
         <div className="mb-8 flex gap-4">
           <Link href="/connections">
-            <Button className="bg-sage-600 hover:bg-sage-700">
+            <Button variant="outline">
               <Database className="h-4 w-4 mr-2" />
               Connect Database
             </Button>
@@ -181,7 +181,7 @@ export default function DataSources() {
               </p>
               <div className="flex gap-4 justify-center">
                 <Link href="/connections">
-                  <Button className="bg-sage-600 hover:bg-sage-700">
+                  <Button variant="outline">
                     Connect Database
                   </Button>
                 </Link>
