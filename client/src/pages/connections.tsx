@@ -96,11 +96,36 @@ export default function ConnectionsPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [selectedConnection, setSelectedConnection] = useState<any>(null);
   const [dbConfig, setDbConfig] = useState({ connectionString: '', type: 'postgres' });
   const [deleteConfirmation, setDeleteConfirmation] = useState<any>(null);
   const [testingConnection, setTestingConnection] = useState<string | null>(null);
+  
+  // Handle OAuth callback parameters
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get('success');
+    const error = params.get('error');
+    
+    if (success === 'true') {
+      toast({
+        title: 'Connection Successful',
+        description: 'Your account has been connected successfully.',
+      });
+      // Clean up URL
+      window.history.replaceState({}, '', '/connections');
+      queryClient.invalidateQueries({ queryKey: ['/api/connections'] });
+    } else if (error) {
+      toast({
+        title: 'Connection Failed',
+        description: decodeURIComponent(error),
+        variant: 'destructive',
+      });
+      // Clean up URL
+      window.history.replaceState({}, '', '/connections');
+    }
+  }, [toast, queryClient]);
 
   // Fetch active connections from Connection Manager
   const { data: connections = [], isLoading: connectionsLoading } = useQuery<any[]>({
@@ -118,11 +143,20 @@ export default function ConnectionsPage() {
         const formData = new FormData();
         formData.append('file', data.file);
         formData.append('name', data.name);
-        return fetch('/api/upload', {
+        const response = await fetch('/api/upload', {
           method: 'POST',
           body: formData,
           credentials: 'include',
-        }).then(res => res.json());
+        });
+        const result = await response.json();
+        
+        // Redirect to Chat with new dataset banner
+        if (result.dataSource) {
+          setTimeout(() => {
+            setLocation(`/chat?newDataset=${encodeURIComponent(result.dataSource.name)}`);
+          }, 500);
+        }
+        return result;
       } else {
         // OAuth flow - redirect to backend OAuth endpoint
         window.location.href = `/api/auth/${data.provider}/connect`;

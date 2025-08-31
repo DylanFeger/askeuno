@@ -12,7 +12,7 @@ import { validateChatMessage, validateFileUpload, validateConversationId } from 
 import { requireOwnership, validateFileUploadSecurity, monitorRequestSize, ipRateLimit } from "./middleware/security";
 import { logger, logFileUpload, logETLProcess, logAICall, logPaymentEvent } from "./utils/logger";
 import authRoutes from "./routes/auth";
-import oauthRoutes from "./routes/oauth";
+import oauthHandlers from "./routes/oauth-handlers";
 import dataSourcesRoutes from "./routes/data-sources";
 import uploadRoutes from "./routes/uploads";
 import webhookRoutes from "./routes/webhooks";
@@ -86,7 +86,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use('/api/auth', ipRateLimit(50, 15 * 60 * 1000), authRoutes); // 50 attempts per 15 minutes
   
   // OAuth routes for external service connections
-  app.use('/api', oauthRoutes); // OAuth routes handle their own paths
+  app.use('/api', oauthHandlers); // OAuth routes handle their own paths
   
   // Connection management routes
   app.use('/api', connectionRoutes); // Connection routes for data integrations

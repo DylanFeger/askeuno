@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
-import { Database, Upload, TrendingUp, Menu } from 'lucide-react';
+import { Database, Upload, TrendingUp, Menu, CheckCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import ChatInterface from '@/components/ChatInterface';
 import { ConversationSearch } from '@/components/ConversationSearch';
 import Navbar from '@/components/Navbar';
@@ -16,8 +17,9 @@ export default function Chat() {
   const [conversationId, setConversationId] = useState<number | undefined>();
   const [conversationMessages, setConversationMessages] = useState<ChatMessage[]>([]);
   const { user, isLoading, isAuthenticated } = useAuth();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const isMobile = useIsMobile();
+  const [newDatasetName, setNewDatasetName] = useState<string | null>(null);
   
   // Redirect to signin if not authenticated
   useEffect(() => {
@@ -25,6 +27,20 @@ export default function Chat() {
       setLocation('/signin');
     }
   }, [isAuthenticated, isLoading, setLocation]);
+
+  // Handle new dataset query parameter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const newDataset = params.get('newDataset');
+    
+    if (newDataset) {
+      setNewDatasetName(decodeURIComponent(newDataset));
+      // Clean up URL
+      window.history.replaceState({}, '', '/chat');
+      // Auto-dismiss banner after 5 seconds
+      setTimeout(() => setNewDatasetName(null), 5000);
+    }
+  }, []);
 
   const { data: dataSources = [] } = useQuery<DataSource[]>({
     queryKey: ['/api/data-sources'],
@@ -72,6 +88,26 @@ export default function Chat() {
                 onConversationSelect={handleConversationSelect}
                 currentConversationId={conversationId}
               />
+
+              {/* New Dataset Banner */}
+              {newDatasetName && (
+                <Alert className="mb-6 bg-green-50 border-green-200">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="flex items-center justify-between">
+                    <span className="text-green-800">
+                      New dataset "{newDatasetName}" is ready! You can now ask questions about your data.
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setNewDatasetName(null)}
+                      className="ml-4"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
                 
                 {dataSources.length === 0 && !conversationId && (
                   <Card className="p-6 mb-8 bg-amber-50 border-amber-200">

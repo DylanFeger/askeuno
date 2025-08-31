@@ -1,10 +1,12 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { db } from '../db';
-import { connectionManager } from '@shared/schema';
+import { connectionManager, dataSources } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 import crypto from 'crypto';
 import { Pool } from 'pg';
 import mysql from 'mysql2/promise';
+import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -31,10 +33,7 @@ function decrypt(text: string): string {
 }
 
 // Get all connections for the authenticated user
-router.get('/connections', async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+router.get('/connections', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
 
   try {
     const connections = await db
@@ -62,10 +61,7 @@ router.get('/connections', async (req, res) => {
 });
 
 // Test a connection
-router.post('/connections/:id/test', async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+router.post('/connections/:id/test', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
 
   const connectionId = parseInt(req.params.id);
 
@@ -122,10 +118,7 @@ router.post('/connections/:id/test', async (req, res) => {
 });
 
 // Delete a connection
-router.delete('/connections/:id', async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+router.delete('/connections/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
 
   const connectionId = parseInt(req.params.id);
 
@@ -152,10 +145,7 @@ router.delete('/connections/:id', async (req, res) => {
 });
 
 // Connect to a database (PostgreSQL or MySQL)
-router.post('/connections/database', async (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+router.post('/connections/database', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
 
   const { dbType, connectionString, name } = req.body;
 
