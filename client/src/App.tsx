@@ -8,6 +8,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import Home from "@/pages/home";
 import Privacy from "@/pages/privacy";
 import Connections from "@/pages/connections";
+import DataSources from "@/pages/data-sources";
 import Dashboards from "@/pages/dashboards";
 import Dashboard from "@/pages/dashboard";
 import Chat from "@/pages/chat";
@@ -45,6 +46,7 @@ function Router() {
       <Route path="/chat" component={Chat} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/connections" component={Connections} />
+      <Route path="/data-sources" component={DataSources} />
       <Route path="/dashboards" component={Dashboards} />
       <Route path="/upload" component={UploadPage} />
       <Route path="/import-wizard" component={ImportWizard} />

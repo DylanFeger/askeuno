@@ -108,7 +108,8 @@ export default function UploadPage() {
       
       // Invalidate data sources query and redirect
       queryClient.invalidateQueries({ queryKey: ['/api/data-sources'] });
-      setTimeout(() => setLocation('/connections'), 1500);
+      queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      setTimeout(() => setLocation('/data-sources'), 1500);
     },
     onError: (error: Error) => {
       toast({

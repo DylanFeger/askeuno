@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Database, Settings, LogOut, CreditCard, TrendingUp, BookOpen, Users, Menu, X } from 'lucide-react';
+import { MessageCircle, Database, Settings, LogOut, CreditCard, TrendingUp, BookOpen, Users, Menu, X, Link2 } from 'lucide-react';
 import EunoLogo from '@/components/EunoLogo';
 import { apiRequest } from '@/lib/queryClient';
 import { useState, useEffect } from 'react';
@@ -52,7 +52,8 @@ export default function Navbar() {
     // Main users get full navigation
     navItems = [
       { path: '/chat', label: 'Chat', icon: MessageCircle },
-      { path: '/connections', label: 'Data Sources', icon: Database },
+      { path: '/data-sources', label: 'Data Sources', icon: Database },
+      { path: '/connections', label: 'Connections', icon: Link2 },
     ];
   }
 
