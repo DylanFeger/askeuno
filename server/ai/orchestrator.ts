@@ -276,6 +276,8 @@ function detectIntent(message: string): "data_query" | "faq_product" | "irreleva
     'revenue', 'orders', 'sessions', 'cac', 'ltv', 'churn', 'arpu',
     'sales', 'profit', 'customer', 'product', 'total', 'calculate',
     'show', 'display', 'list', 'find', 'analyze', 'compare',
+    // Pricing and financial terms (usually about user's data)
+    'pricing', 'price', 'cost', 'margin', 'discount', 'markup',
     // General data-related terms
     'data', 'business', 'performance', 'metric', 'number', 'result',
     'tell', 'about', 'my', 'our', 'how', 'what', 'when', 'where',
@@ -286,11 +288,12 @@ function detectIntent(message: string): "data_query" | "faq_product" | "irreleva
     'journey', 'path', 'speed', 'foundation', 'bloom', 'grow'
   ];
   
-  // FAQ/product keywords
+  // FAQ/product keywords - only for questions specifically about Euno platform
   const faqKeywords = [
-    'pricing', 'features', 'connection', 'setup', 'billing', 
-    'limits', 'subscription', 'tier', 'plan', 'upgrade', 'how to connect',
-    'how to upload', 'how does euno', 'what is euno'
+    'euno pricing', 'euno cost', 'euno features', 'euno plan', 'euno tier',
+    'subscription cost', 'subscription price', 'billing', 'how much does euno',
+    'limits', 'tier', 'plan', 'upgrade', 'how to connect',
+    'how to upload', 'how does euno', 'what is euno', 'setup guide'
   ];
   
   // Truly irrelevant keywords - only mark as irrelevant if these are present
@@ -340,8 +343,8 @@ function handleFAQQuery(message: string, tier: string): AiResponse {
   const lowercaseMsg = message.toLowerCase();
   let response = "";
   
-  if (lowercaseMsg.includes("pricing")) {
-    response = "Euno offers three tiers: Starter (Free) with basic features, Professional ($49/mo) with advanced analytics, and Enterprise ($79/mo) with unlimited features and priority support.";
+  if (lowercaseMsg.includes("pricing") || lowercaseMsg.includes("cost") || lowercaseMsg.includes("price")) {
+    response = "Euno offers three tiers: Starter (Free) with basic features, Professional ($99/mo or $1,009/year) with advanced analytics, and Enterprise ($249/mo or $2,540/year) with unlimited features and priority support.";
   } else if (lowercaseMsg.includes("connection") || lowercaseMsg.includes("setup")) {
     response = "To connect your data: 1) Go to Data Sources, 2) Click 'Connect New Data Source', 3) Choose your source type, 4) Enter credentials. For files, simply drag and drop on the Upload page.";
   } else if (lowercaseMsg.includes("limits")) {
