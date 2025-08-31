@@ -2,14 +2,12 @@ import express from 'express';
 const app = express();
 
 // GET endpoint for Lightspeed OAuth callback
-app.get('/oauth/callback/lightspeed', (req, res) => {
-  const code = req.query.code;
-  console.log('Lightspeed OAuth callback received with code:', code);
-  
-  res.status(200).json({
-    message: 'Euno callback OK',
-    code: code
-  });
+app.get("/oauth/callback/lightspeed", (req, res) => {
+  const code = req.query.code || "(no code)";
+  console.log("Lightspeed OAuth callback hit. code =", code);
+  res
+    .status(200)
+    .send(`<pre>Euno callback OK\ncode=${code}\nYou can close this.</pre>`);
 });
 
 // Health check endpoint
