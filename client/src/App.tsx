@@ -37,6 +37,7 @@ import AcceptInvite from "@/pages/accept-invite";
 import About from "@/pages/about";
 import ResponsibleAI from "@/pages/ResponsibleAI";
 import OAuthCallback from "@/pages/oauth-callback";
+import LightspeedSetup from "@/pages/lightspeed-setup";
 
 function Router() {
   return (
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/connections" component={Connections} />
       <Route path="/data-sources" component={DataSources} />
+      <Route path="/lightspeed-setup" component={LightspeedSetup} />
       <Route path="/dashboards" component={Dashboards} />
       <Route path="/upload" component={UploadPage} />
       <Route path="/import-wizard" component={ImportWizard} />

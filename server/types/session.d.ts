@@ -6,5 +6,6 @@ declare module 'express-session' {
     codeVerifier?: string;
     oauthProvider?: string;
     uploadRedirect?: string;
+    lightspeedStoreUrl?: string;
   }
 }

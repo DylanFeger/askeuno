@@ -36,7 +36,7 @@ function encrypt(text: string): string {
 // OAuth endpoints for each provider
 
 // Google Sheets OAuth
-router.get('/auth/google_sheets/connect', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+router.get('/auth/google_sheets/connect', requireAuth, (req, res) => {
 
   const state = generateState();
   const codeVerifier = generateCodeVerifier();
@@ -97,9 +97,16 @@ router.get('/auth/lightspeed/connect', (req, res) => {
     return res.redirect('/signin?error=unauthorized');
   }
 
+  // Get store URL from query parameter
+  const storeUrl = req.query.store_url as string;
+  if (!storeUrl) {
+    return res.redirect('/lightspeed-setup?error=missing_store_url');
+  }
+
   const state = generateState();
   req.session.oauthState = state;
   req.session.oauthProvider = 'lightspeed';
+  req.session.lightspeedStoreUrl = storeUrl; // Store for later use
 
   const params = new URLSearchParams({
     client_id: process.env.LIGHTSPEED_CLIENT_ID || '',
@@ -109,7 +116,9 @@ router.get('/auth/lightspeed/connect', (req, res) => {
     state: state,
   });
 
-  const authUrl = `https://cloud.lightspeedapp.com/oauth/authorize?${params}`;
+  // Use the user's specific store URL
+  const authUrl = `https://${storeUrl}/oauth/authorize?${params}`;
+  console.log('Lightspeed OAuth initiated', { userId: req.user.id, storeUrl });
   res.redirect(authUrl);
 });
 
@@ -170,20 +179,20 @@ router.get('/auth/:provider/callback', async (req, res) => {
     // Exchange code for tokens based on provider
     switch (provider) {
       case 'google':
-        tokenData = await exchangeGoogleCode(code as string, req.session.codeVerifier);
+        tokenData = await exchangeGoogleCode(code as string, req.session.codeVerifier || '');
         accountLabel = 'Google Sheets';
         scopes = ['spreadsheets.readonly', 'drive.readonly'];
         break;
       
       case 'quickbooks':
-        tokenData = await exchangeQuickBooksCode(code as string, req.session.codeVerifier);
+        tokenData = await exchangeQuickBooksCode(code as string, req.session.codeVerifier || '');
         accountLabel = 'QuickBooks Online';
         scopes = ['accounting.read'];
         break;
       
       case 'lightspeed':
-        tokenData = await exchangeLightspeedCode(code as string);
-        accountLabel = 'Lightspeed';
+        tokenData = await exchangeLightspeedCode(code as string, req.session.lightspeedStoreUrl);
+        accountLabel = `Lightspeed (${req.session.lightspeedStoreUrl})`;
         scopes = ['reports', 'inventory', 'customers'];
         break;
       
@@ -287,8 +296,13 @@ async function exchangeQuickBooksCode(code: string, codeVerifier: string): Promi
   };
 }
 
-async function exchangeLightspeedCode(code: string): Promise<any> {
-  const response = await fetch('https://cloud.lightspeedapp.com/oauth/access_token', {
+async function exchangeLightspeedCode(code: string, storeUrl?: string): Promise<any> {
+  // Use the store URL if provided, otherwise use the default cloud URL
+  const tokenUrl = storeUrl 
+    ? `https://${storeUrl}/oauth/access_token`
+    : 'https://cloud.lightspeedapp.com/oauth/access_token';
+  
+  const response = await fetch(tokenUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -309,6 +323,7 @@ async function exchangeLightspeedCode(code: string): Promise<any> {
     access_token: data.access_token,
     refresh_token: data.refresh_token,
     expires_at: Date.now() + (data.expires_in * 1000),
+    store_url: storeUrl, // Store for later API calls
   };
 }
 

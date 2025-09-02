@@ -151,6 +151,11 @@ export default function ConnectionsPage() {
         }
         return result;
       } else {
+        // For Lightspeed, redirect to setup page first
+        if (data.provider === 'lightspeed') {
+          window.location.href = '/lightspeed-setup';
+          return Promise.resolve();
+        }
         // OAuth flow - redirect to backend OAuth endpoint
         window.location.href = `/api/auth/${data.provider}/connect`;
         return Promise.resolve();
