@@ -13,7 +13,10 @@ app.get("/oauth/callback/lightspeed", (req, res) => {
 // API endpoint for Lightspeed OAuth callback
 app.get("/api/oauth/callback/lightspeed", (req, res) => {
   const code = req.query.code || "(no code)";
-  res.status(200).send(`<pre>Euno callback OK\ncode=${code}\nYou can close this.</pre>`);
+  console.log("Lightspeed OAuth callback hit (API prefix). code =", code);
+  res
+    .status(200)
+    .send(`<pre>Euno callback OK\ncode=${code}\nYou can close this.</pre>`);
 });
 
 // Health check endpoints
