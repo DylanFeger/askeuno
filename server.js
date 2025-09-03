@@ -28,6 +28,20 @@ app.get('/euno-health', (req, res) => {
   res.status(200).send('euno-express-alive');
 });
 
+// Debug: list all registered routes
+app.get("/routes", (_, res) => {
+  const routes = [];
+  (app._router?.stack || []).forEach((m) => {
+    if (m.route && m.route.path) {
+      const methods = Object.keys(m.route.methods)
+        .filter(Boolean)
+        .map((x) => x.toUpperCase());
+      routes.push(`${methods.join(",")} ${m.route.path}`);
+    }
+  });
+  res.json(routes);
+});
+
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
