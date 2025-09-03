@@ -79,7 +79,7 @@ export default function LightspeedSetup() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-center mb-4">
-                <Store className="h-12 w-12 text-sage-600" />
+                <Store className="h-12 w-12 text-primary" />
               </div>
               <CardTitle className="text-center">Connect Your Lightspeed Store</CardTitle>
               <CardDescription className="text-center">
@@ -124,7 +124,7 @@ export default function LightspeedSetup() {
                   </Button>
                   <Button
                     type="submit"
-                    className="flex-1 bg-sage-600 hover:bg-sage-700"
+                    className="flex-1"
                     disabled={isValidating}
                   >
                     {isValidating ? (
@@ -151,7 +151,7 @@ export default function LightspeedSetup() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-center mb-4">
-              <Shield className="h-12 w-12 text-sage-600" />
+              <Shield className="h-12 w-12 text-primary" />
             </div>
             <CardTitle className="text-center">Connect to Lightspeed Retail</CardTitle>
             <CardDescription className="text-center">
@@ -205,7 +205,7 @@ export default function LightspeedSetup() {
               </Button>
               <Button
                 onClick={handleConnect}
-                className="flex-1 bg-sage-600 hover:bg-sage-700"
+                className="flex-1"
               >
                 Connect
               </Button>
