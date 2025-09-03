@@ -123,13 +123,19 @@ export const connectionManager = pgTable("connection_manager", {
   accountLabel: text("account_label").notNull(), // user-friendly name
   scopesGranted: jsonb("scopes_granted").notNull(), // array of OAuth scopes
   tokenMetadata: text("token_metadata"), // encrypted tokens (access, refresh)
+  storeUrl: text("store_url"), // Lightspeed store URL
+  accountId: text("account_id"), // Lightspeed account ID
+  accessToken: text("access_token"), // OAuth access token (encrypted)
+  refreshToken: text("refresh_token"), // OAuth refresh token (encrypted)
   connectionString: text("connection_string"), // encrypted DB connection (for direct DB only)
   isReadOnly: boolean("is_read_only").default(true).notNull(), // verified read-only access
   status: text("status").notNull().default("active"), // active, expired, revoked, error
   lastUsedAt: timestamp("last_used_at"),
+  lastSyncedAt: timestamp("last_synced_at"), // Last data sync timestamp
   lastHealthCheck: timestamp("last_health_check"),
   healthStatus: text("health_status"), // healthy, unhealthy, unknown
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
   expiresAt: timestamp("expires_at"), // token expiration
   revokedAt: timestamp("revoked_at"), // when user disconnected
 });

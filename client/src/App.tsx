@@ -38,6 +38,8 @@ import About from "@/pages/about";
 import ResponsibleAI from "@/pages/ResponsibleAI";
 import OAuthCallback from "@/pages/oauth-callback";
 import LightspeedSetup from "@/pages/lightspeed-setup";
+import LightspeedConnection from "@/pages/connections-lightspeed";
+import LightspeedConnectionSuccess from "@/pages/connections-lightspeed-success";
 
 function Router() {
   return (
@@ -47,6 +49,8 @@ function Router() {
       <Route path="/chat" component={Chat} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/connections" component={Connections} />
+      <Route path="/connections/lightspeed" component={LightspeedConnection} />
+      <Route path="/connections/lightspeed/success" component={LightspeedConnectionSuccess} />
       <Route path="/data-sources" component={DataSources} />
       <Route path="/lightspeed-setup" component={LightspeedSetup} />
       <Route path="/dashboards" component={Dashboards} />

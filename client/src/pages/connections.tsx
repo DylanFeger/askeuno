@@ -393,7 +393,7 @@ export default function ConnectionsPage() {
                         if (connection.id === 'csv_excel') {
                           setLocation('/upload');
                         } else if (connection.id === 'lightspeed') {
-                          setLocation('/lightspeed-setup');
+                          setLocation('/connections/lightspeed');
                         } else {
                           setSelectedConnection(connection);
                         }

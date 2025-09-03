@@ -1,0 +1,121 @@
+“Implement Lightspeed Retail OAuth for AskEuno end-to-end and wire it to the existing ‘Store URL’ screen.
+
+Infrastructure
+
+Stack: Node.js + Express.
+
+Read secrets from env only. Do not hardcode.
+
+Add Replit Secrets: LS_CLIENT_ID, LS_CLIENT_SECRET, LS_REDIRECT_URI=https://askeuno.com/oauth/callback/lightspeed
+, LS_AUTH_URL=https://cloud.lightspeedapp.com/oauth/authorize
+, LS_TOKEN_URL=https://cloud.lightspeedapp.com/oauth/token
+, LS_API_BASE=https://api.lightspeedapp.com
+.
+
+Keep /health returning ‘ok’.
+
+Data
+
+Table connections (userId, provider, storeUrl, accountId, accessToken, refreshToken, expiresAt, lastSyncedAt, createdAt, updatedAt).
+
+provider fixed to 'lightspeed'. Upsert by (userId, provider).
+
+Frontend
+
+On /connections/lightspeed page, keep one input: storeUrl.
+
+Validate: must match ^https://[a-z0-9-]+.lightspeedapp.com/?$.
+
+On submit, POST JSON {storeUrl} to /lightspeed/start. If response {redirect}, window.location = redirect. Show inline errors otherwise.
+
+Backend
+
+POST /lightspeed/start
+
+Auth: require logged-in userId (reuse existing auth).
+
+Validate storeUrl with same regex.
+
+Generate cryptographically strong state (32 bytes hex), store in session with userId and storeUrl.
+
+Build authorize URL:
+base = process.env.LS_AUTH_URL
+params: response_type=code, client_id=LS_CLIENT_ID, redirect_uri=LS_REDIRECT_URI,
+scope='employee:read inventory:read sales:read', state=<state>
+
+Return {redirect: url}.
+
+GET /oauth/callback/lightspeed
+
+Read code, state. Verify state against session; if mismatch 400.
+
+Exchange code for tokens:
+POST process.env.LS_TOKEN_URL (x-www-form-urlencoded):
+grant_type=authorization_code
+code=<code>
+client_id=LS_CLIENT_ID
+client_secret=LS_CLIENT_SECRET
+redirect_uri=LS_REDIRECT_URI
+
+Expect JSON: access_token, refresh_token, expires_in, account_id.
+
+Compute expiresAt = now + expires_in - 120s buffer.
+
+Upsert into connections for (userId, 'lightspeed') with storeUrl from session and returned account_id and tokens.
+
+Redirect to /connections/lightspeed/success.
+
+Token refresh helper ensureLightspeedToken(userId)
+
+Load connection. If expiresAt < now+5m, refresh:
+POST LS_TOKEN_URL with:
+grant_type=refresh_token
+refresh_token=<stored>
+client_id=LS_CLIENT_ID
+client_secret=LS_CLIENT_SECRET
+
+Update accessToken, refreshToken (if present), expiresAt.
+
+Sanity test route GET /lightspeed/test
+
+Uses ensureLightspeedToken(userId).
+
+GET ${LS_API_BASE}/API/Account/${accountId}.json with Authorization: Bearer <accessToken>.
+
+If 401 once, refresh then retry once.
+
+Return {ok:true, accountId, name} on success; otherwise 502 with error.
+
+Disconnect DELETE /connections/lightspeed
+
+Null out tokens and mark provider disconnected or delete row.
+
+Return {ok:true}.
+
+Security & UX
+
+HTTPS-only secure cookies for session; do not log secrets or tokens.
+
+Handle all errors with JSON {error:"…"} and user-readable messages on the UI.
+
+Disable submit button during /lightspeed/start and show spinner. Re-enable on error.
+
+Acceptance tests
+
+Invalid storeUrl blocks submit with inline message.
+
+Valid storeUrl → redirects to Lightspeed OAuth → returns to callback → saves tokens → success screen.
+
+/lightspeed/test returns ok with account details.
+
+Refresh path works when expiring tokens are simulated.
+
+Disconnect removes access and UI shows “Connect” again.
+
+Deliverables
+
+Routes, session, DB upsert, UI validation, and test route in place.
+
+Code reads only process.env.* for all LS_* values.
+
+Keep existing features untouched.”

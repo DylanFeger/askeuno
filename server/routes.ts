@@ -25,6 +25,7 @@ import aiRoutes from "./routes/ai";
 import teamRoutes from "./routes/team";
 import chatV2Routes from "./routes/chatV2";
 import connectionRoutes from "./routes/connections";
+import lightspeedRoutes from "./routes/lightspeed";
 import { initializeScheduler, shutdownScheduler } from "./services/scheduler";
 import { sendContactFormEmail } from "./services/awsSes";
 
@@ -90,6 +91,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Connection management routes
   app.use('/api', connectionRoutes); // Connection routes for data integrations
+  
+  // Lightspeed OAuth routes  
+  app.use('/api', lightspeedRoutes);
   
   // Subscription routes
   app.use('/api/subscription', subscriptionRoutes);
