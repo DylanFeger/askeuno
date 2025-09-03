@@ -10,9 +10,13 @@ app.get("/oauth/callback/lightspeed", (req, res) => {
     .send(`<pre>Euno callback OK\ncode=${code}\nYou can close this.</pre>`);
 });
 
-// Health check endpoint
+// Health check endpoints
 app.get('/health', (req, res) => {
   res.status(200).send('ok');
+});
+
+app.get('/euno-health', (req, res) => {
+  res.status(200).send('euno-express-alive');
 });
 
 // Start server
