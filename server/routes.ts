@@ -92,7 +92,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Connection management routes
   app.use('/api', connectionRoutes); // Connection routes for data integrations
   
-  // Lightspeed OAuth routes  
+  // Lightspeed OAuth routes
+  // Mount the callback route without /api prefix to match the redirect URI
+  app.get('/oauth/callback/lightspeed', async (req, res) => {
+    // Import the callback handler directly
+    const lightspeedModule = await import('./routes/lightspeed');
+    await lightspeedModule.handleOAuthCallback(req, res);
+  });
+  
+  // Mount other Lightspeed routes under /api
   app.use('/api', lightspeedRoutes);
   
   // Subscription routes

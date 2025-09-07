@@ -68,8 +68,8 @@ router.post('/lightspeed/start', requireAuth, async (req: Request, res: Response
   res.json({ redirect: authUrl.toString() });
 });
 
-// GET /api/oauth/callback/lightspeed - OAuth callback
-router.get('/oauth/callback/lightspeed', async (req: Request, res: Response) => {
+// OAuth callback handler exported separately to be mounted at root level
+export async function handleOAuthCallback(req: Request, res: Response) {
   const { code, state } = req.query;
 
   // Verify state
@@ -170,7 +170,10 @@ router.get('/oauth/callback/lightspeed', async (req: Request, res: Response) => 
     console.error('OAuth callback error:', error);
     res.status(500).send('An error occurred during authentication');
   }
-});
+}
+
+// Note: The callback route is not registered here because it needs to be at /oauth/callback/lightspeed
+// without the /api prefix. It's mounted directly in routes.ts
 
 // Helper to ensure valid token
 async function ensureLightspeedToken(userId: number): Promise<{ accessToken: string; accountId: string } | null> {
