@@ -61,15 +61,15 @@ router.post('/lightspeed/start', requireAuth, async (req: Request, res: Response
   const authUrl = new URL(process.env.LS_AUTH_URL || 'https://cloud.lightspeedapp.com/oauth/authorize');
   authUrl.searchParams.append('response_type', 'code');
   authUrl.searchParams.append('client_id', process.env.LS_CLIENT_ID || '');
-  authUrl.searchParams.append('redirect_uri', process.env.LS_REDIRECT_URI || 'https://askeuno.com/oauth/callback/lightspeed');
+  authUrl.searchParams.append('redirect_uri', process.env.LS_REDIRECT_URI || 'https://askeuno.com/api/oauth/callback/lightspeed');
   authUrl.searchParams.append('scope', 'employee:read inventory:read sales:read');
   authUrl.searchParams.append('state', state);
 
   res.json({ redirect: authUrl.toString() });
 });
 
-// OAuth callback handler exported separately to be mounted at root level
-export async function handleOAuthCallback(req: Request, res: Response) {
+// GET /api/oauth/callback/lightspeed - OAuth callback
+router.get('/oauth/callback/lightspeed', async (req: Request, res: Response) => {
   const { code, state } = req.query;
 
   // Verify state
@@ -94,7 +94,7 @@ export async function handleOAuthCallback(req: Request, res: Response) {
         code: code as string,
         client_id: process.env.LS_CLIENT_ID || '',
         client_secret: process.env.LS_CLIENT_SECRET || '',
-        redirect_uri: process.env.LS_REDIRECT_URI || 'https://askeuno.com/oauth/callback/lightspeed',
+        redirect_uri: process.env.LS_REDIRECT_URI || 'https://askeuno.com/api/oauth/callback/lightspeed',
       }),
     });
 
@@ -170,10 +170,7 @@ export async function handleOAuthCallback(req: Request, res: Response) {
     console.error('OAuth callback error:', error);
     res.status(500).send('An error occurred during authentication');
   }
-}
-
-// Note: The callback route is not registered here because it needs to be at /oauth/callback/lightspeed
-// without the /api prefix. It's mounted directly in routes.ts
+});
 
 // Helper to ensure valid token
 async function ensureLightspeedToken(userId: number): Promise<{ accessToken: string; accountId: string } | null> {

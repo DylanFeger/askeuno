@@ -64,8 +64,8 @@ export default function SignIn() {
           
           <p className="text-center text-sm text-gray-600 mt-6">
             Need help? Contact us at{' '}
-            <a href="mailto:support@euno.com" className="text-primary hover:underline">
-              support@euno.com
+            <a href="mailto:support@askeuno.com" className="text-primary hover:underline">
+              support@askeuno.com
             </a>
           </p>
         </div>
