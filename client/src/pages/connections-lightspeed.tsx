@@ -10,25 +10,34 @@ import { apiRequest } from '@/lib/queryClient';
 
 export default function LightspeedConnection() {
   const [, setLocation] = useLocation();
-  const [storeUrl, setStoreUrl] = useState('');
+  const [storeName, setStoreName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const { toast } = useToast();
 
-  const validateStoreUrl = (url: string): boolean => {
-    const regex = /^https:\/\/[a-z0-9-]+\.lightspeedapp\.com\/?$/;
-    return regex.test(url);
+  const validateStoreName = (name: string): boolean => {
+    // Store name should only contain lowercase letters, numbers, and hyphens
+    const regex = /^[a-z0-9-]+$/;
+    return regex.test(name);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // Validate store URL
-    if (!validateStoreUrl(storeUrl)) {
-      setError('Invalid store URL. Must be in format: https://yourstore.lightspeedapp.com');
+    // Validate store name
+    if (!storeName.trim()) {
+      setError('Please enter your store name');
       return;
     }
+
+    if (!validateStoreName(storeName)) {
+      setError('Store name can only contain lowercase letters, numbers, and hyphens');
+      return;
+    }
+
+    // Construct the full URL
+    const storeUrl = `https://${storeName}.lightspeedapp.com`;
 
     setIsSubmitting(true);
 
@@ -80,19 +89,27 @@ export default function LightspeedConnection() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Store URL
+                  Store Name
                 </label>
-                <Input
-                  type="url"
-                  placeholder="https://yourstore.lightspeedapp.com"
-                  value={storeUrl}
-                  onChange={(e) => setStoreUrl(e.target.value)}
-                  required
-                  disabled={isSubmitting}
-                  className="w-full"
-                />
+                <div className="flex items-center">
+                  <span className="px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm border border-r-0 rounded-l-md">
+                    https://
+                  </span>
+                  <Input
+                    type="text"
+                    placeholder="yourstore"
+                    value={storeName}
+                    onChange={(e) => setStoreName(e.target.value.toLowerCase())}
+                    required
+                    disabled={isSubmitting}
+                    className="rounded-none border-x-0 focus:ring-0 focus:ring-offset-0"
+                  />
+                  <span className="px-3 py-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm border border-l-0 rounded-r-md">
+                    .lightspeedapp.com
+                  </span>
+                </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  This is the URL you use to access your Lightspeed Retail admin
+                  Enter only your store name (the part before .lightspeedapp.com)
                 </p>
               </div>
 
@@ -106,8 +123,8 @@ export default function LightspeedConnection() {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  You can find your store URL in your browser's address bar when logged into Lightspeed Retail.
-                  It typically looks like: <strong>storename.lightspeedapp.com</strong>
+                  You can find your store name in your browser's address bar when logged into Lightspeed Retail.
+                  For example, if your URL is <strong>mystore.lightspeedapp.com</strong>, enter <strong>mystore</strong>
                 </AlertDescription>
               </Alert>
 
@@ -123,7 +140,7 @@ export default function LightspeedConnection() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isSubmitting || !storeUrl}
+                disabled={isSubmitting || !storeName}
               >
                 {isSubmitting ? (
                   <>
