@@ -40,6 +40,7 @@ const dataSourceTypes = [
   { id: 'square', name: 'Square', icon: ShoppingCart, category: 'payments' },
   { id: 'paypal', name: 'PayPal', icon: ShoppingCart, category: 'payments' },
   { id: 'quickbooks', name: 'QuickBooks', icon: Building2, category: 'accounting' },
+  { id: 'lightspeed', name: 'Lightspeed Retail', icon: ShoppingCart, category: 'apps' },
   { id: 'api', name: 'Custom API', icon: Server, category: 'api' },
 ];
 
@@ -66,6 +67,32 @@ export default function ConnectionsPage() {
       setLocation('/signin');
     }
   }, [isAuthenticated, isLoading, setLocation]);
+
+  // Handle OAuth callback messages
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const error = urlParams.get('error');
+    
+    if (success === 'lightspeed_connected') {
+      toast({
+        title: 'Success!',
+        description: 'Lightspeed Retail connection established successfully.',
+      });
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Refresh connections
+      queryClient.invalidateQueries({ queryKey: ['/api/data-sources'] });
+    } else if (error) {
+      toast({
+        title: 'Connection Failed',
+        description: decodeURIComponent(error),
+        variant: 'destructive',
+      });
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [toast, queryClient]);
   
   // Show loading state while checking authentication
   if (isLoading) {
@@ -473,6 +500,44 @@ export default function ConnectionsPage() {
           </div>
         );
 
+      case 'lightspeed':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4">
+              <ShoppingCart className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Lightspeed Retail Integration</strong><br />
+                Connect your Lightspeed Retail account to sync sales, products, customers, and inventory data.
+              </AlertDescription>
+            </Alert>
+            <div className="text-center space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Click the button below to authorize Euno to access your Lightspeed Retail account.
+              </p>
+              <Button 
+                onClick={handleLightspeedOAuth}
+                disabled={createConnectionMutation.isPending}
+                className="w-full"
+              >
+                {createConnectionMutation.isPending ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Connecting...
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    Connect to Lightspeed Retail
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                You'll be redirected to Lightspeed to authorize access, then returned to this page.
+              </p>
+            </div>
+          </div>
+        );
+
       case 'api':
         return (
           <div className="space-y-4">
@@ -514,6 +579,38 @@ export default function ConnectionsPage() {
 
       default:
         return null;
+    }
+  };
+
+  const handleLightspeedOAuth = async () => {
+    try {
+      const response = await fetch('/api/auth/lightspeed/oauth', {
+        method: 'GET',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to initiate OAuth');
+      }
+      
+      const data = await response.json();
+      
+      if (data.authUrl) {
+        // Redirect to Lightspeed OAuth URL
+        window.location.href = data.authUrl;
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to get OAuth URL',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to connect to Lightspeed',
+        variant: 'destructive',
+      });
     }
   };
 

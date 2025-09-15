@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import helmet from "helmet";
@@ -66,12 +67,11 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // Requires HTTPS in production
+    secure: false, // Disable secure cookies for localhost development
     httpOnly: true, // Prevents XSS attacks
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     sameSite: 'lax', // Better compatibility while maintaining CSRF protection
     path: '/', // Explicitly set cookie path
-    domain: process.env.COOKIE_DOMAIN || undefined, // Set for subdomain sharing
   },
 }));
 
@@ -175,8 +175,8 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || '5000', 10);
   server.listen({
     port,
-    host: "0.0.0.0",
-    reusePort: true,
+    host: "localhost",
+    // reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
   });

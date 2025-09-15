@@ -12,6 +12,7 @@ import { validateChatMessage, validateFileUpload, validateConversationId } from 
 import { requireOwnership, validateFileUploadSecurity, monitorRequestSize, ipRateLimit } from "./middleware/security";
 import { logger, logFileUpload, logETLProcess, logAICall, logPaymentEvent } from "./utils/logger";
 import authRoutes from "./routes/auth";
+import lightspeedOAuthRoutes from "./routes/lightspeed-oauth";
 import dataSourcesRoutes from "./routes/data-sources";
 import uploadRoutes from "./routes/uploads";
 import webhookRoutes from "./routes/webhooks";
@@ -79,6 +80,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication routes with IP rate limiting
   app.use('/api/auth', ipRateLimit(50, 15 * 60 * 1000), authRoutes); // 50 attempts per 15 minutes
+  
+  // Lightspeed OAuth routes
+  app.use('/api/auth/lightspeed', lightspeedOAuthRoutes);
   
   // Subscription routes
   app.use('/api/subscription', subscriptionRoutes);
