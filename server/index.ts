@@ -8,7 +8,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { logger } from "./utils/logger";
 import { sanitizeInput } from "./middleware/validation";
 import { enforceHTTPS, httpsSecurityHeaders } from "./middleware/https";
-import { pool } from "./db";
+import { pool, sessionPool } from "./db";
 
 const app = express();
 
@@ -59,7 +59,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
 
 app.use(session({
   store: new pgSession({
-    pool: pool,
+    pool: sessionPool,  // Use dedicated session pooly
     tableName: 'user_sessions',
     createTableIfMissing: true,
   }),

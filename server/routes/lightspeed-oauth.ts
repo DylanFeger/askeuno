@@ -4,12 +4,95 @@ import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { storage } from '../storage';
 import { logger } from '../utils/logger';
 import { encryptConnectionData } from '../utils/encryption';
+import crypto from 'crypto';
 
 const router = Router();
+
+/**
+ * Register webhooks with Lightspeed
+ */
+async function registerLightspeedWebhooks(accountId: string, accessToken: string, dataSourceId: number): Promise<boolean> {
+  try {
+    const webhookToken = crypto.randomBytes(32).toString('hex');
+    const webhookSecret = crypto.randomBytes(32).toString('hex');
+    const webhookUrl = `${process.env.BASE_URL || 'https://askeuno.com'}/api/webhooks/lightspeed?token=${webhookToken}`;
+
+    // Events to subscribe to
+    const events = [
+      'Sale.created',
+      'Sale.updated', 
+      'Item.created',
+      'Item.updated',
+      'Customer.created',
+      'Customer.updated'
+    ];
+
+    // Register each webhook event
+    for (const event of events) {
+      try {
+        await axios.post(
+          `https://api.lightspeedapp.com/API/Account/${accountId}/Webhook.json`,
+          {
+            webhook: {
+              event: event,
+              url: webhookUrl,
+              secret: webhookSecret
+            }
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        logger.info('Lightspeed webhook registered', { 
+          event, 
+          dataSourceId, 
+          webhookUrl 
+        });
+      } catch (error: any) {
+        logger.warn('Failed to register Lightspeed webhook', { 
+          event, 
+          error: error.response?.data || error.message 
+        });
+        // Continue with other events even if one fails
+      }
+    }
+
+    // Update data source with webhook configuration
+    const connectionData = await storage.getDataSource(dataSourceId);
+    if (connectionData) {
+      const decryptedData = JSON.parse(connectionData.connectionData);
+      const updatedData = {
+        ...decryptedData,
+        webhookToken,
+        webhookSecret,
+        webhookUrl
+      };
+      
+      await storage.updateDataSource(dataSourceId, {
+        connectionData: encryptConnectionData(updatedData)
+      });
+    }
+
+    return true;
+  } catch (error: any) {
+    logger.error('Webhook registration failed', { 
+      accountId, 
+      dataSourceId, 
+      error: error.response?.data || error.message 
+    });
+    return false;
+  }
+}
 
 // Lightspeed OAuth configuration
 const LIGHTSPEED_CLIENT_ID = process.env.LIGHTSPEED_CLIENT_ID;
 const LIGHTSPEED_CLIENT_SECRET = process.env.LIGHTSPEED_CLIENT_SECRET;
+// Use production redirect URI for testing
 const LIGHTSPEED_REDIRECT_URI = process.env.LIGHTSPEED_REDIRECT_URI || 'https://askeuno.com/api/auth/lightspeed/callback';
 
 // Generate OAuth authorization URL
@@ -153,6 +236,8 @@ router.get('/callback', async (req: Request, res: Response) => {
     const existingConnections = await storage.getDataSourcesByUserId(userId);
     const existingLightspeed = existingConnections.find(conn => conn.type === 'lightspeed');
 
+    let dataSourceId: number;
+
     if (existingLightspeed) {
       // Update existing connection
       const encryptedData = encryptConnectionData(connectionData);
@@ -162,9 +247,10 @@ router.get('/callback', async (req: Request, res: Response) => {
         lastSyncAt: new Date(),
       });
       
+      dataSourceId = existingLightspeed.id;
       logger.info('Lightspeed connection updated', { 
         userId, 
-        dataSourceId: existingLightspeed.id 
+        dataSourceId 
       });
     } else {
       // Create new connection
@@ -182,7 +268,7 @@ router.get('/callback', async (req: Request, res: Response) => {
         return res.redirect('/connections?error=Connection test failed: ' + testResult.error);
       }
 
-      await storage.createDataSource({
+      const newDataSource = await storage.createDataSource({
         userId,
         name: 'Lightspeed Retail',
         type: 'lightspeed',
@@ -195,7 +281,32 @@ router.get('/callback', async (req: Request, res: Response) => {
         syncFrequency: 60, // 1 hour default
       });
 
-      logger.info('Lightspeed connection created', { userId });
+      dataSourceId = newDataSource.id;
+      logger.info('Lightspeed connection created', { userId, dataSourceId });
+    }
+
+    // Register webhooks for real-time updates
+    try {
+      const webhookSuccess = await registerLightspeedWebhooks(account_id, access_token, dataSourceId);
+      if (webhookSuccess) {
+        logger.info('Lightspeed webhooks registered successfully', { 
+          userId, 
+          dataSourceId, 
+          accountId: account_id 
+        });
+      } else {
+        logger.warn('Lightspeed webhook registration failed, but connection still works', { 
+          userId, 
+          dataSourceId 
+        });
+      }
+    } catch (error: any) {
+      logger.error('Webhook registration error', { 
+        userId, 
+        dataSourceId, 
+        error: error.message 
+      });
+      // Don't fail the OAuth flow if webhooks fail - connection still works
     }
 
     // Clear OAuth state from session

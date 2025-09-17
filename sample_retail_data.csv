@@ -1,0 +1,26 @@
+sale_id,sale_number,customer_name,customer_email,product_name,product_sku,category,brand,quantity,unit_price,total_amount,tax_amount,sale_date,payment_method,employee_name,store_location
+1,SALE-001,John Smith,john.smith@email.com,Wireless Headphones,WH-001,Electronics,Sony,2,89.99,179.98,14.40,2024-01-15,Credit Card,Mike Johnson,Downtown Store
+2,SALE-002,Sarah Johnson,sarah.j@email.com,Coffee Maker,CM-205,Appliances,KitchenAid,1,129.99,129.99,10.40,2024-01-15,Cash,Lisa Brown,Mall Location
+3,SALE-003,David Wilson,david.w@email.com,Running Shoes,RS-456,Sports,Nike,1,120.00,120.00,9.60,2024-01-16,Debit Card,Mike Johnson,Downtown Store
+4,SALE-004,Emily Davis,emily.d@email.com,Smartphone Case,SC-789,Electronics,Apple,3,29.99,89.97,7.20,2024-01-16,Credit Card,Lisa Brown,Mall Location
+5,SALE-005,Michael Brown,mike.b@email.com,Bluetooth Speaker,BS-123,Electronics,JBL,1,79.99,79.99,6.40,2024-01-17,Cash,Mike Johnson,Downtown Store
+6,SALE-006,Jessica Garcia,jessica.g@email.com,Yoga Mat,YM-456,Sports,Lululemon,2,45.00,90.00,7.20,2024-01-17,Credit Card,Lisa Brown,Mall Location
+7,SALE-007,Robert Martinez,robert.m@email.com,Desk Lamp,DL-789,Furniture,IKEA,1,35.99,35.99,2.88,2024-01-18,Cash,Mike Johnson,Downtown Store
+8,SALE-008,Amanda Taylor,amanda.t@email.com,Wireless Mouse,WM-234,Electronics,Logitech,2,25.99,51.98,4.16,2024-01-18,Debit Card,Lisa Brown,Mall Location
+9,SALE-009,Christopher Lee,chris.l@email.com,Water Bottle,WB-567,Sports,Hydro Flask,1,32.99,32.99,2.64,2024-01-19,Credit Card,Mike Johnson,Downtown Store
+10,SALE-010,Jennifer White,jennifer.w@email.com,Tablet Stand,TS-890,Electronics,Amazon,1,24.99,24.99,2.00,2024-01-19,Cash,Lisa Brown,Mall Location
+11,SALE-011,Daniel Anderson,daniel.a@email.com,Gaming Controller,GC-123,Electronics,Xbox,1,59.99,59.99,4.80,2024-01-20,Credit Card,Mike Johnson,Downtown Store
+12,SALE-012,Michelle Thomas,michelle.t@email.com,Kitchen Knife Set,KS-456,Appliances,Henckels,1,89.99,89.99,7.20,2024-01-20,Debit Card,Lisa Brown,Mall Location
+13,SALE-013,Kevin Jackson,kevin.j@email.com,Bluetooth Earbuds,BE-789,Electronics,Samsung,1,99.99,99.99,8.00,2024-01-21,Credit Card,Mike Johnson,Downtown Store
+14,SALE-014,Ashley Harris,ashley.h@email.com,Fitness Tracker,FT-234,Sports,Fitbit,1,149.99,149.99,12.00,2024-01-21,Cash,Lisa Brown,Mall Location
+15,SALE-015,James Clark,james.c@email.com,Portable Charger,PC-567,Electronics,Anker,2,19.99,39.98,3.20,2024-01-22,Credit Card,Mike Johnson,Downtown Store
+16,SALE-016,Nicole Lewis,nicole.l@email.com,Office Chair,OC-890,Furniture,Herman Miller,1,299.99,299.99,24.00,2024-01-22,Debit Card,Lisa Brown,Mall Location
+17,SALE-017,William Walker,william.w@email.com,Wireless Keyboard,WK-123,Electronics,Logitech,1,69.99,69.99,5.60,2024-01-23,Credit Card,Mike Johnson,Downtown Store
+18,SALE-018,Stephanie Hall,stephanie.h@email.com,Blender,BL-456,Appliances,Vitamix,1,199.99,199.99,16.00,2024-01-23,Cash,Lisa Brown,Mall Location
+19,SALE-019,Anthony Allen,anthony.a@email.com,Monitor Stand,MS-789,Electronics,Amazon,1,39.99,39.99,3.20,2024-01-24,Credit Card,Mike Johnson,Downtown Store
+20,SALE-020,Rachel Young,rachel.y@email.com,Yoga Block,YB-234,Sports,Lululemon,4,12.99,51.96,4.16,2024-01-24,Debit Card,Lisa Brown,Mall Location
+21,SALE-021,Mark King,mark.k@email.com,USB Cable,UC-567,Electronics,Anker,5,9.99,49.95,4.00,2024-01-25,Credit Card,Mike Johnson,Downtown Store
+22,SALE-022,Laura Wright,laura.w@email.com,Air Fryer,AF-890,Appliances,Ninja,1,89.99,89.99,7.20,2024-01-25,Cash,Lisa Brown,Mall Location
+23,SALE-023,Steven Lopez,steven.l@email.com,Webcam,WC-123,Electronics,Logitech,1,79.99,79.99,6.40,2024-01-26,Credit Card,Mike Johnson,Downtown Store
+24,SALE-024,Kimberly Hill,kimberly.h@email.com,Resistance Bands,RB-456,Sports,TRX,1,29.99,29.99,2.40,2024-01-26,Debit Card,Lisa Brown,Mall Location
+25,SALE-025,Charles Scott,charles.s@email.com,Smart Watch,SW-789,Electronics,Apple,1,399.99,399.99,32.00,2024-01-27,Credit Card,Mike Johnson,Downtown Store

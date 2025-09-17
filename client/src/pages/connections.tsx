@@ -94,28 +94,10 @@ export default function ConnectionsPage() {
     }
   }, [toast, queryClient]);
   
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-  
-  // Don't render anything if not authenticated (will redirect)
-  if (!isAuthenticated) {
-    return null;
-  }
-
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const { data: connections = [] } = useQuery<any[]>({
     queryKey: ['/api/data-sources'],
   });
-  
-  // Calculate current usage and limit
-  const userTier = user?.subscriptionTier || 'starter';
-  const dataSourceLimit = DATA_SOURCE_LIMITS[userTier as keyof typeof DATA_SOURCE_LIMITS] || DATA_SOURCE_LIMITS.starter;
-  const canAddMore = connections.length < dataSourceLimit;
 
   const createConnectionMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -164,6 +146,25 @@ export default function ConnectionsPage() {
       });
     },
   });
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+  // Don't render anything if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // Calculate current usage and limit
+  const userTier = user?.subscriptionTier || 'starter';
+  const dataSourceLimit = DATA_SOURCE_LIMITS[userTier as keyof typeof DATA_SOURCE_LIMITS] || DATA_SOURCE_LIMITS.starter;
+  const canAddMore = connections.length < dataSourceLimit;
 
   const resetForm = () => {
     setSelectedType('');
@@ -584,21 +585,29 @@ export default function ConnectionsPage() {
 
   const handleLightspeedOAuth = async () => {
     try {
+      console.log('Starting Lightspeed OAuth...');
       const response = await fetch('/api/auth/lightspeed/oauth', {
         method: 'GET',
         credentials: 'include',
       });
       
+      console.log('OAuth response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Failed to initiate OAuth');
+        const errorText = await response.text();
+        console.error('OAuth error:', errorText);
+        throw new Error(`Failed to initiate OAuth: ${errorText}`);
       }
       
       const data = await response.json();
+      console.log('OAuth data received:', data);
       
       if (data.authUrl) {
+        console.log('Redirecting to:', data.authUrl);
         // Redirect to Lightspeed OAuth URL
         window.location.href = data.authUrl;
       } else {
+        console.error('No authUrl in response:', data);
         toast({
           title: 'Error',
           description: 'Failed to get OAuth URL',
@@ -757,6 +766,17 @@ export default function ConnectionsPage() {
                         {connection.errorMessage && (
                           <p className="text-sm text-red-600 mt-2">{connection.errorMessage}</p>
                         )}
+                        <div className="mt-4 flex justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteDataSource(connection)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Remove
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   );
