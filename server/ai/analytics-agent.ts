@@ -26,7 +26,7 @@ export enum AnalyticsTaskType {
 // Model configurations for different tasks
 const MODEL_CONFIGS = {
   [AnalyticsTaskType.SQL_GENERATION]: {
-    model: "gpt-4-turbo-preview", // Best for SQL accuracy
+    model: "gpt-4o", // Best current model for SQL accuracy
     temperature: 0.1, // Very low for precise SQL
     maxTokens: 2000
   },
@@ -41,7 +41,7 @@ const MODEL_CONFIGS = {
     maxTokens: 2500
   },
   [AnalyticsTaskType.ANOMALY_DETECTION]: {
-    model: "gpt-4-turbo-preview",
+    model: "gpt-4o",
     temperature: 0.2,
     maxTokens: 2000
   },
@@ -198,14 +198,18 @@ function detectTaskType(query: string): AnalyticsTaskType {
 }
 
 /**
- * Validate and enhance SQL query
+ * Validate and enhance SQL query with proper safety checks
  */
-async function validateSQL(sql: string, schema: any): Promise<{ valid: boolean; enhanced: string; issues: string[] }> {
+async function validateSQL(
+  sql: string, 
+  schema: any,
+  maxRows: number = 1000
+): Promise<{ valid: boolean; enhanced: string; issues: string[] }> {
   const issues: string[] = [];
   let enhanced = sql;
   
   // Check for forbidden operations
-  const forbidden = ['INSERT', 'UPDATE', 'DELETE', 'DROP', 'CREATE', 'ALTER', 'TRUNCATE'];
+  const forbidden = ['INSERT', 'UPDATE', 'DELETE', 'DROP', 'CREATE', 'ALTER', 'TRUNCATE', 'EXEC', 'EXECUTE'];
   for (const op of forbidden) {
     if (sql.toUpperCase().includes(op)) {
       issues.push(`Forbidden operation: ${op}`);
@@ -213,28 +217,43 @@ async function validateSQL(sql: string, schema: any): Promise<{ valid: boolean; 
     }
   }
   
-  // Check for LIMIT clause
-  if (!sql.toUpperCase().includes('LIMIT')) {
-    enhanced += ' LIMIT 1000'; // Add default limit
-    issues.push('Added LIMIT clause for safety');
+  // Check for FROM clause (required for valid SQL)
+  if (!sql.toUpperCase().includes('FROM')) {
+    issues.push('Missing FROM clause - SQL must specify a table');
+    return { valid: false, enhanced, issues };
   }
   
-  // Validate column names against schema if provided
-  if (schema) {
-    const columnPattern = /\b([a-zA-Z_][a-zA-Z0-9_]*)\b/g;
-    const matches = sql.match(columnPattern) || [];
-    const schemaColumns = Object.keys(schema).map(c => c.toLowerCase());
-    
-    for (const match of matches) {
-      if (!schemaColumns.includes(match.toLowerCase()) && 
-          !['select', 'from', 'where', 'and', 'or', 'limit', 'order', 'by', 'group', 'having', 'as', 'join', 'on', 'inner', 'left', 'right'].includes(match.toLowerCase())) {
-        issues.push(`Possible unknown column: ${match}`);
-      }
+  // Extract and validate LIMIT clause
+  const limitMatch = sql.toUpperCase().match(/LIMIT\s+(\d+)/); 
+  if (limitMatch) {
+    const currentLimit = parseInt(limitMatch[1]);
+    if (currentLimit > maxRows) {
+      // Replace with tier limit
+      enhanced = sql.replace(/LIMIT\s+\d+/i, `LIMIT ${maxRows}`);
+      issues.push(`Limit reduced from ${currentLimit} to tier maximum ${maxRows}`);
+    }
+  } else {
+    // Add LIMIT clause
+    enhanced += ` LIMIT ${maxRows}`;
+    issues.push(`Added LIMIT ${maxRows} clause for safety`);
+  }
+  
+  // Validate table names (basic check for data_rows table)
+  if (schema && !sql.toLowerCase().includes('data_rows')) {
+    issues.push('Warning: Query does not reference data_rows table');
+  }
+  
+  // Check for potential injection patterns
+  const injectionPatterns = [/;\s*--/, /\/\*.*\*\//,  /;\s*DROP/, /;\s*DELETE/];
+  for (const pattern of injectionPatterns) {
+    if (pattern.test(sql)) {
+      issues.push('Potential SQL injection pattern detected');
+      return { valid: false, enhanced, issues };
     }
   }
   
   return { 
-    valid: issues.filter(i => i.includes('Forbidden')).length === 0, 
+    valid: !issues.some(i => i.includes('Forbidden') || i.includes('Missing FROM') || i.includes('injection')), 
     enhanced, 
     issues 
   };
@@ -280,7 +299,7 @@ export async function processAnalyticsQuery(request: AnalyticsRequest): Promise<
       ],
       temperature: config.temperature,
       max_tokens: config.maxTokens,
-      response_format: taskType === AnalyticsTaskType.SQL_GENERATION ? undefined : { type: "json_object" }
+      response_format: undefined // Remove JSON mode for better reliability
     });
     
     const response = completion.choices[0].message.content || '';
@@ -307,20 +326,24 @@ export async function processAnalyticsQuery(request: AnalyticsRequest): Promise<
       }
     }
     
-    // Parse JSON responses for other task types
-    if (taskType !== AnalyticsTaskType.SQL_GENERATION && response.startsWith('{')) {
-      try {
-        const parsed = JSON.parse(response);
-        result.result = parsed.answer || parsed.result || response;
-        result.confidence = parsed.confidence || 0.85;
-        result.metadata = {
-          ...result.metadata,
-          ...parsed.metadata,
-          suggestions: parsed.suggestions || parsed.followUp
-        };
-      } catch (e) {
-        // Keep original response if JSON parsing fails
-        logger.warn('Failed to parse JSON response', { error: e });
+    // Try to extract structured data from response
+    if (taskType !== AnalyticsTaskType.SQL_GENERATION) {
+      // Look for JSON-like structure in the response
+      const jsonMatch = response.match(/\{[\s\S]*\}/); 
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          result.result = parsed.answer || parsed.result || response;
+          result.confidence = parsed.confidence || 0.85;
+          result.metadata = {
+            ...result.metadata,
+            ...parsed.metadata,
+            suggestions: parsed.suggestions || parsed.followUp
+          };
+        } catch (e) {
+          // Keep original response if JSON parsing fails
+          logger.warn('Failed to parse JSON from response', { error: e });
+        }
       }
     }
     
@@ -354,14 +377,17 @@ export async function processAnalyticsQuery(request: AnalyticsRequest): Promise<
 }
 
 /**
- * Execute SQL and return results
+ * Execute SQL and return results  
+ * NOTE: This is a simplified implementation for MVP
+ * Production should connect to actual data sources
  */
 export async function executeSQLQuery(
   sql: string, 
-  dataSourceId: number
+  dataSourceId: number,
+  maxRows: number = 1000
 ): Promise<{ success: boolean; data?: any[]; error?: string }> {
   try {
-    // Get data source
+    // Get data source details
     const [dataSource] = await db
       .select()
       .from(dataSources)
@@ -372,19 +398,42 @@ export async function executeSQLQuery(
       return { success: false, error: 'Data source not found' };
     }
     
-    // For now, execute against our data_rows table
-    // In production, this would connect to the actual data source
+    // For MVP: Execute simplified query against data_rows table
+    // Extract LIMIT from SQL if present
+    const limitMatch = sql.match(/LIMIT\s+(\d+)/i);
+    const limit = limitMatch ? Math.min(parseInt(limitMatch[1]), maxRows) : maxRows;
+    
+    // Get data rows for this source
     const rows = await db
       .select()
       .from(dataRows)
       .where(eq(dataRows.dataSourceId, dataSourceId))
-      .limit(5000);
+      .limit(limit);
     
-    // Apply SQL logic to the rows (simplified for demo)
-    // In production, use a proper SQL engine or database connection
+    if (rows.length === 0) {
+      return {
+        success: true,
+        data: [],
+        error: 'No data found for this data source' 
+      };
+    }
+    
+    // Transform to data array
+    const data = rows.map(r => r.rowData);
+    
+    // Apply basic SQL operations (simplified)
+    // In production, this should use a proper SQL parser/executor
+    // For now, just return the data
+    
+    logger.info('SQL query executed', {
+      dataSourceId,
+      rowsReturned: data.length,
+      maxRows
+    });
+    
     return {
       success: true,
-      data: rows.map(r => r.rowData)
+      data
     };
     
   } catch (error) {

@@ -165,22 +165,51 @@ router.post('/analyze', requireAuth, async (req: Request, res: Response) => {
     });
     
     // Execute SQL if generated
-    let queryResults = null;
+    let queryResults: any[] | null = null;
     if (analyticsResult.sql && dataSourceId) {
-      const sqlResult = await executeSQLQuery(analyticsResult.sql, dataSourceId);
+      // Execute with tier row limit
+      const sqlResult = await executeSQLQuery(
+        analyticsResult.sql, 
+        dataSourceId,
+        tierConfig.maxRowsPerQuery
+      );
+      
       if (sqlResult.success) {
-        queryResults = sqlResult.data;
+        queryResults = sqlResult.data || [];
         
-        // Re-analyze with actual results
-        const enhancedResult = await processAnalyticsQuery({
-          query: `Analyze these results: ${JSON.stringify(queryResults.slice(0, 10))}`,
-          taskType: AnalyticsTaskType.DATA_ANALYSIS,
-          userId,
-          schema,
-          sampleData: queryResults
-        });
-        
-        analyticsResult.result = enhancedResult.result;
+        // Re-analyze with actual results if we have data
+        if (queryResults.length > 0) {
+          // Truncate data for prompt to prevent token overflow
+          const truncatedData = queryResults.slice(0, 10).map(row => {
+            // Limit each row to prevent wide row issues
+            const truncated: any = {};
+            const keys = Object.keys(row).slice(0, 20); // Max 20 columns
+            for (const key of keys) {
+              const value = row[key];
+              // Truncate long strings
+              if (typeof value === 'string' && value.length > 100) {
+                truncated[key] = value.substring(0, 100) + '...';
+              } else {
+                truncated[key] = value;
+              }
+            }
+            return truncated;
+          });
+          
+          const enhancedResult = await processAnalyticsQuery({
+            query: `Analyze these query results and provide business insights: ${JSON.stringify(truncatedData)}`,
+            taskType: AnalyticsTaskType.DATA_ANALYSIS,
+            userId,
+            schema,
+            sampleData: truncatedData
+          });
+          
+          analyticsResult.result = enhancedResult.result;
+        }
+      } else {
+        // Include error in response
+        analyticsResult.result = `I was unable to execute the query: ${sqlResult.error}. Please check your data source connection.`;
+        analyticsResult.confidence = 0.3;
       }
     }
     
