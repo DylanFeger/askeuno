@@ -24,6 +24,7 @@ import blogRoutes from "./routes/blog";
 import aiRoutes from "./routes/ai";
 import teamRoutes from "./routes/team";
 import chatV2Routes from "./routes/chatV2";
+import chatV3Routes from "./routes/chatV3";
 import connectionRoutes from "./routes/connections";
 import lightspeedRoutes from "./routes/lightspeed";
 import { initializeScheduler, shutdownScheduler } from "./services/scheduler";
@@ -124,6 +125,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Improved Chat V2 routes with deduplication
   app.use('/api/chat/v2', chatV2Routes);
+  
+  // Enhanced Chat V3 routes with advanced analytics agent
+  app.use('/api/chat/v3', chatV3Routes);
 
   // Team management routes
   app.use('/api', teamRoutes);
