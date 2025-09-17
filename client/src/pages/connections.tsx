@@ -585,29 +585,22 @@ export default function ConnectionsPage() {
 
   const handleLightspeedOAuth = async () => {
     try {
-      console.log('Starting Lightspeed OAuth...');
       const response = await fetch('/api/auth/lightspeed/oauth', {
         method: 'GET',
         credentials: 'include',
       });
       
-      console.log('OAuth response status:', response.status);
-      
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('OAuth error:', errorText);
         throw new Error(`Failed to initiate OAuth: ${errorText}`);
       }
       
       const data = await response.json();
-      console.log('OAuth data received:', data);
       
       if (data.authUrl) {
-        console.log('Redirecting to:', data.authUrl);
         // Redirect to Lightspeed OAuth URL
         window.location.href = data.authUrl;
       } else {
-        console.error('No authUrl in response:', data);
         toast({
           title: 'Error',
           description: 'Failed to get OAuth URL',
