@@ -41,10 +41,13 @@ export async function connectToDataSource(
         return await connectToPayPal(connectionData);
       case 'quickbooks':
         return await connectToQuickBooks(connectionData);
+      case 'lightspeed':
+        return await connectToLightspeed(connectionData);
       case 'googleads':
         return await connectToGoogleAds(connectionData);
       case 'salesforce':
         return await connectToSalesforce(connectionData);
+     
       
       // Cloud Storage
       case 'googlesheets':
@@ -462,6 +465,184 @@ async function connectToQuickBooks(config: any): Promise<ConnectionResult> {
     schema,
     rowCount: data.length,
   };
+}
+
+/**
+ * Connect to Lightspeed Retail API
+ */
+async function connectToLightspeed(config: any): Promise<ConnectionResult> {
+  const { accountId, accessToken, environment = 'production' } = config;
+  const baseURL = environment === 'production' 
+    ? 'https://api.lightspeedapp.com/API/Account' 
+    : 'https://api.lightspeedapp.com/API/Account';
+  
+  try {
+    // Fetch multiple data types in parallel for comprehensive analytics
+    const [salesResponse, productsResponse, customersResponse] = await Promise.allSettled([
+      // Sales data
+      axios.get(`${baseURL}/${accountId}/Sale.json`, {
+        headers: { 'Authorization': `Bearer ${accessToken}`, 'Accept': 'application/json' },
+        params: { limit: 100, sort: 'saleID', sortDir: 'DESC' }
+      }),
+      // Products/Items data
+      axios.get(`${baseURL}/${accountId}/Item.json`, {
+        headers: { 'Authorization': `Bearer ${accessToken}`, 'Accept': 'application/json' },
+        params: { limit: 100, sort: 'itemID', sortDir: 'DESC' }
+      }),
+      // Customers data
+      axios.get(`${baseURL}/${accountId}/Customer.json`, {
+        headers: { 'Authorization': `Bearer ${accessToken}`, 'Accept': 'application/json' },
+        params: { limit: 100, sort: 'customerID', sortDir: 'DESC' }
+      })
+    ]);
+
+    const combinedData: any[] = [];
+    const schema: Record<string, string> = {};
+
+    // Process sales data
+    if (salesResponse.status === 'fulfilled') {
+      const sales = salesResponse.value.data.Sale || [];
+      const salesData = sales.map((sale: any) => ({
+        data_type: 'sale',
+        id: sale.saleID,
+        sale_id: sale.saleID,
+        sale_number: sale.saleNumber,
+        sale_time: new Date(sale.saleTime),
+        total: parseFloat(sale.total || 0),
+        total_tax: parseFloat(sale.totalTax || 0),
+        customer_id: sale.customerID,
+        customer_name: sale.Customer?.firstName && sale.Customer?.lastName 
+          ? `${sale.Customer.firstName} ${sale.Customer.lastName}` 
+          : sale.Customer?.firstName || sale.Customer?.lastName || null,
+        employee_id: sale.employeeID,
+        register_id: sale.registerID,
+        shop_id: sale.shopID,
+        completed: sale.completed === 'true',
+        archived: sale.archived === 'true',
+        voided: sale.voided === 'true',
+        line_items_count: sale.SaleLines?.SaleLine?.length || 0,
+        payment_methods: sale.Payments?.Payment?.map((p: any) => p.paymentTypeID) || [],
+      }));
+      combinedData.push(...salesData);
+    }
+
+    // Process products data
+    if (productsResponse.status === 'fulfilled') {
+      const products = productsResponse.value.data.Item || [];
+      const productsData = products.map((item: any) => ({
+        data_type: 'product',
+        id: item.itemID,
+        item_id: item.itemID,
+        item_number: item.itemNumber,
+        description: item.description,
+        custom_sku: item.customSku,
+        system_sku: item.systemSku,
+        upc: item.upc,
+        price: parseFloat(item.price || 0),
+        cost: parseFloat(item.cost || 0),
+        weight: parseFloat(item.weight || 0),
+        category_id: item.categoryID,
+        category_name: item.Category?.name || null,
+        brand: item.brand,
+        manufacturer_sku: item.manufacturerSku,
+        tax_class: item.taxClass,
+        archived: item.archived === 'true',
+        item_matrix_id: item.itemMatrixID,
+        created_at: item.createTime ? new Date(item.createTime) : null,
+        updated_at: item.timeStamp ? new Date(item.timeStamp) : null,
+      }));
+      combinedData.push(...productsData);
+    }
+
+    // Process customers data
+    if (customersResponse.status === 'fulfilled') {
+      const customers = customersResponse.value.data.Customer || [];
+      const customersData = customers.map((customer: any) => ({
+        data_type: 'customer',
+        id: customer.customerID,
+        customer_id: customer.customerID,
+        first_name: customer.firstName,
+        last_name: customer.lastName,
+        full_name: `${customer.firstName || ''} ${customer.lastName || ''}`.trim(),
+        email: customer.email,
+        phone: customer.phone,
+        company: customer.company,
+        customer_type_id: customer.customerTypeID,
+        customer_type_name: customer.CustomerType?.name || null,
+        credit_limit: parseFloat(customer.creditLimit || 0),
+        tax_category_id: customer.taxCategoryID,
+        archived: customer.archived === 'true',
+        created_at: customer.createTime ? new Date(customer.createTime) : null,
+        updated_at: customer.timeStamp ? new Date(customer.timeStamp) : null,
+      }));
+      combinedData.push(...customersData);
+    }
+
+    // Define comprehensive schema
+    const comprehensiveSchema = {
+      data_type: 'string',
+      id: 'number',
+      // Sales fields
+      sale_id: 'number',
+      sale_number: 'string',
+      sale_time: 'date',
+      total: 'number',
+      total_tax: 'number',
+      customer_id: 'number',
+      customer_name: 'string',
+      employee_id: 'number',
+      register_id: 'number',
+      shop_id: 'number',
+      completed: 'boolean',
+      archived: 'boolean',
+      voided: 'boolean',
+      line_items_count: 'number',
+      payment_methods: 'array',
+      // Product fields
+      item_id: 'number',
+      item_number: 'string',
+      description: 'string',
+      custom_sku: 'string',
+      system_sku: 'string',
+      upc: 'string',
+      price: 'number',
+      cost: 'number',
+      weight: 'number',
+      category_id: 'number',
+      category_name: 'string',
+      brand: 'string',
+      manufacturer_sku: 'string',
+      tax_class: 'string',
+      item_matrix_id: 'number',
+      // Customer fields
+      first_name: 'string',
+      last_name: 'string',
+      full_name: 'string',
+      email: 'string',
+      phone: 'string',
+      company: 'string',
+      customer_type_id: 'number',
+      customer_type_name: 'string',
+      credit_limit: 'number',
+      tax_category_id: 'number',
+      // Common fields
+      created_at: 'date',
+      updated_at: 'date',
+    };
+
+    return {
+      success: true,
+      data: combinedData,
+      schema: comprehensiveSchema,
+      rowCount: combinedData.length,
+    };
+  } catch (error: any) {
+    logger.error('Lightspeed API error', { error: error.message, accountId });
+    return {
+      success: false,
+      error: `Lightspeed API error: ${error.message}`,
+    };
+  }
 }
 
 /**

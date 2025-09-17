@@ -14,11 +14,22 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
+// Main pool for ORM operations
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
   ssl: true,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000
+  max: 5,  // Reduced for Neon serverless compatibility
+  idleTimeoutMillis: 60000,  // 1 minute
+  connectionTimeoutMillis: 10000  // 10 seconds
 });
+
+// Separate pool for session management
+export const sessionPool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: true,
+  max: 2,  // Minimal connections for sessions
+  idleTimeoutMillis: 300000,  // 5 minutes
+  connectionTimeoutMillis: 15000  // 15 seconds
+});
+
 export const db = drizzle({ client: pool, schema });

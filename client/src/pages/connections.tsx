@@ -40,6 +40,7 @@ const dataSourceTypes = [
   { id: 'square', name: 'Square', icon: ShoppingCart, category: 'payments' },
   { id: 'paypal', name: 'PayPal', icon: ShoppingCart, category: 'payments' },
   { id: 'quickbooks', name: 'QuickBooks', icon: Building2, category: 'accounting' },
+  { id: 'lightspeed', name: 'Lightspeed Retail', icon: ShoppingCart, category: 'apps' },
   { id: 'api', name: 'Custom API', icon: Server, category: 'api' },
 ];
 
@@ -66,29 +67,37 @@ export default function ConnectionsPage() {
       setLocation('/signin');
     }
   }, [isAuthenticated, isLoading, setLocation]);
-  
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-  
-  // Don't render anything if not authenticated (will redirect)
-  if (!isAuthenticated) {
-    return null;
-  }
 
+  // Handle OAuth callback messages
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const error = urlParams.get('error');
+    
+    if (success === 'lightspeed_connected') {
+      toast({
+        title: 'Success!',
+        description: 'Lightspeed Retail connection established successfully.',
+      });
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Refresh connections
+      queryClient.invalidateQueries({ queryKey: ['/api/data-sources'] });
+    } else if (error) {
+      toast({
+        title: 'Connection Failed',
+        description: decodeURIComponent(error),
+        variant: 'destructive',
+      });
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [toast, queryClient]);
+  
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const { data: connections = [] } = useQuery<any[]>({
     queryKey: ['/api/data-sources'],
   });
-  
-  // Calculate current usage and limit
-  const userTier = user?.subscriptionTier || 'starter';
-  const dataSourceLimit = DATA_SOURCE_LIMITS[userTier as keyof typeof DATA_SOURCE_LIMITS] || DATA_SOURCE_LIMITS.starter;
-  const canAddMore = connections.length < dataSourceLimit;
 
   const createConnectionMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -137,6 +146,25 @@ export default function ConnectionsPage() {
       });
     },
   });
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+  // Don't render anything if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // Calculate current usage and limit
+  const userTier = user?.subscriptionTier || 'starter';
+  const dataSourceLimit = DATA_SOURCE_LIMITS[userTier as keyof typeof DATA_SOURCE_LIMITS] || DATA_SOURCE_LIMITS.starter;
+  const canAddMore = connections.length < dataSourceLimit;
 
   const resetForm = () => {
     setSelectedType('');
@@ -473,6 +501,44 @@ export default function ConnectionsPage() {
           </div>
         );
 
+      case 'lightspeed':
+        return (
+          <div className="space-y-4">
+            <Alert className="mb-4">
+              <ShoppingCart className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Lightspeed Retail Integration</strong><br />
+                Connect your Lightspeed Retail account to sync sales, products, customers, and inventory data.
+              </AlertDescription>
+            </Alert>
+            <div className="text-center space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Click the button below to authorize Euno to access your Lightspeed Retail account.
+              </p>
+              <Button 
+                onClick={handleLightspeedOAuth}
+                disabled={createConnectionMutation.isPending}
+                className="w-full"
+              >
+                {createConnectionMutation.isPending ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Connecting...
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    Connect to Lightspeed Retail
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                You'll be redirected to Lightspeed to authorize access, then returned to this page.
+              </p>
+            </div>
+          </div>
+        );
+
       case 'api':
         return (
           <div className="space-y-4">
@@ -514,6 +580,39 @@ export default function ConnectionsPage() {
 
       default:
         return null;
+    }
+  };
+
+  const handleLightspeedOAuth = async () => {
+    try {
+      const response = await fetch('/api/auth/lightspeed/oauth', {
+        method: 'GET',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to initiate OAuth: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.authUrl) {
+        // Redirect to Lightspeed OAuth URL
+        window.location.href = data.authUrl;
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to get OAuth URL',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to connect to Lightspeed',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -660,6 +759,17 @@ export default function ConnectionsPage() {
                         {connection.errorMessage && (
                           <p className="text-sm text-red-600 mt-2">{connection.errorMessage}</p>
                         )}
+                        <div className="mt-4 flex justify-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteDataSource(connection)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Remove
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   );

@@ -138,6 +138,19 @@ export async function generateDataInsight(
   const startTime = Date.now();
   
   try {
+    // Check if there's no data to analyze
+    if (!sampleData || sampleData.length === 0) {
+      return {
+        answer: "I can see you're connected to Lightspeed Retail, but there's no sales data yet. Once you start making sales, I'll be able to help you analyze trends, top products, and customer insights. Your connection is active and ready!",
+        confidence: 1.0,
+        suggestedFollowUps: [
+          "How do I start making sales in Lightspeed?",
+          "What data will be available once I have sales?",
+          "How often does the data sync?"
+        ]
+      };
+    }
+
     // Analyze query type and get appropriate settings
     const queryAnalysis = analyzeQueryType(question);
     const { category, temperature, model } = queryAnalysis;
