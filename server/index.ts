@@ -10,6 +10,37 @@ import { sanitizeInput } from "./middleware/validation";
 import { enforceHTTPS, httpsSecurityHeaders } from "./middleware/https";
 import { pool, sessionPool } from "./db";
 
+// Global error handlers to prevent crashes
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception:', error);
+  console.error('Uncaught Exception:', error);
+  // Don't exit the process in development to allow for debugging
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  }
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit the process, just log the error for database connection issues
+});
+
+// Handle SIGTERM and SIGINT gracefully
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM received, shutting down gracefully');
+  pool.end();
+  sessionPool.end();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  logger.info('SIGINT received, shutting down gracefully');
+  pool.end();
+  sessionPool.end();
+  process.exit(0);
+});
+
 const app = express();
 
 // Trust proxy for rate limiting and HTTPS detection
