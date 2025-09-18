@@ -11,6 +11,15 @@ const router = Router();
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');
 const IV_LENGTH = 16;
 
+// PKCE helpers
+function generateCodeVerifier(): string {
+  return crypto.randomBytes(32).toString('base64url');
+}
+
+function generateCodeChallenge(verifier: string): string {
+  return crypto.createHash('sha256').update(verifier).digest('base64url');
+}
+
 function encrypt(text: string): string {
   const iv = crypto.randomBytes(IV_LENGTH);
   const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
@@ -51,19 +60,30 @@ router.post('/lightspeed/start', requireAuth, async (req: Request, res: Response
   // Generate state for CSRF protection
   const state = crypto.randomBytes(32).toString('hex');
   
-  // Store state in session
+  // Generate PKCE parameters
+  const codeVerifier = generateCodeVerifier();
+  const codeChallenge = generateCodeChallenge(codeVerifier);
+  
+  // Store state and PKCE verifier in session
   req.session.oauthState = state;
   req.session.oauthProvider = 'lightspeed';
   req.session.lightspeedStoreUrl = storeUrl;
+  req.session.codeVerifier = codeVerifier;
   (req.session as any).userId = userId;
 
-  // Build authorization URL
-  const authUrl = new URL(process.env.LS_AUTH_URL || 'https://cloud.lightspeedapp.com/oauth/authorize');
+  // Build authorization URL - support both LS_* and LIGHTSPEED_* env vars
+  const authUrl = new URL(process.env.LS_AUTH_URL || process.env.LIGHTSPEED_AUTH_URL || 'https://cloud.lightspeedapp.com/oauth/authorize');
   authUrl.searchParams.append('response_type', 'code');
-  authUrl.searchParams.append('client_id', process.env.LS_CLIENT_ID || '');
-  authUrl.searchParams.append('redirect_uri', process.env.LS_REDIRECT_URI || 'https://askeuno.com/api/oauth/callback/lightspeed');
-  authUrl.searchParams.append('scope', 'employee:read inventory:read sales:read');
+  authUrl.searchParams.append('client_id', process.env.LS_CLIENT_ID || process.env.LIGHTSPEED_CLIENT_ID || '');
+  authUrl.searchParams.append('redirect_uri', process.env.LS_REDIRECT_URI || process.env.LIGHTSPEED_REDIRECT_URI || `${process.env.APP_URL || 'https://askeuno.com'}/api/oauth/callback/lightspeed`);
+  // Using employee:all for comprehensive analytics access
+  // For more restricted access, use: 'employee:inventory employee:reports employee:register'
+  authUrl.searchParams.append('scope', 'employee:all');
   authUrl.searchParams.append('state', state);
+  
+  // Add PKCE parameters for enhanced security
+  authUrl.searchParams.append('code_challenge', codeChallenge);
+  authUrl.searchParams.append('code_challenge_method', 'S256');
 
   res.json({ redirect: authUrl.toString() });
 });
@@ -79,22 +99,30 @@ router.get('/oauth/callback/lightspeed', async (req: Request, res: Response) => 
 
   const userId = (req.session as any).userId;
   const storeUrl = req.session.lightspeedStoreUrl;
+  const codeVerifier = req.session.codeVerifier;
 
-  if (!userId || !storeUrl) {
+  if (!userId || !storeUrl || !codeVerifier) {
+    console.error('Missing session data:', { userId: !!userId, storeUrl: !!storeUrl, codeVerifier: !!codeVerifier });
     return res.status(400).send('Session expired. Please try connecting again.');
   }
 
   try {
-    // Exchange code for tokens
-    const tokenResponse = await fetch(process.env.LS_TOKEN_URL || 'https://cloud.lightspeedapp.com/oauth/token', {
+    // Exchange code for tokens with PKCE
+    const tokenUrl = process.env.LS_TOKEN_URL || process.env.LIGHTSPEED_TOKEN_URL || 'https://cloud.lightspeedapp.com/oauth/token';
+    const clientId = process.env.LS_CLIENT_ID || process.env.LIGHTSPEED_CLIENT_ID || '';
+    const clientSecret = process.env.LS_CLIENT_SECRET || process.env.LIGHTSPEED_CLIENT_SECRET || '';
+    const redirectUri = process.env.LS_REDIRECT_URI || process.env.LIGHTSPEED_REDIRECT_URI || `${process.env.APP_URL || 'https://askeuno.com'}/api/oauth/callback/lightspeed`;
+    
+    const tokenResponse = await fetch(tokenUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code: code as string,
-        client_id: process.env.LS_CLIENT_ID || '',
-        client_secret: process.env.LS_CLIENT_SECRET || '',
-        redirect_uri: process.env.LS_REDIRECT_URI || 'https://askeuno.com/api/oauth/callback/lightspeed',
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        code_verifier: codeVerifier, // Add PKCE verifier
       }),
     });
 
@@ -135,7 +163,7 @@ router.get('/oauth/callback/lightspeed', async (req: Request, res: Response) => 
           status: 'active',
           updatedAt: new Date(),
           accountLabel: `Lightspeed - ${storeUrl}`,
-          scopesGranted: ['employee:read', 'inventory:read', 'sales:read'],
+          scopesGranted: ['employee:all'], // Full analytics access with employee permissions
         })
         .where(and(
           eq(connectionManager.userId, userId),
@@ -153,7 +181,7 @@ router.get('/oauth/callback/lightspeed', async (req: Request, res: Response) => 
         expiresAt,
         status: 'active',
         accountLabel: `Lightspeed - ${storeUrl}`,
-        scopesGranted: ['employee:read', 'inventory:read', 'sales:read'],
+        scopesGranted: ['employee:all'], // Full analytics access with employee permissions
         isReadOnly: true,
       });
     }
@@ -162,6 +190,7 @@ router.get('/oauth/callback/lightspeed', async (req: Request, res: Response) => 
     delete req.session.oauthState;
     delete req.session.oauthProvider;
     delete req.session.lightspeedStoreUrl;
+    delete req.session.codeVerifier;
     delete (req.session as any).userId;
 
     // Redirect to success page
@@ -196,19 +225,25 @@ async function ensureLightspeedToken(userId: number): Promise<{ accessToken: str
     try {
       // Refresh token
       const refreshToken = decrypt(conn.refreshToken!);
-      const response = await fetch(process.env.LS_TOKEN_URL || 'https://cloud.lightspeedapp.com/oauth/token', {
+      const tokenUrl = process.env.LS_TOKEN_URL || process.env.LIGHTSPEED_TOKEN_URL || 'https://cloud.lightspeedapp.com/oauth/token';
+      const clientId = process.env.LS_CLIENT_ID || process.env.LIGHTSPEED_CLIENT_ID || '';
+      const clientSecret = process.env.LS_CLIENT_SECRET || process.env.LIGHTSPEED_CLIENT_SECRET || '';
+      
+      const response = await fetch(tokenUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
           grant_type: 'refresh_token',
           refresh_token: refreshToken,
-          client_id: process.env.LS_CLIENT_ID || '',
-          client_secret: process.env.LS_CLIENT_SECRET || '',
+          client_id: clientId,
+          client_secret: clientSecret,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Token refresh failed');
+        const errorText = await response.text();
+        console.error('Token refresh failed with status:', response.status, 'Error:', errorText);
+        throw new Error(`Token refresh failed: ${response.status}`);
       }
 
       const data = await response.json();
@@ -230,8 +265,13 @@ async function ensureLightspeedToken(userId: number): Promise<{ accessToken: str
       };
     } catch (error) {
       console.error('Token refresh failed:', error);
+      // Mark connection as unhealthy but don't immediately revoke - might be temporary
       await db.update(connectionManager)
-        .set({ status: 'error', healthStatus: 'unhealthy' })
+        .set({ 
+          healthStatus: 'unhealthy',
+          lastHealthCheck: new Date(),
+          errorMessage: error instanceof Error ? error.message : 'Token refresh failed'
+        })
         .where(eq(connectionManager.id, conn.id));
       return null;
     }

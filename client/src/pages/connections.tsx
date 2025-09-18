@@ -48,23 +48,54 @@ const CONNECTIONS = [
     description: 'Connect to read spreadsheet data',
     scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly', 
              'https://www.googleapis.com/auth/drive.readonly'],
-    category: 'cloud'
+    category: 'cloud',
+    permissions: [
+      'View your Google Sheets spreadsheets',
+      'View metadata for files in your Google Drive',
+      'Read-only access to your spreadsheet data'
+    ]
   },
   {
     id: 'lightspeed',
     name: 'Lightspeed Retail/Restaurant',
     icon: ShoppingCart,
     description: 'Read POS and inventory data',
-    scopes: ['employee:reports', 'employee:inventory', 'employee:customers'],
-    category: 'pos'
+    scopes: ['employee:all'],
+    category: 'pos',
+    permissions: [
+      'View sales reports and analytics',
+      'Access inventory data',
+      'View customer information',
+      'Read-only access based on employee permissions'
+    ]
   },
   {
     id: 'quickbooks',
     name: 'QuickBooks Online',
     icon: Briefcase,
     description: 'Read accounting and financial data',
-    scopes: ['com.intuit.quickbooks.accounting.read'],
-    category: 'accounting'
+    scopes: ['com.intuit.quickbooks.accounting'],
+    category: 'accounting',
+    permissions: [
+      'View accounting reports',
+      'Access financial statements',
+      'Read transaction history',
+      'Read-only access to your financial data'
+    ]
+  },
+  {
+    id: 'stripe',
+    name: 'Stripe',
+    icon: DollarSign,
+    description: 'Read payment and transaction data',
+    scopes: ['read_only'],
+    category: 'payments',
+    permissions: [
+      'View payment transactions',
+      'Access customer payment data',
+      'Read subscription information',
+      'Read-only access to payment analytics'
+    ]
   },
 
   {
@@ -73,7 +104,12 @@ const CONNECTIONS = [
     icon: Upload,
     description: 'Upload spreadsheet files directly',
     category: 'file',
-    noOAuth: true
+    noOAuth: true,
+    permissions: [
+      'Upload files for analysis',
+      'Data stored securely in your account',
+      'No external access required'
+    ]
   },
   {
     id: 'database',
@@ -81,7 +117,13 @@ const CONNECTIONS = [
     icon: Database,
     description: 'Connect to PostgreSQL or MySQL (read-only)',
     category: 'database',
-    noOAuth: true
+    noOAuth: true,
+    permissions: [
+      'Read-only database access',
+      'Query your database tables',
+      'No write permissions granted',
+      'Secure encrypted connection'
+    ]
   }
 ];
 
@@ -151,9 +193,16 @@ export default function ConnectionsPage() {
         }
         return result;
       } else {
-        // For Lightspeed, redirect to setup page first
+        // For Lightspeed, check if we need store URL first
         if (data.provider === 'lightspeed') {
-          window.location.href = '/lightspeed-setup';
+          // Check if we already have a store URL stored
+          const storedUrl = localStorage.getItem('lightspeed_store_url');
+          if (!storedUrl) {
+            window.location.href = '/lightspeed-setup';
+            return Promise.resolve();
+          }
+          // If we have store URL, proceed with OAuth
+          window.location.href = `/api/auth/lightspeed/connect`;
           return Promise.resolve();
         }
         // OAuth flow - redirect to backend OAuth endpoint
@@ -308,6 +357,24 @@ export default function ConnectionsPage() {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Display permissions */}
+          {connection.permissions && (
+            <div className="mb-4 p-3 bg-secondary/10 rounded-md">
+              <p className="text-xs font-medium text-muted-foreground mb-2">
+                <Shield className="inline h-3 w-3 mr-1" />
+                This connection will have access to:
+              </p>
+              <ul className="text-xs space-y-1">
+                {connection.permissions.map((permission: string, idx: number) => (
+                  <li key={idx} className="flex items-start">
+                    <span className="mr-2 text-primary">•</span>
+                    <span className="text-muted-foreground">{permission}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
           {connection.id === 'csv_excel' ? (
             <div className="space-y-3">
               <Input
@@ -429,6 +496,19 @@ export default function ConnectionsPage() {
     };
     const Icon = connectionType.icon;
 
+    // Determine health status badge color and icon
+    const getHealthBadge = () => {
+      if (conn.healthStatus === 'healthy') {
+        return { variant: 'default' as const, icon: CheckCircle, text: 'Healthy' };
+      } else if (conn.healthStatus === 'unhealthy') {
+        return { variant: 'destructive' as const, icon: AlertCircle, text: 'Unhealthy' };
+      } else {
+        return { variant: 'secondary' as const, icon: AlertCircle, text: 'Unknown' };
+      }
+    };
+
+    const healthBadge = getHealthBadge();
+
     return (
       <Card key={conn.id} className="relative">
         <CardHeader>
@@ -440,7 +520,7 @@ export default function ConnectionsPage() {
                 <Database className="h-5 w-5 text-muted-foreground" />
               )}
               <div>
-                <CardTitle className="text-base">{conn.name || connectionType.name}</CardTitle>
+                <CardTitle className="text-base">{conn.accountLabel || connectionType.name}</CardTitle>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge 
                     variant={conn.status === 'active' ? 'default' : 'destructive'}
@@ -449,18 +529,24 @@ export default function ConnectionsPage() {
                     {conn.status === 'active' ? (
                       <>
                         <CheckCircle className="h-3 w-3 mr-1" />
-                        Active
+                        Connected
                       </>
                     ) : (
                       <>
                         <XCircle className="h-3 w-3 mr-1" />
-                        Error
+                        Disconnected
                       </>
                     )}
                   </Badge>
-                  {conn.lastSync && (
+                  {conn.healthStatus && (
+                    <Badge variant={healthBadge.variant} className="text-xs">
+                      <healthBadge.icon className="h-3 w-3 mr-1" />
+                      {healthBadge.text}
+                    </Badge>
+                  )}
+                  {conn.lastUsedAt && (
                     <span className="text-xs text-muted-foreground">
-                      Last synced: {new Date(conn.lastSync).toLocaleDateString()}
+                      Last used: {new Date(conn.lastUsedAt).toLocaleDateString()}
                     </span>
                   )}
                 </div>

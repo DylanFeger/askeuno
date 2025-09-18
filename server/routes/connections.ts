@@ -34,7 +34,8 @@ function decrypt(text: string): string {
 
 // Get all connections for the authenticated user
 router.get('/connections', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-
+  logger.info('Fetching connections', { userId: req.user.id });
+  
   try {
     const connections = await db
       .select({
@@ -62,8 +63,8 @@ router.get('/connections', requireAuth, async (req: AuthenticatedRequest, res: R
 
 // Test a connection
 router.post('/connections/:id/test', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-
   const connectionId = parseInt(req.params.id);
+  logger.info('Testing connection', { userId: req.user.id, connectionId });
 
   try {
     const [connection] = await db
@@ -110,17 +111,28 @@ router.post('/connections/:id/test', requireAuth, async (req: AuthenticatedReque
       })
       .where(eq(connectionManager.id, connectionId));
 
+    logger.info('Connection test completed', { 
+      userId: req.user.id, 
+      connectionId,
+      provider: connection.provider,
+      success: testResult.success 
+    });
+
     res.json(testResult);
   } catch (error) {
-    console.error('Error testing connection:', error);
+    logger.error('Connection test failed', { 
+      userId: req.user.id, 
+      connectionId,
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
     res.status(500).json({ error: 'Failed to test connection' });
   }
 });
 
 // Delete a connection
 router.delete('/connections/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-
   const connectionId = parseInt(req.params.id);
+  logger.info('Revoking connection', { userId: req.user.id, connectionId });
 
   try {
     // Mark as revoked instead of deleting for audit trail
@@ -137,17 +149,32 @@ router.delete('/connections/:id', requireAuth, async (req: AuthenticatedRequest,
         eq(connectionManager.userId, req.user.id)
       ));
 
+    logger.info('Connection revoked successfully', { 
+      userId: req.user.id, 
+      connectionId,
+      action: 'connection_revoked'
+    });
+
     res.json({ success: true });
   } catch (error) {
-    console.error('Error deleting connection:', error);
+    logger.error('Failed to revoke connection', { 
+      userId: req.user.id, 
+      connectionId,
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
     res.status(500).json({ error: 'Failed to delete connection' });
   }
 });
 
 // Connect to a database (PostgreSQL or MySQL)
 router.post('/connections/database', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-
   const { dbType, connectionString, name } = req.body;
+  
+  logger.info('Attempting database connection', { 
+    userId: req.user.id, 
+    dbType,
+    dbName: name || 'unnamed' 
+  });
 
   if (!connectionString || !dbType) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -158,6 +185,11 @@ router.post('/connections/database', requireAuth, async (req: AuthenticatedReque
     const isReadOnly = await verifyReadOnlyDatabase(dbType, connectionString);
     
     if (!isReadOnly) {
+      logger.warn('Database connection rejected - write permissions detected', { 
+        userId: req.user.id, 
+        dbType,
+        action: 'connection_rejected'
+      });
       return res.status(403).json({ 
         error: 'Database user has write permissions. Please provide a read-only user.' 
       });
@@ -180,6 +212,13 @@ router.post('/connections/database', requireAuth, async (req: AuthenticatedReque
       })
       .returning();
 
+    logger.info('Database connection established successfully', { 
+      userId: req.user.id, 
+      connectionId: newConnection.id,
+      dbType,
+      action: 'connection_created'
+    });
+
     res.json({ 
       success: true, 
       connection: {
@@ -189,7 +228,12 @@ router.post('/connections/database', requireAuth, async (req: AuthenticatedReque
       }
     });
   } catch (error: any) {
-    console.error('Database connection error:', error);
+    logger.error('Database connection failed', { 
+      userId: req.user.id, 
+      dbType,
+      error: error.message || 'Unknown error',
+      action: 'connection_failed'
+    });
     res.status(400).json({ 
       error: error.message || 'Failed to connect to database' 
     });

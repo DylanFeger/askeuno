@@ -56,7 +56,7 @@ router.get('/auth/google_sheets/connect', requireAuth, (req: AuthenticatedReques
 
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID || '',
-    redirect_uri: `${process.env.APP_URL || 'http://localhost:5000'}/api/auth/google/callback`,
+    redirect_uri: `${process.env.APP_URL || 'https://askeuno.com'}/api/auth/google/callback`,
     response_type: 'code',
     scope: 'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/drive.readonly',
     access_type: 'offline',
@@ -82,9 +82,9 @@ router.get('/auth/quickbooks/connect', requireAuth, (req: AuthenticatedRequest, 
 
   const params = new URLSearchParams({
     client_id: process.env.QUICKBOOKS_CLIENT_ID || '',
-    redirect_uri: `${process.env.APP_URL || 'http://localhost:5000'}/api/auth/quickbooks/callback`,
+    redirect_uri: `${process.env.APP_URL || 'https://askeuno.com'}/api/auth/quickbooks/callback`,
     response_type: 'code',
-    scope: 'com.intuit.quickbooks.accounting',
+    scope: 'com.intuit.quickbooks.accounting', // Read-only access for analytics
     state: state,
     code_challenge: codeChallenge,
     code_challenge_method: 'S256',
@@ -97,15 +97,25 @@ router.get('/auth/quickbooks/connect', requireAuth, (req: AuthenticatedRequest, 
 
 router.get('/auth/lightspeed/connect', requireAuth, (req: AuthenticatedRequest, res: Response) => {
   const state = generateState();
+  const codeVerifier = generateCodeVerifier();
+  const codeChallenge = generateCodeChallenge(codeVerifier);
+  
   req.session.oauthState = state;
+  req.session.codeVerifier = codeVerifier;
   req.session.oauthProvider = 'lightspeed';
 
+  // Support both LIGHTSPEED_* and LS_* environment variables
+  const clientId = process.env.LIGHTSPEED_CLIENT_ID || process.env.LS_CLIENT_ID || '';
+  const redirectUri = `${process.env.APP_URL || 'https://askeuno.com'}/api/auth/lightspeed/callback`;
+  
   const params = new URLSearchParams({
-    client_id: process.env.LIGHTSPEED_CLIENT_ID || '',
-    redirect_uri: `${process.env.APP_URL || 'http://localhost:5000'}/api/auth/lightspeed/callback`,
+    client_id: clientId,
+    redirect_uri: redirectUri,
     response_type: 'code',
-    scope: 'employee:reports employee:inventory employee:customers',
+    scope: 'employee:all', // Full analytics access with employee permissions
     state: state,
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256',
   });
 
   const authUrl = `https://cloud.lightspeedapp.com/oauth/authorize?${params}`;
@@ -120,7 +130,7 @@ router.get('/auth/stripe/connect', requireAuth, (req: AuthenticatedRequest, res:
 
   const params = new URLSearchParams({
     client_id: process.env.STRIPE_CONNECT_CLIENT_ID || '',
-    redirect_uri: `${process.env.APP_URL || 'http://localhost:5000'}/api/auth/stripe/callback`,
+    redirect_uri: `${process.env.APP_URL || 'https://askeuno.com'}/api/auth/stripe/callback`,
     response_type: 'code',
     scope: 'read_only',
     state: state,
@@ -168,9 +178,9 @@ router.get('/auth/:provider/callback', requireAuth, async (req: AuthenticatedReq
         break;
       
       case 'lightspeed':
-        tokenData = await exchangeLightspeedCode(code as string);
+        tokenData = await exchangeLightspeedCode(code as string, req.session.codeVerifier);
         accountLabel = 'Lightspeed Account';
-        scopes = ['reports', 'inventory', 'customers'];
+        scopes = ['employee:all'];
         break;
       
       case 'stripe':
@@ -243,7 +253,7 @@ async function exchangeGoogleCode(code: string, codeVerifier: string): Promise<a
       code,
       client_id: process.env.GOOGLE_CLIENT_ID || '',
       client_secret: process.env.GOOGLE_CLIENT_SECRET || '',
-      redirect_uri: `${process.env.APP_URL || 'http://localhost:5000'}/api/auth/google/callback`,
+      redirect_uri: `${process.env.APP_URL || 'https://askeuno.com'}/api/auth/google/callback`,
       grant_type: 'authorization_code',
       code_verifier: codeVerifier,
     }),
@@ -292,7 +302,7 @@ async function exchangeQuickBooksCode(code: string, codeVerifier: string): Promi
     },
     body: new URLSearchParams({
       code,
-      redirect_uri: `${process.env.APP_URL || 'http://localhost:5000'}/api/auth/quickbooks/callback`,
+      redirect_uri: `${process.env.APP_URL || 'https://askeuno.com'}/api/auth/quickbooks/callback`,
       grant_type: 'authorization_code',
       code_verifier: codeVerifier,
     }),
@@ -312,17 +322,30 @@ async function exchangeQuickBooksCode(code: string, codeVerifier: string): Promi
   };
 }
 
-async function exchangeLightspeedCode(code: string): Promise<any> {
-  const response = await fetch('https://cloud.lightspeedapp.com/oauth/access_token', {
+async function exchangeLightspeedCode(code: string, codeVerifier?: string): Promise<any> {
+  // Support both LIGHTSPEED_* and LS_* environment variables
+  const clientId = process.env.LIGHTSPEED_CLIENT_ID || process.env.LS_CLIENT_ID || '';
+  const clientSecret = process.env.LIGHTSPEED_CLIENT_SECRET || process.env.LS_CLIENT_SECRET || '';
+  const tokenUrl = process.env.LIGHTSPEED_TOKEN_URL || process.env.LS_TOKEN_URL || 'https://cloud.lightspeedapp.com/oauth/token';
+  const redirectUri = `${process.env.APP_URL || 'https://askeuno.com'}/api/auth/lightspeed/callback`;
+  
+  const params: any = {
+    code,
+    client_id: clientId,
+    client_secret: clientSecret,
+    redirect_uri: redirectUri,
+    grant_type: 'authorization_code',
+  };
+  
+  // Add PKCE verifier if available
+  if (codeVerifier) {
+    params.code_verifier = codeVerifier;
+  }
+  
+  const response = await fetch(tokenUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      code,
-      client_id: process.env.LIGHTSPEED_CLIENT_ID || '',
-      client_secret: process.env.LIGHTSPEED_CLIENT_SECRET || '',
-      redirect_uri: `${process.env.APP_URL || 'http://localhost:5000'}/api/auth/lightspeed/callback`,
-      grant_type: 'authorization_code',
-    }),
+    body: new URLSearchParams(params),
   });
 
   if (!response.ok) {
