@@ -14,6 +14,7 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
+// Main pool for ORM operations
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
   ssl: true,
@@ -21,4 +22,14 @@ export const pool = new Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000
 });
+
+// Separate pool for session management
+export const sessionPool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: true,
+  max: 2,  // Minimal connections for sessions
+  idleTimeoutMillis: 300000,  // 5 minutes
+  connectionTimeoutMillis: 15000  // 15 seconds
+});
+
 export const db = drizzle({ client: pool, schema });

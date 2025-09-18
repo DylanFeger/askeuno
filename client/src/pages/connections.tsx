@@ -257,8 +257,7 @@ export default function ConnectionsPage() {
     connectMutation.mutate({
       type: 'database',
       dbType: dbConfig.type,
-      connectionString: dbConfig.connectionString,
-      name: `${dbConfig.type === 'postgres' ? 'PostgreSQL' : 'MySQL'} Database`,
+      connectionString: dbConfig.connectionString
     });
   };
 
@@ -266,304 +265,309 @@ export default function ConnectionsPage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const validTypes = ['text/csv', 'application/vnd.ms-excel', 
-                       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
-    
-    if (!validTypes.includes(file.type)) {
+    // Validate file type
+    const validTypes = ['.csv', '.xlsx', '.xls'];
+    const fileExt = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (!validTypes.includes(fileExt)) {
       toast({
-        title: 'Invalid File',
+        title: 'Invalid File Type',
         description: 'Please upload a CSV or Excel file',
         variant: 'destructive',
       });
       return;
     }
 
+    // Upload file
     connectMutation.mutate({
       type: 'csv_excel',
       file: file,
-      name: file.name.replace(/\.[^/.]+$/, ''),
+      name: file.name
     });
   };
 
-  const getConnectionStatus = (connection: any) => {
-    if (connection.healthStatus === 'healthy') {
-      return <Badge className="bg-green-100 text-green-800">Active</Badge>;
-    } else if (connection.healthStatus === 'unhealthy') {
-      return <Badge className="bg-red-100 text-red-800">Error</Badge>;
-    } else if (connection.status === 'expired') {
-      return <Badge className="bg-yellow-100 text-yellow-800">Expired</Badge>;
-    }
-    return <Badge className="bg-gray-100 text-gray-800">Unknown</Badge>;
+  const renderConnectionCard = (connection: any) => {
+    const Icon = connection.icon;
+    
+    return (
+      <Card key={connection.id} className="hover:border-primary/50 transition-colors">
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              {typeof Icon === 'function' ? (
+                <Icon className="h-6 w-6 text-primary" />
+              ) : (
+                <Icon className="h-6 w-6 text-primary" />
+              )}
+              <div>
+                <CardTitle className="text-base">{connection.name}</CardTitle>
+                <CardDescription className="mt-1 text-sm">
+                  {connection.description}
+                </CardDescription>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {connection.id === 'csv_excel' ? (
+            <div className="space-y-3">
+              <Input
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                onChange={handleFileUpload}
+                className="cursor-pointer"
+              />
+              <p className="text-xs text-muted-foreground">
+                Supported formats: CSV, Excel (.xlsx, .xls)
+              </p>
+            </div>
+          ) : connection.id === 'database' ? (
+            <Dialog open={selectedConnection?.id === 'database'} onOpenChange={(open) => {
+              if (!open) setSelectedConnection(null);
+            }}>
+              <Button 
+                onClick={() => setSelectedConnection(connection)}
+                className="w-full"
+                variant="outline"
+              >
+                <Database className="h-4 w-4 mr-2" />
+                Connect Database
+              </Button>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Connect to Database</DialogTitle>
+                  <DialogDescription>
+                    Enter your database connection details (read-only access)
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  <div>
+                    <Label>Database Type</Label>
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        variant={dbConfig.type === 'postgres' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setDbConfig({ ...dbConfig, type: 'postgres' })}
+                      >
+                        PostgreSQL
+                      </Button>
+                      <Button
+                        variant={dbConfig.type === 'mysql' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setDbConfig({ ...dbConfig, type: 'mysql' })}
+                      >
+                        MySQL
+                      </Button>
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="connection-string">Connection String</Label>
+                    <Input
+                      id="connection-string"
+                      type="password"
+                      placeholder={dbConfig.type === 'postgres' ? 
+                        'postgresql://user:pass@host:5432/dbname' : 
+                        'mysql://user:pass@host:3306/dbname'}
+                      value={dbConfig.connectionString}
+                      onChange={(e) => setDbConfig({ ...dbConfig, connectionString: e.target.value })}
+                      className="mt-2"
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      We'll verify this is a read-only connection for security
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleDatabaseConnect}
+                      disabled={connectMutation.isPending}
+                      className="flex-1"
+                    >
+                      {connectMutation.isPending ? 'Connecting...' : 'Connect'}
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => setSelectedConnection(null)}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <Button 
+              onClick={() => connectMutation.mutate({ 
+                provider: connection.id,
+                scopes: connection.scopes 
+              })}
+              disabled={connectMutation.isPending}
+              className="w-full"
+              variant="outline"
+            >
+              {connection.noOAuth ? (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Configure
+                </>
+              ) : (
+                <>
+                  <Shield className="h-4 w-4 mr-2" />
+                  Connect with OAuth
+                </>
+              )}
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderActiveConnection = (conn: any) => {
+    const connectionType = CONNECTIONS.find(c => c.id === conn.provider) || {
+      name: conn.type === 'file' ? 'Uploaded File' : conn.provider,
+      icon: conn.type === 'file' ? Upload : Database
+    };
+    const Icon = connectionType.icon;
+
+    return (
+      <Card key={conn.id} className="relative">
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              {Icon && typeof Icon === 'function' ? (
+                <Icon className="h-5 w-5 text-muted-foreground" />
+              ) : (
+                <Database className="h-5 w-5 text-muted-foreground" />
+              )}
+              <div>
+                <CardTitle className="text-base">{conn.name || connectionType.name}</CardTitle>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge 
+                    variant={conn.status === 'active' ? 'default' : 'destructive'}
+                    className="text-xs"
+                  >
+                    {conn.status === 'active' ? (
+                      <>
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Active
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-3 w-3 mr-1" />
+                        Error
+                      </>
+                    )}
+                  </Badge>
+                  {conn.lastSync && (
+                    <span className="text-xs text-muted-foreground">
+                      Last synced: {new Date(conn.lastSync).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => testConnectionMutation.mutate(conn.id)}
+              disabled={testingConnection === conn.id}
+            >
+              {testingConnection === conn.id ? (
+                <>
+                  <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                  Testing...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Test Connection
+                </>
+              )}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setDeleteConfirmation(conn)}
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-3 w-3 mr-1" />
+              Remove
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white">
       <Navbar />
-        
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-16">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Data Connections</h1>
+          <p className="text-gray-600 mt-2">
+            Connect your business data sources to enable AI-powered analytics
+          </p>
+        </div>
+
+        {/* Active Connections */}
+        {connections.length > 0 && (
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Secure Connections
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Connect your business tools with read-only access. All tokens are encrypted and never logged.
-            </p>
-          </div>
-
-          {/* Security Notice */}
-          <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-            <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            <AlertDescription>
-              <strong>Security First:</strong> We use OAuth 2.0 with PKCE for secure authentication. 
-              All connections are read-only and tokens are encrypted at rest. You can revoke access anytime.
-            </AlertDescription>
-          </Alert>
-
-          {/* Active Connections */}
-          {connections.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">Active Connections</h2>
-              <div className="grid gap-4">
-                {connections.map((connection: any) => (
-                  <Card key={connection.id} className="border border-gray-200 dark:border-gray-700">
-                    <CardContent className="flex items-center justify-between p-4">
-                      <div className="flex items-center gap-4">
-                        {CONNECTIONS.find(c => c.id === connection.provider)?.icon && (
-                          <div className="text-gray-600 dark:text-gray-400">
-                            {(() => {
-                              const Icon = CONNECTIONS.find(c => c.id === connection.provider)?.icon;
-                              return Icon ? <Icon className="h-5 w-5" /> : null;
-                            })()}
-                          </div>
-                        )}
-                        <div>
-                          <h3 className="font-medium">{connection.accountLabel}</h3>
-                          <p className="text-sm text-gray-500">
-                            Connected {new Date(connection.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        {getConnectionStatus(connection)}
-                        
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => testConnectionMutation.mutate(connection.id)}
-                          disabled={testingConnection === connection.id}
-                        >
-                          {testingConnection === connection.id ? (
-                            <RefreshCw className="h-4 w-4 animate-spin" />
-                          ) : (
-                            'Test'
-                          )}
-                        </Button>
-                        
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setDeleteConfirmation(connection)}
-                          className="text-red-600 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Available Connections */}
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Available Connections</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {CONNECTIONS.map((connection) => {
-                const isConnected = connections.some((c: any) => c.provider === connection.id);
-                const Icon = connection.icon;
-                
-                return (
-                  <Card 
-                    key={connection.id} 
-                    className={`border ${isConnected ? 'opacity-50' : ''} hover:shadow-lg transition-shadow cursor-pointer`}
-                    onClick={() => {
-                      if (!isConnected) {
-                        if (connection.id === 'csv_excel') {
-                          setLocation('/upload');
-                        } else if (connection.id === 'lightspeed') {
-                          setLocation('/connections/lightspeed');
-                        } else {
-                          setSelectedConnection(connection);
-                        }
-                      }
-                    }}
-                  >
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Icon className="h-5 w-5" />
-                        {connection.name}
-                      </CardTitle>
-                      <CardDescription>{connection.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      {isConnected ? (
-                        <Badge className="w-full justify-center">Connected</Badge>
-                      ) : (
-                        <Button className="w-full" variant="outline">
-                          Connect
-                        </Button>
-                      )}
-                      
-                      {connection.scopes && (
-                        <div className="mt-2 text-xs text-gray-500">
-                          Permissions: Read-only access
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Active Connections</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {connections.map(renderActiveConnection)}
             </div>
           </div>
+        )}
 
-          {/* Connection Dialog */}
-          <Dialog open={!!selectedConnection} onOpenChange={() => setSelectedConnection(null)}>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>
-                  Connect to {selectedConnection?.name}
-                </DialogTitle>
-                <DialogDescription>
-                  {selectedConnection?.id === 'database' && 
-                    'Provide a read-only database connection string. We will verify permissions before connecting.'}
-                  {selectedConnection?.id === 'csv_excel' && 
-                    'Upload a CSV or Excel file. Data will be securely processed and stored.'}
-                  {selectedConnection?.noOAuth === false && 
-                    'You will be redirected to authenticate with read-only permissions.'}
-                </DialogDescription>
-              </DialogHeader>
+        {/* Available Connections */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            {connections.length > 0 ? 'Add More Connections' : 'Available Connections'}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {CONNECTIONS.map(renderConnectionCard)}
+          </div>
+        </div>
 
-              {selectedConnection?.id === 'database' && (
-                <div className="space-y-4">
-                  <div>
-                    <Label>Database Type</Label>
-                    <select 
-                      className="w-full p-2 border rounded"
-                      value={dbConfig.type}
-                      onChange={(e) => setDbConfig({ ...dbConfig, type: e.target.value })}
-                    >
-                      <option value="postgres">PostgreSQL</option>
-                      <option value="mysql">MySQL</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <Label>Connection String (Read-Only User)</Label>
-                    <Input
-                      type="password"
-                      placeholder={dbConfig.type === 'postgres' ? 
-                        'postgresql://readonly:password@host:5432/database' : 
-                        'mysql://readonly:password@host:3306/database'}
-                      value={dbConfig.connectionString}
-                      onChange={(e) => setDbConfig({ ...dbConfig, connectionString: e.target.value })}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Must be a read-only user. We'll reject any user with write permissions.
-                    </p>
-                  </div>
-                  
-                  <Button 
-                    className="w-full" 
-                    onClick={handleDatabaseConnect}
-                    disabled={connectMutation.isPending}
-                  >
-                    {connectMutation.isPending ? 'Verifying...' : 'Connect Database'}
-                  </Button>
-                </div>
-              )}
-
-              {selectedConnection?.id === 'csv_excel' && (
-                <div className="space-y-4">
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                    <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                    <Label htmlFor="file-upload" className="cursor-pointer">
-                      <span className="text-primary hover:underline">Choose a file</span>
-                      <span className="text-gray-500"> or drag and drop</span>
-                    </Label>
-                    <Input
-                      id="file-upload"
-                      type="file"
-                      accept=".csv,.xlsx,.xls"
-                      className="hidden"
-                      onChange={handleFileUpload}
-                    />
-                    <p className="text-xs text-gray-500 mt-2">
-                      CSV, XLS, XLSX up to 50MB
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {selectedConnection && !selectedConnection.noOAuth && (
-                <div className="space-y-4">
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      You'll be redirected to {selectedConnection.name} to authorize read-only access.
-                      You can revoke this access at any time.
-                    </AlertDescription>
-                  </Alert>
-                  
-                  <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded">
-                    <p className="text-sm font-medium mb-2">Requested Permissions:</p>
-                    <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                      {selectedConnection.scopes?.map((scope: string) => (
-                        <li key={scope} className="flex items-center gap-2">
-                          <CheckCircle className="h-3 w-3 text-green-500" />
-                          {scope.split('/').pop()?.replace(/_/g, ' ')}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  
-                  <Button 
-                    className="w-full" 
-                    onClick={() => connectMutation.mutate({ provider: selectedConnection.id })}
-                  >
-                    <Shield className="h-4 w-4 mr-2" />
-                    Authorize {selectedConnection.name}
-                  </Button>
-                </div>
-              )}
-            </DialogContent>
-          </Dialog>
-
-          {/* Delete Confirmation */}
-          <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Disconnect {deleteConfirmation?.accountLabel}?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will immediately revoke access and delete all stored tokens. 
-                  You can reconnect at any time.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => disconnectMutation.mutate(deleteConfirmation.id)}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  Disconnect
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-      </div>
+        {/* Security Notice */}
+        <Alert className="mt-8">
+          <Shield className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Security First:</strong> All connections use read-only access. Your data is encrypted in transit and at rest. 
+            We never store your credentials - they're securely managed through OAuth 2.0 or encrypted connection strings.
+          </AlertDescription>
+        </Alert>
+      </main>
 
       <Footer />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Connection</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove the connection "{deleteConfirmation?.name}"? 
+              This action cannot be undone and will stop all data syncing.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => disconnectMutation.mutate(deleteConfirmation.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remove Connection
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
