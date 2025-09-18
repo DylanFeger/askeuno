@@ -269,8 +269,7 @@ async function ensureLightspeedToken(userId: number): Promise<{ accessToken: str
       await db.update(connectionManager)
         .set({ 
           healthStatus: 'unhealthy',
-          lastHealthCheck: new Date(),
-          errorMessage: error instanceof Error ? error.message : 'Token refresh failed'
+          lastHealthCheck: new Date()
         })
         .where(eq(connectionManager.id, conn.id));
       return null;

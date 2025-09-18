@@ -44,7 +44,7 @@ function generateState(): string {
 }
 
 // OAuth initiation endpoints
-router.get('/auth/google_sheets/connect', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+router.get('/auth/google_sheets/connect', requireAuth, ((req: AuthenticatedRequest, res: Response) => {
   const state = generateState();
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = generateCodeChallenge(codeVerifier);
@@ -69,9 +69,9 @@ router.get('/auth/google_sheets/connect', requireAuth, (req: AuthenticatedReques
   const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
   logger.info('Initiating Google OAuth', { userId: req.user.id });
   res.redirect(authUrl);
-});
+}) as any);
 
-router.get('/auth/quickbooks/connect', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+router.get('/auth/quickbooks/connect', requireAuth, ((req: AuthenticatedRequest, res: Response) => {
   const state = generateState();
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = generateCodeChallenge(codeVerifier);
@@ -93,9 +93,9 @@ router.get('/auth/quickbooks/connect', requireAuth, (req: AuthenticatedRequest, 
   const authUrl = `https://appcenter.intuit.com/connect/oauth2?${params}`;
   logger.info('Initiating QuickBooks OAuth', { userId: req.user.id });
   res.redirect(authUrl);
-});
+}) as any);
 
-router.get('/auth/lightspeed/connect', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+router.get('/auth/lightspeed/connect', requireAuth, ((req: AuthenticatedRequest, res: Response) => {
   const state = generateState();
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = generateCodeChallenge(codeVerifier);
@@ -121,9 +121,9 @@ router.get('/auth/lightspeed/connect', requireAuth, (req: AuthenticatedRequest, 
   const authUrl = `https://cloud.lightspeedapp.com/oauth/authorize?${params}`;
   logger.info('Initiating Lightspeed OAuth', { userId: req.user.id });
   res.redirect(authUrl);
-});
+}) as any);
 
-router.get('/auth/stripe/connect', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+router.get('/auth/stripe/connect', requireAuth, ((req: AuthenticatedRequest, res: Response) => {
   const state = generateState();
   req.session.oauthState = state;
   req.session.oauthProvider = 'stripe';
@@ -139,10 +139,10 @@ router.get('/auth/stripe/connect', requireAuth, (req: AuthenticatedRequest, res:
   const authUrl = `https://connect.stripe.com/oauth/authorize?${params}`;
   logger.info('Initiating Stripe OAuth', { userId: req.user.id });
   res.redirect(authUrl);
-});
+}) as any);
 
 // OAuth callback handler
-router.get('/auth/:provider/callback', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/auth/:provider/callback', requireAuth, (async (req: AuthenticatedRequest, res: Response) => {
   const { provider } = req.params;
   const { code, state, error } = req.query;
 
@@ -166,13 +166,13 @@ router.get('/auth/:provider/callback', requireAuth, async (req: AuthenticatedReq
     // Exchange authorization code for tokens
     switch (provider) {
       case 'google':
-        tokenData = await exchangeGoogleCode(code as string, req.session.codeVerifier);
+        tokenData = await exchangeGoogleCode(code as string, req.session.codeVerifier || '');
         accountLabel = await getGoogleAccountLabel(tokenData.access_token);
         scopes = ['spreadsheets.readonly', 'drive.readonly'];
         break;
       
       case 'quickbooks':
-        tokenData = await exchangeQuickBooksCode(code as string, req.session.codeVerifier);
+        tokenData = await exchangeQuickBooksCode(code as string, req.session.codeVerifier || '');
         accountLabel = 'QuickBooks Account';
         scopes = ['accounting'];
         break;
@@ -242,7 +242,7 @@ router.get('/auth/:provider/callback', requireAuth, async (req: AuthenticatedReq
     logger.error('OAuth callback error', { provider, error: error.message, userId: req.user.id });
     res.redirect(`/connections?error=${encodeURIComponent('Failed to connect. Please try again.')}`);
   }
-});
+}) as any);
 
 // Token exchange functions
 async function exchangeGoogleCode(code: string, codeVerifier: string): Promise<any> {

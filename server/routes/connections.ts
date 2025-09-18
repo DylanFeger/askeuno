@@ -33,7 +33,7 @@ function decrypt(text: string): string {
 }
 
 // Get all connections for the authenticated user
-router.get('/connections', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/connections', requireAuth, (async (req: AuthenticatedRequest, res: Response) => {
   logger.info('Fetching connections', { userId: req.user.id });
   
   try {
@@ -59,10 +59,10 @@ router.get('/connections', requireAuth, async (req: AuthenticatedRequest, res: R
     console.error('Error fetching connections:', error);
     res.status(500).json({ error: 'Failed to fetch connections' });
   }
-});
+}) as any);
 
 // Test a connection
-router.post('/connections/:id/test', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/connections/:id/test', requireAuth, (async (req: AuthenticatedRequest, res: Response) => {
   const connectionId = parseInt(req.params.id);
   logger.info('Testing connection', { userId: req.user.id, connectionId });
 
@@ -127,10 +127,10 @@ router.post('/connections/:id/test', requireAuth, async (req: AuthenticatedReque
     });
     res.status(500).json({ error: 'Failed to test connection' });
   }
-});
+}) as any);
 
 // Delete a connection
-router.delete('/connections/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+router.delete('/connections/:id', requireAuth, (async (req: AuthenticatedRequest, res: Response) => {
   const connectionId = parseInt(req.params.id);
   logger.info('Revoking connection', { userId: req.user.id, connectionId });
 
@@ -164,10 +164,10 @@ router.delete('/connections/:id', requireAuth, async (req: AuthenticatedRequest,
     });
     res.status(500).json({ error: 'Failed to delete connection' });
   }
-});
+}) as any);
 
 // Connect to a database (PostgreSQL or MySQL)
-router.post('/connections/database', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/connections/database', requireAuth, (async (req: AuthenticatedRequest, res: Response) => {
   const { dbType, connectionString, name } = req.body;
   
   logger.info('Attempting database connection', { 
@@ -238,7 +238,7 @@ router.post('/connections/database', requireAuth, async (req: AuthenticatedReque
       error: error.message || 'Failed to connect to database' 
     });
   }
-});
+}) as any);
 
 // Helper function to verify read-only database permissions
 async function verifyReadOnlyDatabase(dbType: string, connectionString: string): Promise<boolean> {
