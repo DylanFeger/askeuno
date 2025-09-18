@@ -18,9 +18,11 @@ if (!process.env.DATABASE_URL) {
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
   ssl: true,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000
+  max: 5,  // Reduced for Neon compatibility
+  idleTimeoutMillis: 600000,  // 10 minutes - prevent premature termination
+  connectionTimeoutMillis: 30000,  // 30 seconds - allow more time for connection
+  maxUses: 7500,  // Prevent connection reuse issues
+  allowExitOnIdle: false
 });
 
 // Separate pool for session management
@@ -28,8 +30,10 @@ export const sessionPool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: true,
   max: 2,  // Minimal connections for sessions
-  idleTimeoutMillis: 300000,  // 5 minutes
-  connectionTimeoutMillis: 15000  // 15 seconds
+  idleTimeoutMillis: 600000,  // 10 minutes - consistent with main pool
+  connectionTimeoutMillis: 30000,  // 30 seconds
+  maxUses: 7500,  // Prevent connection reuse issues
+  allowExitOnIdle: false
 });
 
 export const db = drizzle({ client: pool, schema });
