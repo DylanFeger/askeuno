@@ -1,0 +1,92 @@
+You are not far from having Lightspeed working. The document shows the integration is already built, tested locally, and functional through Zapier. The missing steps are about deployment, URL stability, and environment configuration. Here’s the shortest path to make it work on askeuno.com:
+
+1. Move From ngrok to a Production Server
+
+The integration is currently running through an ngrok tunnel. That changes URLs every restart, which breaks Zapier connections.
+Do this:
+
+Deploy your backend to a stable host (Render, Railway, Fly.io, or your own server)
+
+feffb6e7-b26f-43ad-9584-b5058c3…
+
+.
+
+Set APPURL and BASEURL in .env to your production domain (https://askeuno.com).
+
+Redeploy so /api/webhooks/lightspeed is live at that domain.
+
+2. Update the Zapier Webhook URL
+
+Zapier is still sending data to the temporary ngrok URL.
+After deployment:
+
+Edit your Zap → Action step → URL field → Replace with https://askeuno.com/api/webhooks/lightspeed 
+
+feffb6e7-b26f-43ad-9584-b5058c3…
+
+.
+
+Republish the Zap.
+
+3. Verify Database Connection
+
+The webhook handler writes data to PostgreSQL. If the database credentials are incorrect, nothing will be saved.
+Check:
+
+DATABASEURL in .env is valid.
+
+You can connect manually:
+
+psql $DATABASEURL
+
+
+npm run db:migrate has been run.
+
+4. Test End-to-End Flow
+
+Before going live, confirm each step:
+
+Use curl or Postman to POST test data to /api/webhooks/lightspeed. Expect a {"received":true} response
+
+feffb6e7-b26f-43ad-9584-b5058c3…
+
+.
+
+Create a test sale in Lightspeed → Zapier → webhook.
+
+Check Zap Runs for success.
+
+Query database for the new row:
+
+SELECT * FROM datarows ORDER BY createdat DESC LIMIT 5;
+
+5. Handle Common Failure Points
+
+If it still fails:
+
+400 error: URL wrong or ngrok warning page not bypassed
+
+feffb6e7-b26f-43ad-9584-b5058c3…
+
+.
+
+502 error: Backend crashed or database unreachable.
+
+Data missing: User ID mismatch (userId: 1 in code must exist in database)
+
+feffb6e7-b26f-43ad-9584-b5058c3…
+
+.
+
+6. Finalize Production Monitoring
+
+Once it’s live:
+
+Add uptime monitoring (UptimeRobot, Pingdom).
+
+Set alerts for failed Zapier runs.
+
+Schedule weekly checks on datasources table for new rows.
+
+Summary:
+Deploy backend → update .env URLs → change Zapier webhook → confirm DB connectivity → run end-to-end test. Until the backend runs at a stable domain and Zapier points to it, Lightspeed data will not reliably reach AskEuno.
