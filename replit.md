@@ -62,3 +62,35 @@ Key principles:
 - **Icons**: Lucide React icons
 - **Forms**: React Hook Form with Zod validation
 - **Charting Library**: Recharts
+
+## Recent Changes
+
+### Lightspeed OAuth Integration Fix (October 20, 2025)
+Fixed Lightspeed Retail OAuth integration to work with production environment:
+
+**Changes Made:**
+1. Removed duplicate `lightspeed-oauth.ts` file that was causing redirect URI conflicts
+2. Updated OAuth endpoints to use Lightspeed's correct API URLs:
+   - Authorization: `https://cloud.lightspeedapp.com/auth/oauth/authorize` (was using old `/oauth/authorize`)
+   - Token exchange: `https://cloud.lightspeedapp.com/auth/oauth/token`
+   - Token refresh: `https://cloud.lightspeedapp.com/auth/oauth/token`
+3. Unified redirect URI to match Lightspeed Developer Portal registration: `https://askeuno.com/api/oauth/callback/lightspeed`
+4. Added debug logging to both OAuth handlers for troubleshooting
+5. Both frontend OAuth flows maintained:
+   - Direct connect: `/connections` → `/api/auth/lightspeed/connect` (oauth-handlers.ts)
+   - Store URL setup: `/lightspeed-setup` → `/api/lightspeed/start` (lightspeed.ts)
+
+**Environment Configuration:**
+- `LS_CLIENT_ID`: OAuth client ID from Lightspeed Developer Portal
+- `LS_CLIENT_SECRET`: OAuth client secret
+- `APP_URL`: https://askeuno.com
+- Registered redirect URI in Lightspeed: `https://askeuno.com/api/oauth/callback/lightspeed`
+
+**OAuth Flow:**
+1. User initiates connection via `/connections` or `/lightspeed-setup`
+2. Backend generates PKCE challenge and state for security
+3. User redirects to Lightspeed authorization page
+4. User approves access on Lightspeed
+5. Lightspeed redirects back to `/api/oauth/callback/lightspeed` with authorization code
+6. Backend exchanges code for access/refresh tokens with PKCE verifier
+7. Tokens encrypted and stored in database with automatic refresh

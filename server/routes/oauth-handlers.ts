@@ -119,7 +119,12 @@ router.get('/auth/lightspeed/connect', requireAuth, ((req: AuthenticatedRequest,
   });
 
   const authUrl = `https://cloud.lightspeedapp.com/auth/oauth/authorize?${params}`;
-  logger.info('Initiating Lightspeed OAuth', { userId: req.user.id });
+  logger.info('Initiating Lightspeed OAuth', { 
+    userId: req.user.id,
+    clientId: clientId.substring(0, 10) + '...',
+    redirectUri,
+    authUrl: authUrl.substring(0, 100) + '...'
+  });
   res.redirect(authUrl);
 }) as any);
 

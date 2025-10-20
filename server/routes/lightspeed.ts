@@ -85,6 +85,14 @@ router.post('/lightspeed/start', requireAuth, async (req: Request, res: Response
   authUrl.searchParams.append('code_challenge', codeChallenge);
   authUrl.searchParams.append('code_challenge_method', 'S256');
 
+  const clientId = process.env.LS_CLIENT_ID || process.env.LIGHTSPEED_CLIENT_ID || '';
+  console.log('[Lightspeed OAuth] Starting flow:', {
+    userId,
+    storeUrl,
+    clientId: clientId.substring(0, 10) + '...',
+    authUrl: authUrl.toString().substring(0, 150) + '...'
+  });
+  
   res.json({ redirect: authUrl.toString() });
 });
 
