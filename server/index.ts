@@ -204,9 +204,10 @@ app.use((req, res, next) => {
   // Use PORT from environment variable with fallback to 5000
   // This allows the app to work in different deployment environments
   const port = parseInt(process.env.PORT || '5000', 10);
+  const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
   server.listen({
     port,
-    host: "localhost",
+    host,
     // reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
