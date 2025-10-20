@@ -106,7 +106,7 @@ router.get('/auth/lightspeed/connect', requireAuth, ((req: AuthenticatedRequest,
 
   // Support both LIGHTSPEED_* and LS_* environment variables
   const clientId = process.env.LIGHTSPEED_CLIENT_ID || process.env.LS_CLIENT_ID || '';
-  const redirectUri = `${process.env.APP_URL || 'https://askeuno.com'}/api/auth/lightspeed/callback`;
+  const redirectUri = `${process.env.APP_URL || 'https://askeuno.com'}/api/oauth/callback/lightspeed`;
   
   const params = new URLSearchParams({
     client_id: clientId,
@@ -118,7 +118,7 @@ router.get('/auth/lightspeed/connect', requireAuth, ((req: AuthenticatedRequest,
     code_challenge_method: 'S256',
   });
 
-  const authUrl = `https://cloud.lightspeedapp.com/oauth/authorize?${params}`;
+  const authUrl = `https://cloud.lightspeedapp.com/auth/oauth/authorize?${params}`;
   logger.info('Initiating Lightspeed OAuth', { userId: req.user.id });
   res.redirect(authUrl);
 }) as any);
@@ -141,8 +141,8 @@ router.get('/auth/stripe/connect', requireAuth, ((req: AuthenticatedRequest, res
   res.redirect(authUrl);
 }) as any);
 
-// OAuth callback handler
-router.get('/auth/:provider/callback', requireAuth, (async (req: AuthenticatedRequest, res: Response) => {
+// OAuth callback handler (both /api/auth/:provider/callback and /api/oauth/callback/:provider)
+const callbackHandler = (async (req: AuthenticatedRequest, res: Response) => {
   const { provider } = req.params;
   const { code, state, error } = req.query;
 
@@ -242,7 +242,11 @@ router.get('/auth/:provider/callback', requireAuth, (async (req: AuthenticatedRe
     logger.error('OAuth callback error', { provider, error: error.message, userId: req.user.id });
     res.redirect(`/connections?error=${encodeURIComponent('Failed to connect. Please try again.')}`);
   }
-}) as any);
+}) as any;
+
+// Register callback handler for both URL patterns
+router.get('/auth/:provider/callback', requireAuth, callbackHandler);
+router.get('/oauth/callback/:provider', requireAuth, callbackHandler);
 
 // Token exchange functions
 async function exchangeGoogleCode(code: string, codeVerifier: string): Promise<any> {
@@ -326,8 +330,8 @@ async function exchangeLightspeedCode(code: string, codeVerifier?: string): Prom
   // Support both LIGHTSPEED_* and LS_* environment variables
   const clientId = process.env.LIGHTSPEED_CLIENT_ID || process.env.LS_CLIENT_ID || '';
   const clientSecret = process.env.LIGHTSPEED_CLIENT_SECRET || process.env.LS_CLIENT_SECRET || '';
-  const tokenUrl = process.env.LIGHTSPEED_TOKEN_URL || process.env.LS_TOKEN_URL || 'https://cloud.lightspeedapp.com/oauth/token';
-  const redirectUri = `${process.env.APP_URL || 'https://askeuno.com'}/api/auth/lightspeed/callback`;
+  const tokenUrl = process.env.LIGHTSPEED_TOKEN_URL || process.env.LS_TOKEN_URL || 'https://cloud.lightspeedapp.com/auth/oauth/token';
+  const redirectUri = `${process.env.APP_URL || 'https://askeuno.com'}/api/oauth/callback/lightspeed`;
   
   const params: any = {
     code,

@@ -72,7 +72,7 @@ router.post('/lightspeed/start', requireAuth, async (req: Request, res: Response
   (req.session as any).userId = userId;
 
   // Build authorization URL - support both LS_* and LIGHTSPEED_* env vars
-  const authUrl = new URL(process.env.LS_AUTH_URL || process.env.LIGHTSPEED_AUTH_URL || 'https://cloud.lightspeedapp.com/oauth/authorize');
+  const authUrl = new URL(process.env.LS_AUTH_URL || process.env.LIGHTSPEED_AUTH_URL || 'https://cloud.lightspeedapp.com/auth/oauth/authorize');
   authUrl.searchParams.append('response_type', 'code');
   authUrl.searchParams.append('client_id', process.env.LS_CLIENT_ID || process.env.LIGHTSPEED_CLIENT_ID || '');
   authUrl.searchParams.append('redirect_uri', process.env.LS_REDIRECT_URI || process.env.LIGHTSPEED_REDIRECT_URI || `${process.env.APP_URL || 'https://askeuno.com'}/api/oauth/callback/lightspeed`);
@@ -108,7 +108,7 @@ router.get('/oauth/callback/lightspeed', async (req: Request, res: Response) => 
 
   try {
     // Exchange code for tokens with PKCE
-    const tokenUrl = process.env.LS_TOKEN_URL || process.env.LIGHTSPEED_TOKEN_URL || 'https://cloud.lightspeedapp.com/oauth/token';
+    const tokenUrl = process.env.LS_TOKEN_URL || process.env.LIGHTSPEED_TOKEN_URL || 'https://cloud.lightspeedapp.com/auth/oauth/token';
     const clientId = process.env.LS_CLIENT_ID || process.env.LIGHTSPEED_CLIENT_ID || '';
     const clientSecret = process.env.LS_CLIENT_SECRET || process.env.LIGHTSPEED_CLIENT_SECRET || '';
     const redirectUri = process.env.LS_REDIRECT_URI || process.env.LIGHTSPEED_REDIRECT_URI || `${process.env.APP_URL || 'https://askeuno.com'}/api/oauth/callback/lightspeed`;
@@ -225,7 +225,7 @@ async function ensureLightspeedToken(userId: number): Promise<{ accessToken: str
     try {
       // Refresh token
       const refreshToken = decrypt(conn.refreshToken!);
-      const tokenUrl = process.env.LS_TOKEN_URL || process.env.LIGHTSPEED_TOKEN_URL || 'https://cloud.lightspeedapp.com/oauth/token';
+      const tokenUrl = process.env.LS_TOKEN_URL || process.env.LIGHTSPEED_TOKEN_URL || 'https://cloud.lightspeedapp.com/auth/oauth/token';
       const clientId = process.env.LS_CLIENT_ID || process.env.LIGHTSPEED_CLIENT_ID || '';
       const clientSecret = process.env.LS_CLIENT_SECRET || process.env.LIGHTSPEED_CLIENT_SECRET || '';
       
