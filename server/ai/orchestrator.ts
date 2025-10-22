@@ -9,6 +9,7 @@ import { generateSQLPlan, generateAnalysis } from "./prompts";
 import { detectMissingColumns } from "./column-detector";
 import { findMetaphorMapping, getMetaphoricalBusinessQuery, shouldRedirectToBusinessQuery } from "./metaphors";
 import { multiSourceService } from "../services/multiSourceService";
+import { AIAgentOrchestrator } from "./agentOrchestrator";
 import OpenAI from "openai";
 
 const openai = new OpenAI({ 
@@ -379,6 +380,9 @@ async function executeMultiSourceDataQuery(
   extendedResponses: boolean = false
 ): Promise<AiResponse> {
   try {
+    // Initialize agent orchestrator for validation
+    const agentOrch = new AIAgentOrchestrator(tier);
+    
     // Generate multi-source query plan
     const queryPlan = multiSourceService.generateMultiSourceQueryPlan(message, sources);
     
@@ -409,7 +413,7 @@ async function executeMultiSourceDataQuery(
       };
     }
     
-    // Generate SQL for each source
+    // Generate and validate SQL for each source
     const sqlQueries = new Map<number, string>();
     
     for (const source of sources) {
@@ -422,8 +426,20 @@ async function executeMultiSourceDataQuery(
       };
       
       const sqlPlan = await generateSQLPlan(message, sourceDataFormat);
+      
       if (sqlPlan.sql && !sqlPlan.missingColumns?.length) {
-        sqlQueries.set(source.id, sqlPlan.sql);
+        // Validate SQL before adding to query map
+        const validation = await agentOrch.validateSQL(sqlPlan.sql, message, sourceDataFormat);
+        
+        if (validation.isValid) {
+          const finalSQL = validation.sql || sqlPlan.sql;
+          sqlQueries.set(source.id, finalSQL);
+        } else {
+          logger.warn("Multi-source SQL validation failed for source", { 
+            sourceName: source.name, 
+            concerns: validation.concerns 
+          });
+        }
       }
     }
     
@@ -512,6 +528,103 @@ async function executeMultiSourceDataQuery(
   }
 }
 
+async function executeMultiStepQuery(
+  message: string,
+  dataSource: any,
+  tier: string,
+  tierConfig: any,
+  multiStepPlan: any,
+  agentOrch: AIAgentOrchestrator,
+  metaphorIntro: string = "",
+  metaphorUsed: boolean = false,
+  extendedResponses: boolean = false
+): Promise<AiResponse> {
+  try {
+    logger.info("Executing multi-step analysis", { 
+      tier, 
+      stepCount: multiStepPlan.steps.length 
+    });
+    
+    const stepResults: Array<{ description: string; result: any }> = [];
+    
+    // Execute each step in order
+    for (const step of multiStepPlan.steps) {
+      try {
+        // Generate SQL for this specific step
+        const sqlPlan = await generateSQLPlan(step.query, dataSource);
+        
+        // Validate the SQL
+        const validation = await agentOrch.validateSQL(sqlPlan.sql, step.query, dataSource);
+        const finalSQL = validation.sql || sqlPlan.sql;
+        
+        // Execute the step
+        const stepResult = await runSQL(dataSource, finalSQL);
+        
+        stepResults.push({
+          description: step.description,
+          result: stepResult
+        });
+        
+      } catch (stepError) {
+        logger.error("Multi-step execution error on step", { step, error: stepError });
+        stepResults.push({
+          description: step.description,
+          result: { error: "Step failed to execute" }
+        });
+      }
+    }
+    
+    // Synthesize all results into final answer
+    const synthesizedAnswer = await agentOrch.synthesizeMultiStepResults(
+      message,
+      stepResults,
+      tier,
+      extendedResponses
+    );
+    
+    // Calculate total rows analyzed
+    const totalRows = stepResults.reduce((sum, step) => {
+      return sum + (step.result.rowCount || 0);
+    }, 0);
+    
+    // Build response
+    let responseText = synthesizedAnswer;
+    
+    if (metaphorIntro) {
+      responseText = `${metaphorIntro}\n\n${responseText}`;
+    }
+    
+    responseText = `Multi-step analysis (${multiStepPlan.steps.length} steps)\nData basis: ${dataSource.tables.map((t: any) => t.name).join(', ')} (${totalRows} rows analyzed)\n\n${responseText}`;
+    
+    const response: AiResponse = {
+      text: responseText,
+      meta: {
+        intent: "data_query",
+        tier,
+        tables: dataSource.tables.map((t: any) => t.name),
+        rows: totalRows,
+        limited: false,
+        metaphorUsed
+      }
+    };
+    
+    return response;
+    
+  } catch (error) {
+    logger.error("Multi-step query error:", error);
+    return {
+      text: "I encountered an error during multi-step analysis. Please try a simpler question.",
+      meta: {
+        intent: "error",
+        tier,
+        tables: [],
+        rows: 0,
+        limited: false
+      }
+    };
+  }
+}
+
 async function executeDataQuery(
   message: string, 
   dataSource: any, 
@@ -522,6 +635,9 @@ async function executeDataQuery(
   extendedResponses: boolean = false
 ): Promise<AiResponse> {
   try {
+    // Initialize agent orchestrator for this tier
+    const agentOrch = new AIAgentOrchestrator(tier);
+    
     // Get available columns from the data source
     const availableColumns = dataSource.tables.flatMap((table: any) => 
       Object.keys(table.columns || {})
@@ -544,6 +660,24 @@ async function executeDataQuery(
       };
     }
     
+    // Check if multi-step analysis is beneficial for this query
+    const multiStepPlan = await agentOrch.planMultiStepAnalysis(message, dataSource);
+    
+    // If multi-step analysis is needed and tier supports it
+    if (multiStepPlan.needsMultiStep && agentOrch.canUseMultiStep()) {
+      return await executeMultiStepQuery(
+        message,
+        dataSource,
+        tier,
+        tierConfig,
+        multiStepPlan,
+        agentOrch,
+        metaphorIntro,
+        metaphorUsed,
+        extendedResponses
+      );
+    }
+    
     // Generate SQL plan
     const sqlPlan = await generateSQLPlan(message, dataSource);
     
@@ -555,7 +689,7 @@ async function executeDataQuery(
         { rows: [], rowCount: 0, tables: dataSource.tables },
         tier,
         tierConfig,
-        sqlPlan.missingColumns, // Pass missing columns for educational response
+        sqlPlan.missingColumns,
         extendedResponses
       );
       
@@ -571,8 +705,29 @@ async function executeDataQuery(
       };
     }
     
+    // Validate SQL with agent (all tiers get validation)
+    const validation = await agentOrch.validateSQL(sqlPlan.sql, message, dataSource);
+    
+    // If validation found critical issues, return error
+    if (!validation.isValid) {
+      logger.warn("SQL validation failed", { concerns: validation.concerns });
+      return {
+        text: "I couldn't generate a valid query for your request. Could you rephrase your question?",
+        meta: {
+          intent: "data_query",
+          tier,
+          tables: dataSource.tables,
+          rows: 0,
+          limited: false
+        }
+      };
+    }
+    
+    // Use corrected SQL from validation
+    const finalSQL = validation.sql || sqlPlan.sql;
+    
     // Execute SQL
-    const queryResult = await runSQL(dataSource, sqlPlan.sql);
+    const queryResult = await runSQL(dataSource, finalSQL);
     
     // Generate analysis based on tier
     const analysis = await generateAnalysis(

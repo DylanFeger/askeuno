@@ -4,14 +4,48 @@ export const TIERS = {
     allowElaboration: false,
     allowSuggestions: false,
     allowCharts: false,
-    allowForecast: false
+    allowForecast: false,
+    agentConfig: {
+      sqlValidation: true,
+      multiStepAnalysis: false,
+      maxSubAgents: 0
+    }
+  },
+  beginner: {
+    maxQueriesPerHour: 5,
+    allowElaboration: false,
+    allowSuggestions: false,
+    allowCharts: false,
+    allowForecast: false,
+    agentConfig: {
+      sqlValidation: true,
+      multiStepAnalysis: false,
+      maxSubAgents: 0
+    }
   },
   professional: {
     maxQueriesPerHour: 25,
     allowElaboration: true,
     allowSuggestions: true,
     allowCharts: true,
-    allowForecast: false
+    allowForecast: false,
+    agentConfig: {
+      sqlValidation: true,
+      multiStepAnalysis: true,
+      maxSubAgents: 3
+    }
+  },
+  pro: {
+    maxQueriesPerHour: 25,
+    allowElaboration: true,
+    allowSuggestions: true,
+    allowCharts: true,
+    allowForecast: false,
+    agentConfig: {
+      sqlValidation: true,
+      multiStepAnalysis: true,
+      maxSubAgents: 3
+    }
   },
   enterprise: {
     maxQueriesPerHour: Infinity,
@@ -19,7 +53,25 @@ export const TIERS = {
     allowElaboration: true,
     allowSuggestions: true,
     allowCharts: true,
-    allowForecast: true
+    allowForecast: true,
+    agentConfig: {
+      sqlValidation: true,
+      multiStepAnalysis: true,
+      maxSubAgents: Infinity
+    }
+  },
+  elite: {
+    maxQueriesPerHour: Infinity,
+    spamWindowCap: 60,
+    allowElaboration: true,
+    allowSuggestions: true,
+    allowCharts: true,
+    allowForecast: true,
+    agentConfig: {
+      sqlValidation: true,
+      multiStepAnalysis: true,
+      maxSubAgents: Infinity
+    }
   }
 };
 
