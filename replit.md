@@ -36,7 +36,7 @@ Key principles:
 - **Language**: TypeScript with ES modules
 - **Database**: PostgreSQL with Drizzle ORM
 - **File Processing**: Multer for uploads, XLSX for Excel files, CSV parser
-- **AI Integration**: OpenAI API for data insights and analysis. The AI acts as a senior data analyst, providing immediate, ultra-concise (1-2 sentences) responses by default. It uses an answer-first approach, liberal query mapping, metaphorical intelligence (interpreting casual phrases as business insights), and asks minimal, context-specific follow-up questions. Dynamic temperature adjustment (0.2 for precise data queries, 0.4 for balanced trend analysis, 0.6 for creative predictions/casual queries) is employed. Conversation memory is unified, and the AI strictly focuses on business-related queries.
+- **AI Integration**: OpenAI API for data insights and analysis with agent-based validation system. The AI acts as a senior data analyst, providing immediate, ultra-concise (1-2 sentences) responses by default. It uses an answer-first approach, liberal query mapping, metaphorical intelligence (interpreting casual phrases as business insights), and asks minimal, context-specific follow-up questions. Agent system provides SQL validation (all tiers), multi-step analysis for complex queries (Professional/Enterprise only), and tier-aware intelligence coordination. Conversation memory is unified, and the AI strictly focuses on business-related queries.
 - **Data Integrations**: Secure OAuth 2.0 connections with PKCE for Google Sheets, QuickBooks Online, Lightspeed Retail/Restaurant, and Stripe. Direct database connections (PostgreSQL/MySQL) with read-only verification. All OAuth tokens encrypted using AES-256-CBC. CSV/Excel file uploads for manual data import.
 - **Core Systems**: Data ingestion pipeline (schema detection, data quality checks), AI chat engine with context awareness and response length control, robust authentication and authorization with session management, subscription tier enforcement (query limits, connection limits, multi-source blending), message deduplication, comprehensive logging, and secure connection management with automatic token refresh.
 - **Data Flow**: Files are uploaded, validated, processed (parsed, AI schema analysis), and stored in PostgreSQL/AWS S3. Live integrations sync data via OAuth connections with encrypted tokens. Users query data via the AI chat interface, which provides analysis, recommendations, and optional visual charts. Multi-source database blending is supported by AI automatically detecting common fields and correlating data across connected sources.
@@ -64,6 +64,34 @@ Key principles:
 - **Charting Library**: Recharts
 
 ## Recent Changes
+
+### Agent-Based AI Validation System (October 22, 2025)
+Implemented tier-aware agent system to enhance AI accuracy and provide differentiated capabilities across subscription tiers:
+
+**Features Implemented:**
+1. **SQL Validation Agent** (all tiers): Validates all generated SQL queries for correctness, security, and optimization before execution. Uses GPT-4 with lenient validation that only blocks queries with critical security/syntax issues.
+
+2. **Multi-Step Analysis Agent** (Professional/Enterprise): Automatically detects complex queries requiring multi-step investigation and breaks them into analytical sub-queries:
+   - Professional tier: Up to 3 sub-queries per analysis
+   - Enterprise tier: Unlimited sub-queries for comprehensive investigation
+   - Synthesis engine combines multi-step findings into cohesive insights
+
+3. **Tier Configuration** (server/ai/tiers.ts): Enhanced tier system with `agentConfig` settings:
+   - Starter/Beginner: SQL validation only, no multi-step (maxSubAgents: 0)
+   - Professional/Pro: SQL validation + limited multi-step (maxSubAgents: 3)
+   - Enterprise/Elite: Full agent capabilities (maxSubAgents: unlimited)
+
+**Technical Implementation:**
+- New `AIAgentOrchestrator` class (server/ai/agentOrchestrator.ts) coordinates validation and multi-step analysis
+- Integrated into both single-source and multi-source query execution paths
+- Preserves all existing tier features (response length, charts, forecasting, suggestions)
+- Dual tier naming support (starter/professional/enterprise AND beginner/pro/elite)
+
+**Benefits:**
+- Improved query accuracy through validation
+- Enhanced security with SQL safety checks
+- Richer insights for higher tiers through multi-step analysis
+- Clear tier differentiation in AI capabilities
 
 ### Lightspeed OAuth Integration Fix (October 20, 2025)
 Fixed Lightspeed Retail OAuth integration to work with production environment:

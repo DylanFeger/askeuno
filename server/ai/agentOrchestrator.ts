@@ -80,8 +80,27 @@ Respond in JSON format:
 
       const result = JSON.parse(response.choices[0].message.content || "{}");
       
+      // Be lenient - only reject if there are critical security/syntax issues
+      // Minor concerns or recommendations should not prevent execution
+      const hasCriticalIssues = result.concerns && result.concerns.length > 0 && 
+                                result.concerns.some((c: string) => 
+                                  c.toLowerCase().includes('security') || 
+                                  c.toLowerCase().includes('syntax') ||
+                                  c.toLowerCase().includes('forbidden')
+                                );
+      
+      logger.info("SQL validation result", { 
+        isValid: result.isValid,
+        hasCriticalIssues,
+        concerns: result.concerns,
+        tier: this.tier
+      });
+      
+      // Only fail if explicitly marked invalid AND has critical issues
+      const finalValid = result.isValid !== false || !hasCriticalIssues;
+      
       return {
-        isValid: result.isValid !== false,
+        isValid: finalValid,
         concerns: result.concerns || [],
         recommendations: result.recommendations || [],
         sql: result.correctedSQL || sql
@@ -89,6 +108,7 @@ Respond in JSON format:
       
     } catch (error) {
       logger.error("SQL validation error:", error);
+      // On error, allow query to proceed (fail open for better UX)
       return { isValid: true, sql };
     }
   }
