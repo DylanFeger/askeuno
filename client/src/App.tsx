@@ -5,8 +5,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ScrollToTop from "@/components/ScrollToTop";
+import CookieConsent from "@/components/CookieConsent";
 import Home from "@/pages/home";
 import Privacy from "@/pages/privacy";
+import TermsOfService from "@/pages/legal/terms";
+import DataProcessingAgreement from "@/pages/legal/dpa";
+import RefundPolicy from "@/pages/legal/refund-policy";
+import CookiePolicy from "@/pages/legal/cookie-policy";
+import DataRetentionPolicy from "@/pages/legal/data-retention";
 import Connections from "@/pages/connections";
 import DataSources from "@/pages/data-sources";
 import Dashboards from "@/pages/dashboards";
@@ -59,6 +65,11 @@ function Router() {
       <Route path="/start-tracking" component={StartTracking} />
       <Route path="/subscription" component={SubscriptionPage} />
       <Route path="/privacy" component={Privacy} />
+      <Route path="/terms" component={TermsOfService} />
+      <Route path="/dpa" component={DataProcessingAgreement} />
+      <Route path="/refund-policy" component={RefundPolicy} />
+      <Route path="/cookie-policy" component={CookiePolicy} />
+      <Route path="/retention" component={DataRetentionPolicy} />
       <Route path="/features" component={Features} />
       <Route path="/security" component={Security} />
       <Route path="/integrations" component={Integrations} />
@@ -90,6 +101,7 @@ function App() {
         <TooltipProvider>
           <ScrollToTop />
           <Toaster />
+          <CookieConsent />
           <Router />
         </TooltipProvider>
       </AuthProvider>
