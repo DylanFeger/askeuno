@@ -27,6 +27,7 @@ import chatV2Routes from "./routes/chatV2";
 import chatV3Routes from "./routes/chatV3";
 import connectionRoutes from "./routes/connections";
 import lightspeedRoutes from "./routes/lightspeed";
+import userRoutes from "./routes/user";
 import { initializeScheduler, shutdownScheduler } from "./services/scheduler";
 import { sendContactFormEmail } from "./services/awsSes";
 
@@ -122,6 +123,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // AI Chat routes
   app.use('/api/ai', aiRoutes);
+  
+  // User routes (profile, data export, etc.)
+  app.use('/api/user', userRoutes);
   
   // Improved Chat V2 routes with deduplication
   app.use('/api/chat/v2', chatV2Routes);

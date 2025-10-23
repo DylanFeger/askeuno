@@ -23,6 +23,8 @@ export const users = pgTable("users", {
   apiToken: text("api_token").unique(),
   monthlyQueryCount: integer("monthly_query_count").notNull().default(0),
   queryResetDate: timestamp("query_reset_date").defaultNow().notNull(),
+  status: text("status").default("active"), // active, pending_deletion
+  deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

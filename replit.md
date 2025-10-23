@@ -65,6 +65,52 @@ Key principles:
 
 ## Recent Changes
 
+### B2B Legal Foundation & Initial GDPR Features (October 23, 2025)
+Implemented comprehensive legal documentation and initial GDPR operational features for B2B readiness:
+
+**Legal Documentation Completed:**
+1. **Terms of Service** (/terms): Service description, acceptable use, payment terms, data ownership, liability limitations
+2. **Privacy Policy** (/privacy): GDPR-compliant data practices, third-party services disclosure, user rights
+3. **Data Processing Agreement** (/dpa): Sub-processor list, security measures, breach notification, audit rights
+4. **Refund Policy** (/refund-policy): 30-day money-back guarantee, pro-rated refunds, request process
+5. **Cookie Policy** (/cookie-policy): Cookie types, user control, opt-out instructions
+6. **Data Retention Policy** (/retention): Retention periods for all data types (accounts, logs, billing, files)
+
+**GDPR Features Implemented:**
+1. **Cookie Consent Banner** (CookieConsent.tsx):
+   - Appears on first visit only
+   - Accept All / Essential Only options
+   - Links to Cookie Policy and Privacy Policy
+   - Stores consent in localStorage
+
+2. **Data Export Feature** (Settings → Data Management):
+   - "Download My Data" button triggers comprehensive export
+   - Generates ZIP file with:
+     - profile.json (full user profile, subscription, billing info)
+     - conversations.json (all conversations with messages)
+     - data_sources.json (all data sources metadata)
+     - team_members.json (invited team members)
+     - team_invitations.json (pending invitations)
+     - billing.json (Stripe customer/subscription IDs)
+     - files/ directory (all uploaded files from S3)
+   - Downloads directly to browser via blob
+
+3. **Account Deletion Foundation** (Settings → Data Management):
+   - "Delete My Account" button with confirmation dialog
+   - Marks account for deletion (status='pending_deletion', deletedAt set)
+   - 30-day grace period mentioned to user
+   - Database schema updated with `status` and `deletedAt` columns
+
+**Still Needed for Full GDPR Compliance:**
+- Account deletion: Implement actual data removal (database records, S3 files, OAuth tokens)
+- Background job: Create cron task to enforce 30-day purge of deleted accounts
+- Email notifications: Send confirmation emails for data export and account deletion
+- Audit logging: Comprehensive logging of all user actions for security (task #13)
+
+**Contact Information Updated:**
+- All legal documents reference askeunoanalytics@gmail.com and 727-222-2519
+- Footer updated with correct support email
+
 ### Agent-Based AI Validation System (October 22, 2025)
 Implemented tier-aware agent system to enhance AI accuracy and provide differentiated capabilities across subscription tiers:
 

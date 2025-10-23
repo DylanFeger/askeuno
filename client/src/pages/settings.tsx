@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, User, Bell, Shield, Database, Save } from 'lucide-react';
+import { Settings, User, Bell, Shield, Database, Save, Download, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,17 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
@@ -52,6 +63,66 @@ export default function SettingsPage() {
       toast({
         title: 'Error',
         description: 'Failed to update profile',
+        variant: 'destructive',
+      });
+    }
+  });
+
+  const exportDataMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/user/export-data');
+      if (!response.ok) throw new Error('Failed to export data');
+      
+      // Get the blob data
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `euno-data-export-${Date.now()}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      return { success: true };
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Export Complete',
+        description: 'Your data has been downloaded successfully.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to export data',
+        variant: 'destructive',
+      });
+    }
+  });
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('DELETE', '/api/user/account');
+      if (!response.ok) throw new Error('Failed to delete account');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Account Deleted',
+        description: 'Your account and all associated data will be permanently deleted within 30 days.',
+      });
+      // Redirect to homepage after a delay
+      setTimeout(() => {
+        setLocation('/');
+      }, 2000);
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete account',
         variant: 'destructive',
       });
     }
@@ -245,8 +316,24 @@ export default function SettingsPage() {
                   <CardTitle>Data Management</CardTitle>
                   <CardDescription>Configure data retention and privacy settings</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   <div>
+                    <h3 className="font-semibold mb-3">Export Your Data</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Download a complete copy of all your data including conversations, uploaded files, and data sources. 
+                      This may take a few minutes to prepare.
+                    </p>
+                    <Button 
+                      onClick={() => exportDataMutation.mutate()}
+                      disabled={exportDataMutation.isPending}
+                      data-testid="button-export-data"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      {exportDataMutation.isPending ? 'Preparing Export...' : 'Download My Data'}
+                    </Button>
+                  </div>
+
+                  <div className="pt-4 border-t">
                     <Label htmlFor="data-retention">Data Retention Period</Label>
                     <Select
                       value={preferences.dataRetention}
@@ -267,11 +354,49 @@ export default function SettingsPage() {
                   </div>
                   
                   <div className="pt-4 border-t">
-                    <h3 className="font-semibold text-red-600 mb-2">Danger Zone</h3>
-                    <Button variant="destructive" disabled>
-                      Delete All Data
-                    </Button>
-                    <p className="text-sm text-gray-500 mt-2">This action cannot be undone</p>
+                    <h3 className="font-semibold text-red-600 mb-3">Danger Zone</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Permanently delete your account and all associated data. This action cannot be undone after 30 days.
+                    </p>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="destructive"
+                          data-testid="button-delete-account"
+                          disabled={deleteAccountMutation.isPending}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete My Account
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action will permanently delete your account and all associated data, including:
+                            <ul className="list-disc list-inside mt-2 space-y-1">
+                              <li>All uploaded files and data sources</li>
+                              <li>All chat conversations and AI analysis</li>
+                              <li>All database connections</li>
+                              <li>Your profile and settings</li>
+                            </ul>
+                            <p className="mt-4 font-semibold">
+                              You have 30 days to restore your account. After 30 days, all data will be permanently deleted.
+                            </p>
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteAccountMutation.mutate()}
+                            className="bg-red-600 hover:bg-red-700"
+                            data-testid="button-confirm-delete"
+                          >
+                            Yes, Delete My Account
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </CardContent>
               </Card>
