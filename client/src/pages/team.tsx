@@ -55,27 +55,10 @@ export default function TeamPage() {
   const [inviteLink, setInviteLink] = useState('');
   const [qrCode, setQrCode] = useState('');
 
-  // Check if user has access
-  if (!user || user.subscriptionTier !== 'enterprise' || user.role === 'chat_only_user') {
-    return (
-      <div className="container mx-auto py-8 px-4">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h2 className="text-2xl font-semibold mb-2">Team Management</h2>
-            <p className="text-muted-foreground">
-              This feature is only available for Enterprise main users.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Fetch team data
+  // Fetch team data (hook must be called before conditional returns)
   const { data: teamData, isLoading } = useQuery<TeamData>({
     queryKey: ['/api/team'],
-    enabled: !!user,
+    enabled: !!user && user.subscriptionTier === 'enterprise' && user.role !== 'chat_only_user',
   });
 
   // Send invitation mutation
@@ -177,6 +160,23 @@ export default function TeamPage() {
       description: 'The invite link has been copied.',
     });
   };
+
+  // Check if user has access (AFTER all hooks are called)
+  if (!user || user.subscriptionTier !== 'enterprise' || user.role === 'chat_only_user') {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <h2 className="text-2xl font-semibold mb-2">Team Management</h2>
+            <p className="text-muted-foreground">
+              This feature is only available for Enterprise main users.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

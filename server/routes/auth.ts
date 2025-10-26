@@ -127,6 +127,7 @@ router.post('/register', registerValidation, async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
+        role: user.role,
         subscriptionTier: user.subscriptionTier
       }
     });
@@ -192,6 +193,7 @@ router.post('/login', loginValidation, async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
+        role: user.role,
         subscriptionTier: user.subscriptionTier
       }
     });
@@ -241,10 +243,12 @@ router.get('/me', async (req, res) => {
       id: user.id,
       username: user.username,
       email: user.email,
+      role: user.role,
       subscriptionTier: user.subscriptionTier,
       subscriptionStatus: user.subscriptionStatus,
       trialStartDate: user.trialStartDate,
       trialEndDate: user.trialEndDate,
+      invitedBy: user.invitedBy,
       preferences: {
         extendedResponses: (req.session as any)?.extendedResponses || false
       }

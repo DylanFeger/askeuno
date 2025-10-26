@@ -1,6 +1,6 @@
 import express from 'express';
 import Stripe from 'stripe';
-import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
+import { requireAuth, requireMainUser, AuthenticatedRequest } from '../middleware/auth';
 import { storage } from '../storage';
 import { logger } from '../utils/logger';
 import archiver from 'archiver';
@@ -19,7 +19,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 const router = express.Router();
 
 // Export user data (GDPR compliance)
-router.post('/export-data', requireAuth, async (req: AuthenticatedRequest, res) => {
+router.post('/export-data', requireAuth, requireMainUser, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user!.id;
     logger.info('Data export requested', { userId });
@@ -143,7 +143,7 @@ router.post('/export-data', requireAuth, async (req: AuthenticatedRequest, res) 
 });
 
 // Update user profile (for Settings page)
-router.put('/profile', requireAuth, async (req: AuthenticatedRequest, res) => {
+router.put('/profile', requireAuth, requireMainUser, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user!.id;
     const { email, currentPassword, newPassword } = req.body;
@@ -165,7 +165,7 @@ router.put('/profile', requireAuth, async (req: AuthenticatedRequest, res) => {
 });
 
 // Delete user account immediately
-router.delete('/account', requireAuth, async (req: AuthenticatedRequest, res) => {
+router.delete('/account', requireAuth, requireMainUser, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user!.id;
     logger.info('Account deletion requested', { userId, email: req.user!.email });

@@ -24,6 +24,7 @@ export interface AuthenticatedRequest extends Request {
     email: string;
     subscriptionTier: string;
     subscriptionStatus: string;
+    role?: string;
   };
 }
 
@@ -58,7 +59,8 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
       username: user.username,
       email: user.email,
       subscriptionTier: user.subscriptionTier,
-      subscriptionStatus: user.subscriptionStatus
+      subscriptionStatus: user.subscriptionStatus,
+      role: user.role
     };
 
     next();
@@ -129,6 +131,25 @@ export const requirePaidSubscription = () => {
     
     next();
   };
+};
+
+// Require main user (block chat-only users from administrative actions)
+export const requireMainUser = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const user = req.user;
+  
+  if (user.role === 'chat_only_user') {
+    logger.warn('Chat-only user attempted restricted action', {
+      userId: user.id,
+      path: req.path,
+      method: req.method
+    });
+    return res.status(403).json({
+      error: 'This action requires main user access',
+      chatOnlyAccess: true
+    });
+  }
+  
+  next();
 };
 
 // Rate limiting by user

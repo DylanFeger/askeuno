@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import Stripe from 'stripe';
-import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
+import { requireAuth, requireMainUser, AuthenticatedRequest } from '../middleware/auth';
 import { storage } from '../storage';
 import { logger, logPaymentEvent } from '../utils/logger';
 
@@ -29,7 +29,7 @@ const SUBSCRIPTION_PRICES = {
 /**
  * Create or retrieve subscription for user (only for paid tiers)
  */
-router.post('/get-or-create-subscription', requireAuth, async (req: AuthenticatedRequest, res) => {
+router.post('/get-or-create-subscription', requireAuth, requireMainUser, async (req: AuthenticatedRequest, res) => {
   try {
     const { tier, billingCycle } = req.body;
     
@@ -137,7 +137,7 @@ router.post('/get-or-create-subscription', requireAuth, async (req: Authenticate
 /**
  * Cancel subscription (downgrades to free tier)
  */
-router.post('/cancel', requireAuth, async (req: AuthenticatedRequest, res) => {
+router.post('/cancel', requireAuth, requireMainUser, async (req: AuthenticatedRequest, res) => {
   try {
     const user = req.user;
     
@@ -218,7 +218,7 @@ router.get('/status', requireAuth, async (req: AuthenticatedRequest, res) => {
 /**
  * Update subscription tier (upgrade or change between paid tiers)
  */
-router.post('/update-tier', requireAuth, async (req: AuthenticatedRequest, res) => {
+router.post('/update-tier', requireAuth, requireMainUser, async (req: AuthenticatedRequest, res) => {
   try {
     const { tier, billingCycle } = req.body;
     const user = req.user;

@@ -7,6 +7,7 @@ interface User {
   id: number;
   username: string;
   email: string;
+  role: 'main_user' | 'chat_only_user';
   subscriptionTier: string;
   subscriptionStatus?: string;
   billingCycle?: string;
@@ -14,6 +15,7 @@ interface User {
   queryResetDate?: string;
   trialStartDate?: string;
   trialEndDate?: string;
+  invitedBy?: number | null;
 }
 
 interface AuthContextType {

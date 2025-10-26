@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
+import { requireAuth, requireMainUser, AuthenticatedRequest } from '../middleware/auth';
 import { storage } from '../storage';
 import { connectToDataSourceV2, getAvailableConnectors } from '../services/dataConnectorV2';
 import { logger } from '../utils/logger';
@@ -37,7 +37,7 @@ const DATA_SOURCE_LIMITS = {
   enterprise: 10
 };
 
-router.post('/connect', requireAuth, async (req: AuthenticatedRequest, res) => {
+router.post('/connect', requireAuth, requireMainUser, async (req: AuthenticatedRequest, res) => {
   try {
     const { name, type, connectionType, connectionData, syncFrequency } = req.body;
     
@@ -118,7 +118,7 @@ router.post('/connect', requireAuth, async (req: AuthenticatedRequest, res) => {
 });
 
 // Sync data from a live source
-router.post('/:id/sync', requireAuth, async (req: AuthenticatedRequest, res) => {
+router.post('/:id/sync', requireAuth, requireMainUser, async (req: AuthenticatedRequest, res) => {
   try {
     const dataSourceId = parseInt(req.params.id);
     const dataSource = await storage.getDataSource(dataSourceId);
@@ -177,7 +177,7 @@ router.post('/:id/sync', requireAuth, async (req: AuthenticatedRequest, res) => 
 });
 
 // Delete a data source
-router.delete('/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
+router.delete('/:id', requireAuth, requireMainUser, async (req: AuthenticatedRequest, res) => {
   try {
     const dataSourceId = parseInt(req.params.id);
     const dataSource = await storage.getDataSource(dataSourceId);

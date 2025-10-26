@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Home from "@/pages/home";
 import Privacy from "@/pages/privacy";
 import TermsOfService from "@/pages/legal/terms";
@@ -54,16 +55,16 @@ function Router() {
       <Route path="/signin" component={SignIn} />
       <Route path="/chat" component={Chat} />
       <Route path="/dashboard" component={Dashboard} />
-      <Route path="/connections" component={Connections} />
-      <Route path="/connections/lightspeed" component={LightspeedConnection} />
-      <Route path="/connections/lightspeed/success" component={LightspeedConnectionSuccess} />
-      <Route path="/data-sources" component={DataSources} />
-      <Route path="/lightspeed-setup" component={LightspeedSetup} />
-      <Route path="/dashboards" component={Dashboards} />
-      <Route path="/upload" component={UploadPage} />
-      <Route path="/import-wizard" component={ImportWizard} />
+      <Route path="/connections" component={() => <ProtectedRoute requireMainUser={true}><Connections /></ProtectedRoute>} />
+      <Route path="/connections/lightspeed" component={() => <ProtectedRoute requireMainUser={true}><LightspeedConnection /></ProtectedRoute>} />
+      <Route path="/connections/lightspeed/success" component={() => <ProtectedRoute requireMainUser={true}><LightspeedConnectionSuccess /></ProtectedRoute>} />
+      <Route path="/data-sources" component={() => <ProtectedRoute requireMainUser={true}><DataSources /></ProtectedRoute>} />
+      <Route path="/lightspeed-setup" component={() => <ProtectedRoute requireMainUser={true}><LightspeedSetup /></ProtectedRoute>} />
+      <Route path="/dashboards" component={() => <ProtectedRoute requireMainUser={true}><Dashboards /></ProtectedRoute>} />
+      <Route path="/upload" component={() => <ProtectedRoute requireMainUser={true}><UploadPage /></ProtectedRoute>} />
+      <Route path="/import-wizard" component={() => <ProtectedRoute requireMainUser={true}><ImportWizard /></ProtectedRoute>} />
       <Route path="/start-tracking" component={StartTracking} />
-      <Route path="/subscription" component={SubscriptionPage} />
+      <Route path="/subscription" component={() => <ProtectedRoute requireMainUser={true}><SubscriptionPage /></ProtectedRoute>} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/dpa" component={DataProcessingAgreement} />
@@ -75,7 +76,7 @@ function Router() {
       <Route path="/integrations" component={Integrations} />
       <Route path="/contact" component={Contact} />
       <Route path="/docs" component={Documentation} />
-      <Route path="/settings" component={Settings} />
+      <Route path="/settings" component={() => <ProtectedRoute requireMainUser={true}><Settings /></ProtectedRoute>} />
       <Route path="/team-culture" component={TeamCulture} />
       <Route path="/resources" component={Resources} />
       <Route path="/resources/sql-for-small-business" component={SQLForSmallBusiness} />
