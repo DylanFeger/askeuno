@@ -95,17 +95,29 @@ Implemented comprehensive legal documentation and initial GDPR operational featu
      - files/ directory (all uploaded files from S3)
    - Downloads directly to browser via blob
 
-3. **Account Deletion Foundation** (Settings → Data Management):
-   - "Delete My Account" button with confirmation dialog
-   - Marks account for deletion (status='pending_deletion', deletedAt set)
-   - 30-day grace period mentioned to user
-   - Database schema updated with `status` and `deletedAt` columns
+3. **Account Deletion** (Settings → Data Management):
+   - "Delete My Account" button with comprehensive confirmation dialog
+   - **Immediate permanent deletion** - no grace period
+   - **Complete data removal**:
+     - Cancels Stripe subscription immediately (stops billing)
+     - Deletes all S3 files (uploaded data)
+     - Deletes all database records in correct FK order:
+       - User dashboards and alerts
+       - Team members (invited users) with full cascading deletion
+       - Data sources (cascades to conversations, messages, data rows)
+       - Remaining conversations not linked to data sources
+       - Team invitations
+       - OAuth connections and encrypted tokens
+       - User record (final step after all dependencies removed)
+   - Automatically logs user out and redirects to homepage
+   - Deleted account cannot login again (401 authentication failure)
+   - End-to-end tested and verified working
 
 **Still Needed for Full GDPR Compliance:**
-- Account deletion: Implement actual data removal (database records, S3 files, OAuth tokens)
-- Background job: Create cron task to enforce 30-day purge of deleted accounts
 - Email notifications: Send confirmation emails for data export and account deletion
-- Audit logging: Comprehensive logging of all user actions for security (task #13)
+- Audit logging: Comprehensive logging of all user actions for security
+- Transaction wrapping: Add database transactions for atomic deletion (production enhancement)
+- Edge case handling: Recursive team member invite chains, external service rollback
 
 **Contact Information Updated:**
 - All legal documents reference askeunoanalytics@gmail.com and 727-222-2519
