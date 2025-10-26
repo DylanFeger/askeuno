@@ -137,18 +137,32 @@ router.get("/team/invite-link", requireEnterpriseMainUser, async (req: AuthReque
   try {
     const userId = req.session.userId;
     
+    if (!userId) {
+      console.error("No userId in session");
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    
+    console.log(`Generating invite link for user ${userId}`);
+    
     // Generate a reusable invite token for QR/link sharing
     const inviteToken = randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000);
     
+    // Use a placeholder email with timestamp to avoid duplicates
+    const placeholderEmail = `invite-${Date.now()}@pending.euno.com`;
+    
     // Store as a generic invitation
-    await storage.createTeamInvitation(userId, 'pending@euno.com', inviteToken, expiresAt);
+    console.log(`Creating team invitation with token: ${inviteToken.substring(0, 10)}...`);
+    await storage.createTeamInvitation(userId, placeholderEmail, inviteToken, expiresAt);
     
-    const inviteUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/accept-invite/${inviteToken}`;
+    const baseUrl = process.env.APP_URL || process.env.FRONTEND_URL || 'https://askeuno.com';
+    const inviteUrl = `${baseUrl}/accept-invite/${inviteToken}`;
     
+    console.log(`Generating QR code for URL: ${inviteUrl}`);
     // Generate QR code
     const qrCode = await QRCode.toDataURL(inviteUrl);
     
+    console.log(`Invite link generated successfully`);
     res.json({
       inviteUrl,
       qrCode,
@@ -156,6 +170,7 @@ router.get("/team/invite-link", requireEnterpriseMainUser, async (req: AuthReque
     });
   } catch (error) {
     console.error("Error generating invite link:", error);
+    console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
     res.status(500).json({ error: "Failed to generate invite link" });
   }
 });
