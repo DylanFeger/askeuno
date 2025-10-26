@@ -112,10 +112,11 @@ export default function SettingsPage() {
     onSuccess: () => {
       toast({
         title: 'Account Deleted',
-        description: 'Your account and all associated data will be permanently deleted within 30 days.',
+        description: 'Your account and all data have been permanently deleted.',
       });
-      // Redirect to homepage after a delay
+      // Clear all cached data and redirect to homepage after a delay
       setTimeout(() => {
+        queryClient.clear();
         setLocation('/');
       }, 2000);
     },
@@ -356,7 +357,7 @@ export default function SettingsPage() {
                   <div className="pt-4 border-t">
                     <h3 className="font-semibold text-red-600 mb-3">Danger Zone</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Permanently delete your account and all associated data. This action cannot be undone after 30 days.
+                      Permanently delete your account and all associated data. This action cannot be undone.
                     </p>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -373,15 +374,16 @@ export default function SettingsPage() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            This action will permanently delete your account and all associated data, including:
+                            This action will immediately and permanently delete your account and all associated data, including:
                             <ul className="list-disc list-inside mt-2 space-y-1">
                               <li>All uploaded files and data sources</li>
                               <li>All chat conversations and AI analysis</li>
-                              <li>All database connections</li>
+                              <li>All database connections and OAuth tokens</li>
                               <li>Your profile and settings</li>
+                              <li>Your Stripe subscription will be cancelled</li>
                             </ul>
-                            <p className="mt-4 font-semibold">
-                              You have 30 days to restore your account. After 30 days, all data will be permanently deleted.
+                            <p className="mt-4 font-semibold text-red-600">
+                              This action cannot be undone. All data will be permanently deleted.
                             </p>
                           </AlertDialogDescription>
                         </AlertDialogHeader>

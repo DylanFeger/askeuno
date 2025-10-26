@@ -1,10 +1,20 @@
 import express from 'express';
+import Stripe from 'stripe';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { storage } from '../storage';
 import { logger } from '../utils/logger';
 import archiver from 'archiver';
 import path from 'path';
-import { downloadFromS3 } from '../services/s3Service';
+import { downloadFromS3, deleteFromS3 } from '../services/s3Service';
+
+// Initialize Stripe
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2025-07-30.basil',
+});
 
 const router = express.Router();
 
@@ -154,28 +164,99 @@ router.put('/profile', requireAuth, async (req: AuthenticatedRequest, res) => {
   }
 });
 
-// Delete user account (GDPR compliance)
+// Delete user account immediately
 router.delete('/account', requireAuth, async (req: AuthenticatedRequest, res) => {
   try {
     const userId = req.user!.id;
     logger.info('Account deletion requested', { userId, email: req.user!.email });
 
-    // Mark account for deletion (30-day grace period)
-    await storage.updateUser(userId, { 
-      deletedAt: new Date(),
-      status: 'pending_deletion'
-    });
+    // Get full user record to access all fields
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-    logger.info('Account marked for deletion', { 
-      userId, 
-      email: req.user!.email,
-      gracePeriodEnds: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-    });
+    // 1. Cancel Stripe subscription immediately (if exists)
+    if (user.stripeSubscriptionId) {
+      try {
+        await stripe.subscriptions.cancel(user.stripeSubscriptionId);
+        logger.info('Stripe subscription cancelled', { 
+          userId, 
+          subscriptionId: user.stripeSubscriptionId 
+        });
+      } catch (stripeError) {
+        logger.error('Stripe subscription cancellation failed', { 
+          userId, 
+          error: stripeError instanceof Error ? stripeError.message : 'Unknown error'
+        });
+        // Continue with deletion even if Stripe fails
+      }
+    }
+
+    // 2. Delete all S3 files
+    const userDataSources = await storage.getDataSourcesByUserId(userId);
+    for (const dataSource of userDataSources) {
+      if (dataSource.filePath && dataSource.type === 'file') {
+        try {
+          await deleteFromS3(dataSource.filePath);
+          logger.info('S3 file deleted', { userId, filePath: dataSource.filePath });
+        } catch (s3Error) {
+          logger.error('S3 file deletion failed', { 
+            userId, 
+            filePath: dataSource.filePath,
+            error: s3Error instanceof Error ? s3Error.message : 'Unknown error'
+          });
+          // Continue with deletion even if S3 fails
+        }
+      }
+    }
+
+    // 3. Delete all database records in correct order (respecting foreign keys)
+    
+    // Delete dashboards owned by this user
+    await storage.deleteDashboardsByUserId(userId);
+    logger.info('Dashboards deleted', { userId });
+    
+    // Delete alerts owned by this user
+    await storage.deleteAlertsByUserId(userId);
+    logger.info('Alerts deleted', { userId });
+    
+    // Delete team members (chat-only users invited by this user)
+    await storage.deleteTeamMembersByInviter(userId);
+    logger.info('Team members deleted', { userId });
+    
+    // Delete data sources (which cascades to conversations and data rows)
+    for (const dataSource of userDataSources) {
+      await storage.deleteDataSource(dataSource.id);
+    }
+    logger.info('Data sources deleted', { userId, count: userDataSources.length });
+    
+    // Delete any remaining conversations not linked to data sources
+    const userConversations = await storage.getConversationsByUserId(userId);
+    for (const conversation of userConversations) {
+      await storage.deleteConversation(conversation.id);
+    }
+    logger.info('Conversations deleted', { userId, count: userConversations.length });
+    
+    // Delete team invitations (sent by this user)
+    await storage.deleteTeamInvitationsByInviter(userId);
+    logger.info('Team invitations deleted', { userId });
+    
+    // Delete OAuth connections
+    const connections = await storage.getConnectionsByUserId(userId);
+    for (const connection of connections) {
+      await storage.deleteConnection(connection.id);
+    }
+    logger.info('OAuth connections deleted', { userId, count: connections.length });
+
+    // 4. Delete the user record itself (after all dependent records are removed)
+    await storage.deleteUser(userId);
+
+    logger.info('Account fully deleted', { userId, email: user.email });
 
     res.json({ 
       success: true, 
-      message: 'Account marked for deletion. You have 30 days to restore your account.',
-      gracePeriodEnds: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      message: 'Account and all associated data have been permanently deleted.'
     });
   } catch (error) {
     logger.error('Account deletion failed', { 

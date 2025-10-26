@@ -6,6 +6,9 @@ import {
   dataRows,
   blogPosts,
   teamInvitations,
+  connectionManager,
+  dashboards,
+  alerts,
   type User, 
   type InsertUser,
   type DataSource,
@@ -591,6 +594,77 @@ export class DatabaseStorage implements IStorage {
         eq(teamInvitations.status, 'pending')
       ))
       .orderBy(desc(teamInvitations.createdAt));
+  }
+
+  // Connection management operations
+  async getConnectionsByUserId(userId: number): Promise<any[]> {
+    return await db
+      .select()
+      .from(connectionManager)
+      .where(eq(connectionManager.userId, userId));
+  }
+
+  async deleteConnection(id: number): Promise<void> {
+    await db.delete(connectionManager).where(eq(connectionManager.id, id));
+  }
+
+  // Dashboard deletion
+  async deleteDashboardsByUserId(userId: number): Promise<void> {
+    await db.delete(dashboards).where(eq(dashboards.userId, userId));
+  }
+
+  // Alert deletion  
+  async deleteAlertsByUserId(userId: number): Promise<void> {
+    await db.delete(alerts).where(eq(alerts.userId, userId));
+  }
+
+  // Delete all team members invited by this user (with cascading deletion)
+  async deleteTeamMembersByInviter(inviterId: number): Promise<void> {
+    // Get all team members
+    const members = await this.getTeamMembersByInviterId(inviterId);
+    
+    // For each team member, cascade delete all their data
+    for (const member of members) {
+      // Delete team member's dashboards
+      await this.deleteDashboardsByUserId(member.id);
+      
+      // Delete team member's alerts
+      await this.deleteAlertsByUserId(member.id);
+      
+      // Delete team member's data sources (cascades to conversations/messages/rows)
+      const memberDataSources = await this.getDataSourcesByUserId(member.id);
+      for (const ds of memberDataSources) {
+        await this.deleteDataSource(ds.id);
+      }
+      
+      // Delete team member's remaining conversations
+      const memberConversations = await this.getConversationsByUserId(member.id);
+      for (const conv of memberConversations) {
+        await this.deleteConversation(conv.id);
+      }
+      
+      // Delete team member's OAuth connections
+      const memberConnections = await db
+        .select()
+        .from(connectionManager)
+        .where(eq(connectionManager.userId, member.id));
+      for (const conn of memberConnections) {
+        await this.deleteConnection(conn.id);
+      }
+      
+      // Finally delete the team member user record
+      await db.delete(users).where(eq(users.id, member.id));
+    }
+  }
+  
+  // Delete team invitations sent by user
+  async deleteTeamInvitationsByInviter(inviterId: number): Promise<void> {
+    await db.delete(teamInvitations).where(eq(teamInvitations.inviterId, inviterId));
+  }
+
+  // User deletion
+  async deleteUser(userId: number): Promise<void> {
+    await db.delete(users).where(eq(users.id, userId));
   }
 }
 
