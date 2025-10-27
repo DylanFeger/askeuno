@@ -26,6 +26,7 @@ const TIER_LIMITS = {
     maxQueriesPerHour: 5,
     maxRowsPerQuery: 1000,
     allowVisualization: false,
+    allowCharts: false,  // Starter: No automatic charts
     allowExport: false,
     models: ['gpt-4o']
   },
@@ -33,6 +34,7 @@ const TIER_LIMITS = {
     maxQueriesPerHour: 25,
     maxRowsPerQuery: 5000,
     allowVisualization: true,
+    allowCharts: true,  // Professional: Automatic charts enabled
     allowExport: true,
     models: ['gpt-4o', 'gpt-4-turbo-preview']
   },
@@ -40,6 +42,7 @@ const TIER_LIMITS = {
     maxQueriesPerHour: Infinity,
     maxRowsPerQuery: 50000,
     allowVisualization: true,
+    allowCharts: true,  // Enterprise: Automatic charts enabled
     allowExport: true,
     models: ['gpt-4o', 'gpt-4-turbo-preview', 'claude-3-opus'] // Future: add Claude when available
   }
@@ -90,13 +93,8 @@ router.post('/analyze', requireAuth, async (req: Request, res: Response) => {
       });
     }
     
-    // Check visualization permission
-    if (requestVisualization && !tierConfig.allowVisualization) {
-      return res.status(403).json({
-        error: 'Visualizations are not available on your plan. Please upgrade to Professional or Enterprise.',
-        tier
-      });
-    }
+    // Note: Chart generation now happens automatically for Pro/Enterprise tiers
+    // No need to request visualization explicitly
     
     // Get data source and schema
     let dataSource = null;
@@ -213,10 +211,10 @@ router.post('/analyze', requireAuth, async (req: Request, res: Response) => {
       }
     }
     
-    // Generate visualization if requested and allowed
+    // Automatically generate visualization for Pro/Enterprise users when data is visual-worthy
     let visualization = null;
-    if (requestVisualization && tierConfig.allowVisualization && queryResults && queryResults.length > 0) {
-      visualization = generateVisualization(queryResults, schema);
+    if (tierConfig.allowCharts && queryResults && queryResults.length > 0) {
+      visualization = smartGenerateVisualization(queryResults, schema, message);
     }
     
     // Generate follow-up questions
@@ -396,49 +394,178 @@ router.post('/export', requireAuth, async (req: Request, res: Response) => {
 });
 
 /**
- * Helper function to generate visualization config
+ * Smart visualization generator - Automatically creates charts when data is visual-worthy
+ * Only for Professional and Enterprise tiers
  */
-function generateVisualization(data: any[], schema: any): any {
+function smartGenerateVisualization(data: any[], schema: any, query: string): any {
   if (!data || data.length === 0) return null;
   
-  // Detect numeric and date columns
   const firstRow = data[0];
-  const numericColumns = Object.keys(firstRow).filter(key => 
-    typeof firstRow[key] === 'number'
-  );
-  const dateColumns = Object.keys(firstRow).filter(key =>
-    key.toLowerCase().includes('date') || 
-    key.toLowerCase().includes('time') ||
-    key.toLowerCase().includes('created') ||
-    key.toLowerCase().includes('updated')
-  );
+  const keys = Object.keys(firstRow);
   
-  // Simple heuristic for chart type selection
+  // Detect column types
+  const numericColumns = keys.filter(key => {
+    const value = firstRow[key];
+    return typeof value === 'number' && !isNaN(value);
+  });
+  
+  const dateColumns = keys.filter(key => {
+    const lowerKey = key.toLowerCase();
+    return lowerKey.includes('date') || 
+           lowerKey.includes('time') ||
+           lowerKey.includes('created') ||
+           lowerKey.includes('updated') ||
+           lowerKey.includes('month') ||
+           lowerKey.includes('year') ||
+           lowerKey.includes('day');
+  });
+  
+  const categoryColumns = keys.filter(key => {
+    const value = firstRow[key];
+    return typeof value === 'string' && 
+           !dateColumns.includes(key) &&
+           key.toLowerCase() !== 'id';
+  });
+  
+  // Check if data has enough variation to be visual-worthy
+  const hasMultipleRows = data.length >= 3;
+  if (!hasMultipleRows) return null;
+  
+  // Calculate variation in numeric columns
+  const hasVariation = numericColumns.some(col => {
+    const values = data.map(row => row[col]).filter(v => v != null);
+    if (values.length < 2) return false;
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    return max > min; // Some variation exists
+  });
+  
+  if (!hasVariation && numericColumns.length > 0) return null;
+  
+  // Smart chart type selection based on data structure
+  
+  // 1. TIME SERIES: Date column + numeric column = Line chart
   if (dateColumns.length > 0 && numericColumns.length > 0) {
-    // Time series chart
+    const dateCol = dateColumns[0];
+    const numCol = numericColumns[0];
+    
     return {
       type: 'line',
-      data: data.slice(0, 100), // Limit data points
+      data: data.slice(0, 100).map(row => ({
+        name: formatDateForChart(row[dateCol]),
+        value: row[numCol]
+      })),
       config: {
-        xAxis: dateColumns[0],
-        yAxis: numericColumns[0],
-        title: `${numericColumns[0]} over time`
-      }
-    };
-  } else if (numericColumns.length >= 2) {
-    // Bar chart for comparison
-    return {
-      type: 'bar',
-      data: data.slice(0, 20),
-      config: {
-        xAxis: Object.keys(firstRow)[0],
-        yAxis: numericColumns[0],
-        title: `${numericColumns[0]} by ${Object.keys(firstRow)[0]}`
+        xAxis: 'name',
+        yAxis: 'value',
+        title: `${formatColumnName(numCol)} over time`
       }
     };
   }
   
+  // 2. COMPARISON: Category + numeric = Bar chart
+  if (categoryColumns.length > 0 && numericColumns.length > 0 && data.length <= 50) {
+    const catCol = categoryColumns[0];
+    const numCol = numericColumns[0];
+    
+    return {
+      type: 'bar',
+      data: data.slice(0, 20).map(row => ({
+        name: String(row[catCol] || 'Unknown').substring(0, 30),
+        value: row[numCol]
+      })),
+      config: {
+        xAxis: 'name',
+        yAxis: 'value',
+        title: `${formatColumnName(numCol)} by ${formatColumnName(catCol)}`
+      }
+    };
+  }
+  
+  // 3. DISTRIBUTION: Grouped data (count, sum, etc.) = Pie chart
+  if (data.length <= 10 && categoryColumns.length > 0 && numericColumns.length > 0) {
+    const catCol = categoryColumns[0];
+    const numCol = numericColumns[0];
+    
+    // Check if this looks like aggregated data
+    const queryLower = query.toLowerCase();
+    const isAggregation = queryLower.includes('group') || 
+                         queryLower.includes('count') || 
+                         queryLower.includes('sum') ||
+                         queryLower.includes('total') ||
+                         queryLower.includes('breakdown') ||
+                         queryLower.includes('distribution');
+    
+    if (isAggregation) {
+      return {
+        type: 'pie',
+        data: data.map(row => ({
+          name: String(row[catCol] || 'Unknown').substring(0, 30),
+          value: row[numCol]
+        })),
+        config: {
+          valueKey: 'value',
+          title: `${formatColumnName(numCol)} distribution`
+        }
+      };
+    }
+  }
+  
+  // 4. RANKING/TOP N: Limited rows with ranking keywords = Bar chart
+  if (data.length <= 15 && numericColumns.length > 0) {
+    const queryLower = query.toLowerCase();
+    const isRanking = queryLower.includes('top') || 
+                     queryLower.includes('best') || 
+                     queryLower.includes('most') ||
+                     queryLower.includes('highest') ||
+                     queryLower.includes('lowest');
+    
+    if (isRanking && categoryColumns.length > 0) {
+      const catCol = categoryColumns[0];
+      const numCol = numericColumns[0];
+      
+      return {
+        type: 'bar',
+        data: data.slice(0, 15).map(row => ({
+          name: String(row[catCol] || 'Unknown').substring(0, 30),
+          value: row[numCol]
+        })),
+        config: {
+          xAxis: 'name',
+          yAxis: 'value',
+          title: `Top ${formatColumnName(catCol)}`
+        }
+      };
+    }
+  }
+  
+  // If data doesn't fit any visual-worthy pattern, don't generate chart
   return null;
+}
+
+/**
+ * Format date for chart display
+ */
+function formatDateForChart(dateValue: any): string {
+  if (!dateValue) return 'Unknown';
+  const date = new Date(dateValue);
+  if (isNaN(date.getTime())) return String(dateValue);
+  
+  // Format as MMM DD or MMM YYYY depending on data
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+/**
+ * Format column name for display
+ */
+function formatColumnName(colName: string): string {
+  return colName
+    .replace(/_/g, ' ')
+    .replace(/([A-Z])/g, ' $1')
+    .trim()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
 }
 
 /**

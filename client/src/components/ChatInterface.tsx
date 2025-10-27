@@ -45,35 +45,79 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-// Sage green theme color for charts
+// Professional chart theme - Sage green brand colors with supporting palette
 const CHART_COLORS = {
-  primary: 'hsl(142, 25%, 45%)',
-  secondary: 'hsl(142, 25%, 55%)',
-  tertiary: 'hsl(142, 25%, 35%)',
-  quaternary: 'hsl(142, 25%, 65%)',
-  accent: 'hsl(142, 25%, 75%)'
+  primary: '#6B9E78',     // Sage green (brand color)
+  secondary: '#7FAC8D',   // Lighter sage
+  tertiary: '#578866',    // Darker sage
+  quaternary: '#5B8DB8',  // Professional blue
+  quinary: '#84A59D',     // Muted teal
+  accent1: '#9DBFAF',     // Soft green
+  accent2: '#6B8E9F',     // Soft blue
+  accent3: '#7D8E85',     // Gray-green
+  grid: '#e5e7eb',        // Light gray for grid
+  gridDark: '#374151',    // Dark gray for dark mode grid
+  text: '#374151',        // Dark text
+  textDark: '#e5e7eb'     // Light text for dark mode
 };
 
-// Chart rendering component
+// Professional color palette for multi-series charts
+const CHART_PALETTE = [
+  CHART_COLORS.primary,
+  CHART_COLORS.quaternary,
+  CHART_COLORS.quinary,
+  CHART_COLORS.secondary,
+  CHART_COLORS.accent2,
+  CHART_COLORS.accent1,
+  CHART_COLORS.tertiary,
+  CHART_COLORS.accent3
+];
+
+// Professional chart rendering component with consistent styling
 function DataVisualization({ visualData }: { visualData: any }) {
   if (!visualData || !visualData.data || visualData.data.length === 0) {
     return null;
   }
 
   const { type, data, config = {} } = visualData;
+  const title = config.title || '';
 
   switch (type) {
     case 'bar':
       return (
-        <div className="mt-4 p-4 bg-white rounded-lg border">
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey={config.xAxis || 'name'} />
-              <YAxis />
-              <RechartsTooltip />
-              <Legend />
-              <Bar dataKey={config.yAxis || 'value'} fill={CHART_COLORS.primary} />
+        <div className="mt-4 p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+          {title && <h4 className="text-sm font-semibold mb-4 text-gray-700 dark:text-gray-200">{title}</h4>}
+          <ResponsiveContainer width="100%" height={360}>
+            <BarChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.grid} className="dark:opacity-20" />
+              <XAxis 
+                dataKey={config.xAxis || 'name'} 
+                tick={{ fill: CHART_COLORS.text, fontSize: 12 }}
+                className="dark:fill-gray-300"
+                angle={-45}
+                textAnchor="end"
+                height={80}
+              />
+              <YAxis 
+                tick={{ fill: CHART_COLORS.text, fontSize: 12 }}
+                className="dark:fill-gray-300"
+              />
+              <RechartsTooltip 
+                contentStyle={{ 
+                  backgroundColor: 'white',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  fontSize: '12px'
+                }}
+              />
+              <Legend 
+                wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }}
+              />
+              <Bar 
+                dataKey={config.yAxis || 'value'} 
+                fill={CHART_COLORS.primary}
+                radius={[4, 4, 0, 0]}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -81,19 +125,41 @@ function DataVisualization({ visualData }: { visualData: any }) {
 
     case 'line':
       return (
-        <div className="mt-4 p-4 bg-white rounded-lg border">
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey={config.xAxis || 'name'} />
-              <YAxis />
-              <RechartsTooltip />
-              <Legend />
+        <div className="mt-4 p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+          {title && <h4 className="text-sm font-semibold mb-4 text-gray-700 dark:text-gray-200">{title}</h4>}
+          <ResponsiveContainer width="100%" height={360}>
+            <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.grid} className="dark:opacity-20" />
+              <XAxis 
+                dataKey={config.xAxis || 'name'}
+                tick={{ fill: CHART_COLORS.text, fontSize: 12 }}
+                className="dark:fill-gray-300"
+                angle={-45}
+                textAnchor="end"
+                height={80}
+              />
+              <YAxis 
+                tick={{ fill: CHART_COLORS.text, fontSize: 12 }}
+                className="dark:fill-gray-300"
+              />
+              <RechartsTooltip 
+                contentStyle={{ 
+                  backgroundColor: 'white',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  fontSize: '12px'
+                }}
+              />
+              <Legend 
+                wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }}
+              />
               <Line 
                 type="monotone" 
                 dataKey={config.yAxis || 'value'} 
                 stroke={CHART_COLORS.primary} 
-                strokeWidth={2}
+                strokeWidth={3}
+                dot={{ fill: CHART_COLORS.primary, r: 4 }}
+                activeDot={{ r: 6 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -116,6 +182,8 @@ function DataVisualization({ visualData }: { visualData: any }) {
             fill="white" 
             textAnchor={x > cx ? 'start' : 'end'} 
             dominantBaseline="central"
+            fontSize={14}
+            fontWeight={600}
           >
             {`${(percent * 100).toFixed(0)}%`}
           </text>
@@ -123,8 +191,9 @@ function DataVisualization({ visualData }: { visualData: any }) {
       };
 
       return (
-        <div className="mt-4 p-4 bg-white rounded-lg border">
-          <ResponsiveContainer width="100%" height={300}>
+        <div className="mt-4 p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+          {title && <h4 className="text-sm font-semibold mb-4 text-gray-700 dark:text-gray-200">{title}</h4>}
+          <ResponsiveContainer width="100%" height={360}>
             <PieChart>
               <Pie
                 data={data}
@@ -132,19 +201,27 @@ function DataVisualization({ visualData }: { visualData: any }) {
                 cy="50%"
                 labelLine={false}
                 label={renderCustomizedLabel}
-                outerRadius={80}
-                fill="#8884d8"
+                outerRadius={110}
                 dataKey={config.valueKey || 'value'}
               >
                 {data.map((entry: any, index: number) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={Object.values(CHART_COLORS)[index % Object.values(CHART_COLORS).length]}
+                    fill={CHART_PALETTE[index % CHART_PALETTE.length]}
                   />
                 ))}
               </Pie>
-              <RechartsTooltip />
-              <Legend />
+              <RechartsTooltip 
+                contentStyle={{ 
+                  backgroundColor: 'white',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  fontSize: '12px'
+                }}
+              />
+              <Legend 
+                wrapperStyle={{ paddingTop: '10px', fontSize: '12px' }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
