@@ -137,6 +137,44 @@ router.post('/register', registerValidation, async (req, res) => {
   }
 });
 
+// Test tier override endpoint (DEVELOPMENT ONLY)
+router.post('/test-tier-override', async (req, res) => {
+  // Only allow in development mode
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({ error: 'Not available in production' });
+  }
+  
+  const userId = (req.session as any)?.userId;
+  if (!userId) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+  
+  const { tier } = req.body;
+  const validTiers = ['starter', 'professional', 'enterprise'];
+  
+  if (!validTiers.includes(tier)) {
+    return res.status(400).json({ error: 'Invalid tier' });
+  }
+  
+  try {
+    // Update user tier in database
+    await storage.updateUserSubscription(userId, tier, 'active');
+    
+    // Update session
+    (req.session as any).subscriptionTier = tier;
+    
+    logger.info('Test tier override', { userId, tier });
+    
+    res.json({ 
+      message: `Test tier updated to ${tier}`,
+      tier 
+    });
+  } catch (error) {
+    logger.error('Test tier override error', { error, userId });
+    res.status(500).json({ error: 'Failed to update test tier' });
+  }
+});
+
 // Login endpoint
 router.post('/login', loginValidation, async (req, res) => {
   try {

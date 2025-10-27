@@ -1,0 +1,23 @@
+{
+  "inventory": [
+    {"sku": "ELEC-001", "product": "Laptop", "category": "Electronics", "quantity": 45, "reorder_level": 10, "supplier": "TechSupply Co", "unit_cost": 650, "selling_price": 899.99, "last_restock": "2024-03-01"},
+    {"sku": "FURN-001", "product": "Office Chair", "category": "Furniture", "quantity": 28, "reorder_level": 15, "supplier": "ComfortSeating Inc", "unit_cost": 180, "selling_price": 249.99, "last_restock": "2024-02-15"},
+    {"sku": "ELEC-002", "product": "Wireless Mouse", "category": "Electronics", "quantity": 112, "reorder_level": 50, "supplier": "TechSupply Co", "unit_cost": 18, "selling_price": 29.99, "last_restock": "2024-03-05"},
+    {"sku": "FURN-002", "product": "Standing Desk", "category": "Furniture", "quantity": 12, "reorder_level": 5, "supplier": "ErgonomicDesigns", "unit_cost": 420, "selling_price": 599.99, "last_restock": "2024-02-20"},
+    {"sku": "ELEC-003", "product": "Monitor", "category": "Electronics", "quantity": 35, "reorder_level": 20, "supplier": "DisplayTech", "unit_cost": 280, "selling_price": 399.99, "last_restock": "2024-02-28"},
+    {"sku": "ELEC-004", "product": "Keyboard", "category": "Electronics", "quantity": 67, "reorder_level": 30, "supplier": "TechSupply Co", "unit_cost": 55, "selling_price": 79.99, "last_restock": "2024-03-03"},
+    {"sku": "FURN-003", "product": "Desk Lamp", "category": "Furniture", "quantity": 89, "reorder_level": 40, "supplier": "LightingPlus", "unit_cost": 32, "selling_price": 49.99, "last_restock": "2024-03-07"},
+    {"sku": "ELEC-005", "product": "USB Hub", "category": "Electronics", "quantity": 145, "reorder_level": 60, "supplier": "TechSupply Co", "unit_cost": 15, "selling_price": 24.99, "last_restock": "2024-03-08"},
+    {"sku": "ELEC-006", "product": "Office Phone", "category": "Electronics", "quantity": 23, "reorder_level": 10, "supplier": "CommTech", "unit_cost": 95, "selling_price": 149.99, "last_restock": "2024-02-25"},
+    {"sku": "FURN-004", "product": "File Cabinet", "category": "Furniture", "quantity": 18, "reorder_level": 8, "supplier": "StorageSolutions", "unit_cost": 210, "selling_price": 299.99, "last_restock": "2024-02-18"}
+  ],
+  "suppliers": [
+    {"name": "TechSupply Co", "contact": "orders@techsupply.com", "lead_time_days": 3, "reliability_score": 95},
+    {"name": "ComfortSeating Inc", "contact": "sales@comfortseating.com", "lead_time_days": 7, "reliability_score": 88},
+    {"name": "ErgonomicDesigns", "contact": "info@ergodesigns.com", "lead_time_days": 10, "reliability_score": 92},
+    {"name": "DisplayTech", "contact": "orders@displaytech.com", "lead_time_days": 5, "reliability_score": 90},
+    {"name": "LightingPlus", "contact": "sales@lightingplus.com", "lead_time_days": 4, "reliability_score": 87},
+    {"name": "CommTech", "contact": "orders@commtech.com", "lead_time_days": 6, "reliability_score": 85},
+    {"name": "StorageSolutions", "contact": "info@storagesolutions.com", "lead_time_days": 8, "reliability_score": 89}
+  ]
+}
