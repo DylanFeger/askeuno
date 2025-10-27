@@ -30,7 +30,7 @@ function enforceTierRestrictions(tier: string, features: any) {
   const tierConfig = TIERS[tier as keyof typeof TIERS] || TIERS.starter;
   
   return {
-    allowCharts: tierConfig.allowCharts && features.requestChart,
+    allowCharts: tierConfig.allowCharts,  // Automatic for Pro/Enterprise (removed requestChart requirement)
     allowForecast: tierConfig.allowForecast && features.requestForecast,
     allowElaboration: tierConfig.allowElaboration,
     allowSuggestions: tierConfig.allowSuggestions,

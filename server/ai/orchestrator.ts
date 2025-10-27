@@ -498,12 +498,12 @@ async function executeMultiSourceDataQuery(
       }
     };
     
-    // Add tier-specific features
-    if (tier === "enterprise" && tierConfig.allowCharts && analysis.chart) {
+    // Add tier-specific features - Professional and Enterprise get automatic charts
+    if (tierConfig.allowCharts && analysis.chart) {
       response.chart = analysis.chart;
     }
     
-    if ((tier === "professional" || tier === "enterprise") && tierConfig.allowSuggestions && analysis.suggestions) {
+    if (tierConfig.allowSuggestions && analysis.suggestions) {
       response.text += `\n\nSuggestions: ${analysis.suggestions}`;
     }
     
@@ -763,13 +763,13 @@ async function executeDataQuery(
       }
     };
     
-    // Add chart for elite tier if applicable
-    if (tier === "elite" && tierConfig.allowCharts && analysis.chart) {
+    // Add tier-specific features - Professional and Enterprise get automatic charts
+    if (tierConfig.allowCharts && analysis.chart) {
       response.chart = analysis.chart;
     }
     
-    // Add suggestions for pro and elite
-    if ((tier === "pro" || tier === "elite") && tierConfig.allowSuggestions && analysis.suggestions) {
+    // Add suggestions based on tier configuration
+    if (tierConfig.allowSuggestions && analysis.suggestions) {
       response.text += `\n\nSuggestions: ${analysis.suggestions}`;
     }
     
