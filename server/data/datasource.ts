@@ -7,7 +7,8 @@ export interface DataSourceInfo {
   active: boolean;
   type?: "sql" | "file";
   handle?: any;
-  tables?: string[];
+  tables?: any[]; // Array of {name, columns} objects
+  totalRows?: number;
   reason?: string;
 }
 
@@ -49,15 +50,31 @@ export async function getActiveDataSource(userId: number): Promise<DataSourceInf
         };
       }
       
-      // Get column names from schema
+      // Get schema and format as tables with columns
       const schema = source.schema as any;
-      const tables = schema ? Object.keys(schema).map(key => schema[key].name) : [];
+      
+      // Format schema as table with columns for SQL generation
+      const tables = [{
+        name: source.name.toLowerCase().replace(/\s+/g, '_') || 'data',
+        columns: schema || {}
+      }];
+      
+      // Log for debugging
+      logger.info('Active data source retrieved', {
+        userId,
+        sourceId: source.id,
+        sourceName: source.name,
+        rowCount: rowCount[0].count,
+        columnCount: schema ? Object.keys(schema).length : 0,
+        columns: schema ? Object.keys(schema).map(k => (schema as any)[k]?.name) : []
+      });
       
       return {
         active: true,
         type: "file",
         handle: source.id,
-        tables: ['data'] // For files, we use a single "data" table concept
+        tables: tables,
+        totalRows: rowCount[0].count
       };
     }
     

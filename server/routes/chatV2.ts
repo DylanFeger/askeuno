@@ -218,10 +218,23 @@ router.post('/send', requireAuth, async (req: Request, res: Response) => {
         );
       }
       
+      // Transform chart data to visualData format expected by frontend
+      let visualData = undefined;
+      if (tierFeatures.allowCharts && aiResponse.chart) {
+        visualData = {
+          type: aiResponse.chart.type,
+          data: aiResponse.chart.data,
+          config: {
+            xAxis: aiResponse.chart.x,
+            yAxis: aiResponse.chart.y
+          }
+        };
+      }
+      
       responseMetadata = {
         ...responseMetadata,
         ...aiResponse.meta,
-        chart: tierFeatures.allowCharts ? aiResponse.chart : undefined,
+        visualData: visualData, // Frontend expects visualData not chart
         suggestions: followUpSuggestions, // Will be undefined for Starter tier
         tierRestrictions: {
           chartsBlocked: !tierFeatures.allowCharts && !!aiResponse.chart,
