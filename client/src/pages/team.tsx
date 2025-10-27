@@ -64,10 +64,8 @@ export default function TeamPage() {
   // Send invitation mutation
   const sendInvitation = useMutation({
     mutationFn: async (email: string) => {
-      return apiRequest('/api/team/invite', {
-        method: 'POST',
-        body: JSON.stringify({ email }),
-      });
+      const res = await apiRequest('POST', '/api/team/invite', { email });
+      return res.json();
     },
     onSuccess: () => {
       toast({
@@ -90,9 +88,8 @@ export default function TeamPage() {
   // Generate invite link mutation
   const generateInviteLink = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/team/invite-link', {
-        method: 'GET',
-      });
+      const res = await apiRequest('GET', '/api/team/invite-link');
+      return res.json();
     },
     onSuccess: (data) => {
       setInviteLink(data.inviteUrl);
@@ -110,9 +107,8 @@ export default function TeamPage() {
   // Resend invitation mutation
   const resendInvitation = useMutation({
     mutationFn: async (invitationId: number) => {
-      return apiRequest(`/api/team/resend/${invitationId}`, {
-        method: 'POST',
-      });
+      const res = await apiRequest('POST', `/api/team/resend/${invitationId}`);
+      return res.json();
     },
     onSuccess: () => {
       toast({
@@ -133,9 +129,8 @@ export default function TeamPage() {
   // Remove team member mutation
   const removeTeamMember = useMutation({
     mutationFn: async (memberId: number) => {
-      return apiRequest(`/api/team/member/${memberId}`, {
-        method: 'DELETE',
-      });
+      const res = await apiRequest('DELETE', `/api/team/member/${memberId}`);
+      return res.json();
     },
     onSuccess: () => {
       toast({
