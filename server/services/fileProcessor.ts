@@ -66,7 +66,8 @@ export async function processFile(filePath: string, fileType: string): Promise<P
     };
   } catch (error) {
     console.error('File processing error:', error);
-    throw new Error(`Failed to process ${fileType} file: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to process ${fileType} file: ${errorMessage}`);
   }
 }
 
@@ -98,7 +99,7 @@ async function processExcelFile(filePath: string): Promise<any[]> {
   });
   
   // If data is empty or has numeric keys, try alternative approach
-  if (data.length === 0 || (data.length > 0 && Object.keys(data[0]).some(key => !isNaN(Number(key))))) {
+  if (data.length === 0 || (data.length > 0 && data[0] && typeof data[0] === 'object' && Object.keys(data[0]).some(key => !isNaN(Number(key))))) {
     // Read as array of arrays
     const arrayData = XLSX.utils.sheet_to_json(worksheet, {
       header: 1,
@@ -132,11 +133,13 @@ async function processExcelFile(filePath: string): Promise<any[]> {
   // Clean column names in the data
   return data.map(row => {
     const cleanedRow: any = {};
-    Object.keys(row).forEach(key => {
-      // Clean the key name
-      const cleanKey = key.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^_+|_+$/g, '') || `Column_${Object.keys(cleanedRow).length + 1}`;
-      cleanedRow[cleanKey] = row[key];
-    });
+    if (row && typeof row === 'object') {
+      Object.keys(row).forEach(key => {
+        // Clean the key name
+        const cleanKey = key.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^_+|_+$/g, '') || `Column_${Object.keys(cleanedRow).length + 1}`;
+        cleanedRow[cleanKey] = (row as any)[key];
+      });
+    }
     return cleanedRow;
   });
 }
@@ -152,6 +155,17 @@ async function processJsonFile(filePath: string): Promise<any[]> {
   } else if (jsonData.data && Array.isArray(jsonData.data)) {
     return jsonData.data;
   } else if (typeof jsonData === 'object') {
+    // Try to find the first array property in the object
+    const arrayProperties = Object.keys(jsonData).filter(key => Array.isArray(jsonData[key]));
+    
+    if (arrayProperties.length > 0) {
+      // Use the first array found (e.g., 'inventory', 'products', 'records', etc.)
+      const arrayKey = arrayProperties[0];
+      console.log(`Found nested array property: ${arrayKey} with ${jsonData[arrayKey].length} items`);
+      return jsonData[arrayKey];
+    }
+    
+    // If no array found, wrap the single object
     return [jsonData];
   }
   
