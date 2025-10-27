@@ -28,6 +28,7 @@ import chatV3Routes from "./routes/chatV3";
 import connectionRoutes from "./routes/connections";
 import lightspeedRoutes from "./routes/lightspeed";
 import userRoutes from "./routes/user";
+import googleSheetsRoutes from "./routes/google-sheets";
 import { initializeScheduler, shutdownScheduler } from "./services/scheduler";
 import { sendContactFormEmail } from "./services/awsSes";
 
@@ -96,6 +97,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Lightspeed OAuth routes  
   app.use('/api', lightspeedRoutes);
+  
+  // Google Sheets routes (using Replit connector)
+  app.use('/api', googleSheetsRoutes);
   
   // Subscription routes
   app.use('/api/subscription', subscriptionRoutes);

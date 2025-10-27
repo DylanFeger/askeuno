@@ -33,7 +33,11 @@ Key principles:
 - **Database**: PostgreSQL with Drizzle ORM.
 - **File Processing**: Multer for uploads, XLSX for Excel, CSV parser.
 - **AI Integration**: OpenAI API for data insights. AI acts as a senior data analyst, providing immediate, ultra-concise (1-2 sentences) responses by default using an answer-first approach, liberal query mapping, and metaphorical intelligence. It includes an agent-based validation system for SQL and multi-step analysis (tier-dependent), with unified conversation memory focused on business queries.
-- **Data Integrations**: Secure OAuth 2.0 (PKCE) for Google Sheets, QuickBooks Online, Lightspeed Retail/Restaurant, Stripe. Direct read-only database connections (PostgreSQL/MySQL). Encrypted OAuth tokens (AES-256-CBC). CSV/Excel file uploads.
+- **Data Integrations**: 
+  - **Replit Connectors**: Google Sheets integration using Replit's managed connector (automatic OAuth, token refresh)
+  - **OAuth 2.0 (PKCE)**: QuickBooks Online, Lightspeed Retail/Restaurant, Stripe (manual OAuth implementation)
+  - **Direct Database Connections**: PostgreSQL/MySQL (read-only, encrypted connection strings)
+  - **File Uploads**: CSV/Excel file uploads with schema detection
 - **Core Systems**: Data ingestion pipeline (schema detection, quality checks), AI chat engine (context awareness, response length control), robust authentication/authorization with session management, subscription tier enforcement (query/connection limits, multi-source blending), message deduplication, logging, secure connection management (automatic token refresh).
 - **Data Flow**: Uploaded files are validated, processed (parsed, AI schema analysis), and stored in PostgreSQL/AWS S3. Live integrations sync data via OAuth. Users query data via AI chat for analysis, recommendations, and optional visual charts. AI supports multi-source blending by detecting common fields.
 
@@ -53,3 +57,17 @@ Key principles:
 - **Icons**: Lucide React icons
 - **Forms**: React Hook Form with Zod validation
 - **Charting Library**: Recharts
+- **Replit Connectors**: Google Sheets connector for managed OAuth and API access
+
+## Recent Changes (October 27, 2025)
+
+### Google Sheets Connector Integration
+- **Problem**: Manual OAuth flow for Google Sheets was failing with "missing client_id" error
+- **Solution**: Integrated Replit's Google Sheets connector for automatic OAuth management
+- **Implementation**:
+  - Created `server/services/googleSheetsConnector.ts` using Replit connector SDK
+  - Added `/api/google-sheets/status`, `/api/google-sheets/spreadsheets`, `/api/google-sheets/import` endpoints
+  - Frontend now shows spreadsheet selection dialog instead of OAuth redirect
+  - User connects Google Sheets via Replit UI, then selects which spreadsheet to import
+  - Data automatically stored in `data_sources` and `data_rows` tables
+- **Benefits**: No manual OAuth configuration, automatic token refresh, better security

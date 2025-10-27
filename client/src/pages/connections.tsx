@@ -136,6 +136,8 @@ export default function ConnectionsPage() {
   const [dbConfig, setDbConfig] = useState({ connectionString: '', type: 'postgres' });
   const [deleteConfirmation, setDeleteConfirmation] = useState<any>(null);
   const [testingConnection, setTestingConnection] = useState<string | null>(null);
+  const [showGoogleSheetsDialog, setShowGoogleSheetsDialog] = useState(false);
+  const [selectedSpreadsheet, setSelectedSpreadsheet] = useState<any>(null);
   
   // Handle OAuth callback parameters
   useEffect(() => {
@@ -167,6 +169,18 @@ export default function ConnectionsPage() {
     queryKey: ['/api/connections'],
     enabled: isAuthenticated,
   });
+  
+  // Check if Google Sheets is connected via Replit connector
+  const { data: googleSheetsStatus } = useQuery<{ connected: boolean }>({
+    queryKey: ['/api/google-sheets/status'],
+    enabled: isAuthenticated,
+  });
+  
+  // Fetch available Google Sheets spreadsheets
+  const { data: googleSheets, isLoading: googleSheetsLoading } = useQuery<{ spreadsheets: any[] }>({
+    queryKey: ['/api/google-sheets/spreadsheets'],
+    enabled: isAuthenticated && showGoogleSheetsDialog && googleSheetsStatus?.connected === true,
+  });
 
   // Connect mutation
   const connectMutation = useMutation({
@@ -192,6 +206,10 @@ export default function ConnectionsPage() {
           }, 500);
         }
         return result;
+      } else if (data.provider === 'google_sheets') {
+        // For Google Sheets using Replit connector, show spreadsheet selection dialog
+        setShowGoogleSheetsDialog(true);
+        return Promise.resolve();
       } else {
         // For Lightspeed, check if we need store URL first
         if (data.provider === 'lightspeed') {
@@ -269,6 +287,35 @@ export default function ConnectionsPage() {
       toast({
         title: 'Error',
         description: 'Failed to disconnect',
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  // Import Google Sheet mutation
+  const importGoogleSheetMutation = useMutation({
+    mutationFn: async (data: { spreadsheetId: string; sheetName?: string }) => {
+      const response = await apiRequest('POST', '/api/google-sheets/import', data);
+      return response.json();
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: 'Import Successful',
+        description: `Imported ${data.dataSource.rowCount} rows from ${data.dataSource.name}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/data-sources'] });
+      setShowGoogleSheetsDialog(false);
+      setSelectedSpreadsheet(null);
+      
+      // Redirect to chat
+      setTimeout(() => {
+        setLocation(`/chat?newDataset=${encodeURIComponent(data.dataSource.name)}`);
+      }, 500);
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Import Failed',
+        description: error.message || 'Failed to import spreadsheet',
         variant: 'destructive',
       });
     },
@@ -632,6 +679,90 @@ export default function ConnectionsPage() {
       </main>
 
       <Footer />
+
+      {/* Google Sheets Selection Dialog */}
+      <Dialog open={showGoogleSheetsDialog} onOpenChange={setShowGoogleSheetsDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Select Google Sheet to Import</DialogTitle>
+            <DialogDescription>
+              Choose a spreadsheet from your Google Drive to analyze
+            </DialogDescription>
+          </DialogHeader>
+          
+          {googleSheetsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <RefreshCw className="h-6 w-6 animate-spin text-primary" />
+              <span className="ml-2 text-sm text-muted-foreground">Loading spreadsheets...</span>
+            </div>
+          ) : googleSheets?.spreadsheets && googleSheets.spreadsheets.length > 0 ? (
+            <div className="space-y-3">
+              {googleSheets.spreadsheets.map((sheet: any) => (
+                <Card 
+                  key={sheet.id}
+                  className={`cursor-pointer transition-all ${
+                    selectedSpreadsheet?.id === sheet.id 
+                      ? 'border-primary ring-2 ring-primary' 
+                      : 'hover:border-primary/50'
+                  }`}
+                  onClick={() => setSelectedSpreadsheet(sheet)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3 flex-1">
+                        <FileSpreadsheet className="h-5 w-5 text-green-600 mt-0.5" />
+                        <div className="flex-1">
+                          <h4 className="font-medium text-sm">{sheet.name}</h4>
+                          {sheet.modifiedTime && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Modified: {new Date(sheet.modifiedTime).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      {selectedSpreadsheet?.id === sheet.id && (
+                        <CheckCircle className="h-5 w-5 text-primary" />
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              
+              <div className="flex gap-2 pt-4">
+                <Button
+                  onClick={() => {
+                    if (selectedSpreadsheet) {
+                      importGoogleSheetMutation.mutate({ 
+                        spreadsheetId: selectedSpreadsheet.id 
+                      });
+                    }
+                  }}
+                  disabled={!selectedSpreadsheet || importGoogleSheetMutation.isPending}
+                  className="flex-1"
+                >
+                  {importGoogleSheetMutation.isPending ? 'Importing...' : 'Import Selected Sheet'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowGoogleSheetsDialog(false);
+                    setSelectedSpreadsheet(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="py-8 text-center">
+              <FileSpreadsheet className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-sm text-muted-foreground">
+                No spreadsheets found in your Google Drive
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteConfirmation} onOpenChange={() => setDeleteConfirmation(null)}>
