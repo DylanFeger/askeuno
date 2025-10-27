@@ -70,6 +70,14 @@ export async function processUploadedFile(
     // Clean up temp file
     await fs.unlink(tempFilePath);
     
+    // Log processing results
+    logger.info('File processed successfully', {
+      filename,
+      rowCount: processedData.data.length,
+      columns: Object.keys(processedData.schema),
+      schemaDetected: schemaAnalysis.columns ? 'AI' : 'auto'
+    });
+    
     return {
       success: true,
       data: {
