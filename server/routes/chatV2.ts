@@ -191,23 +191,27 @@ router.post('/send', requireAuth, async (req: Request, res: Response) => {
       // Filter response based on tier restrictions (only for advanced features)
       responseContent = aiResponse.text;
       
-      // Generate follow-up suggestions based on context
-      const availableFields = dataSourceInfos.flatMap(ds => 
-        Object.values(ds.schema || {}).map((col: any) => col.name)
-      );
+      // Generate follow-up suggestions based on context (Professional and Enterprise only)
+      let followUpSuggestions = undefined;
       
-      const followUpSuggestions = await generateFollowUpSuggestions(
-        message,
-        aiResponse.text,
-        availableFields,
-        tier
-      );
+      if (tierFeatures.allowSuggestions) {
+        const availableFields = dataSourceInfos.flatMap(ds => 
+          Object.values(ds.schema || {}).map((col: any) => col.name)
+        );
+        
+        followUpSuggestions = await generateFollowUpSuggestions(
+          message,
+          aiResponse.text,
+          availableFields,
+          tier
+        );
+      }
       
       responseMetadata = {
         ...responseMetadata,
         ...aiResponse.meta,
         chart: tierFeatures.allowCharts ? aiResponse.chart : undefined,
-        suggestions: followUpSuggestions,
+        suggestions: followUpSuggestions, // Will be undefined for Starter tier
         tierRestrictions: {
           chartsBlocked: !tierFeatures.allowCharts && !!aiResponse.chart,
           forecastBlocked: !tierFeatures.allowForecast && aiResponse.meta?.forecast
