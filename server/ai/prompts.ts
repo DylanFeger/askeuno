@@ -271,8 +271,8 @@ Provide your analysis based ONLY on the data above.
       result.forecast = parts[1].trim();
     }
     
-    // Generate chart data for enterprise tier if appropriate
-    if (tier === "enterprise" && tierConfig.allowCharts && queryResult.rows.length > 0) {
+    // Generate chart data for Professional and Enterprise tiers if appropriate
+    if (tierConfig.allowCharts && queryResult.rows.length > 0) {
       // Simple chart generation based on data structure
       const firstRow = queryResult.rows[0];
       const keys = Object.keys(firstRow);
@@ -282,8 +282,29 @@ Provide your analysis based ONLY on the data above.
       const textFields = keys.filter(k => typeof firstRow[k] === 'string');
       
       if (numericFields.length > 0 && textFields.length > 0) {
+        // Determine chart type based on query keywords
+        const questionLower = question.toLowerCase();
+        let chartType: "line" | "bar" | "pie" | "area" = "bar"; // default
+        
+        // Trend/time series indicators → line chart
+        if (questionLower.match(/\b(trend|over time|monthly|weekly|daily|timeline|progression|growth|change over)\b/)) {
+          chartType = "line";
+        }
+        // Distribution/breakdown indicators → pie or bar chart
+        else if (questionLower.match(/\b(breakdown|distribution|share|percentage|proportion|by category)\b/)) {
+          chartType = queryResult.rows.length <= 8 ? "pie" : "bar";
+        }
+        // Comparison indicators → bar chart
+        else if (questionLower.match(/\b(compare|comparison|versus|vs|top|best|worst|highest|lowest|ranking)\b/)) {
+          chartType = "bar";
+        }
+        // Default: use row count to decide between line and bar
+        else {
+          chartType = queryResult.rows.length > 10 ? "line" : "bar";
+        }
+        
         result.chart = {
-          type: queryResult.rows.length > 10 ? "line" : "bar",
+          type: chartType,
           x: textFields[0],
           y: numericFields[0],
           data: queryResult.rows.slice(0, 50) // Limit chart data

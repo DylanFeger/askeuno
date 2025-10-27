@@ -80,6 +80,17 @@ router.post('/send', requireAuth, async (req: Request, res: Response) => {
       schema: ds.schema || {}
     }));
     
+    // Log schema info for debugging
+    logger.info('Data sources loaded for chat', {
+      userId,
+      tier,
+      dataSources: dataSourceInfos.map(ds => ({
+        id: ds.id,
+        name: ds.name,
+        schemaColumns: ds.schema ? Object.keys(ds.schema) : []
+      }))
+    });
+    
     // Map query to available schema fields (uniform across all tiers)
     const queryMapping = await mapQueryToSchema(message, dataSourceInfos);
     
