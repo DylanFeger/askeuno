@@ -52,7 +52,7 @@ const loginValidation = [
 ];
 
 // Register endpoint
-router.post('/register', registerValidation, async (req, res) => {
+router.post('/register', registerValidation, async (req: Request, res: Response) => {
   try {
     const { username, email, password } = req.body;
     
@@ -138,7 +138,7 @@ router.post('/register', registerValidation, async (req, res) => {
 });
 
 // Test tier override endpoint (DEVELOPMENT ONLY)
-router.post('/test-tier-override', async (req, res) => {
+router.post('/test-tier-override', async (req: Request, res: Response) => {
   // Only allow in development mode
   if (process.env.NODE_ENV === 'production') {
     return res.status(403).json({ error: 'Not available in production' });
@@ -157,8 +157,11 @@ router.post('/test-tier-override', async (req, res) => {
   }
   
   try {
-    // Update user tier in database
-    await storage.updateUserSubscription(userId, tier, 'active');
+    // Update user tier and subscription status in database
+    await storage.updateUser(userId, { 
+      subscriptionTier: tier,
+      subscriptionStatus: 'active'
+    });
     
     // Update session
     (req.session as any).subscriptionTier = tier;
@@ -169,14 +172,14 @@ router.post('/test-tier-override', async (req, res) => {
       message: `Test tier updated to ${tier}`,
       tier 
     });
-  } catch (error) {
-    logger.error('Test tier override error', { error, userId });
+  } catch (error: any) {
+    logger.error('Test tier override error', { error: error.message, userId });
     res.status(500).json({ error: 'Failed to update test tier' });
   }
 });
 
 // Login endpoint
-router.post('/login', loginValidation, async (req, res) => {
+router.post('/login', loginValidation, async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
     
@@ -298,7 +301,7 @@ router.get('/me', async (req, res) => {
 });
 
 // Update preferences endpoint (Professional and Enterprise only)
-router.patch('/preferences', preferencesValidation, async (req, res) => {
+router.patch('/preferences', preferencesValidation, async (req: Request, res: Response) => {
   try {
     const userId = (req.session as any)?.userId;
     if (!userId) {
