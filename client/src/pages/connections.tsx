@@ -209,7 +209,7 @@ export default function ConnectionsPage() {
       } else if (data.provider === 'google_sheets') {
         // For Google Sheets using Replit connector, show spreadsheet selection dialog
         setShowGoogleSheetsDialog(true);
-        return Promise.resolve();
+        return Promise.resolve({ skipSuccessToast: true });
       } else {
         // For Lightspeed, check if we need store URL first
         if (data.provider === 'lightspeed') {
@@ -228,11 +228,14 @@ export default function ConnectionsPage() {
         return Promise.resolve();
       }
     },
-    onSuccess: () => {
-      toast({
-        title: 'Success',
-        description: 'Connection established successfully',
-      });
+    onSuccess: (data: any) => {
+      // Don't show success toast for Google Sheets (it has its own in importGoogleSheetMutation)
+      if (!data?.skipSuccessToast) {
+        toast({
+          title: 'Success',
+          description: 'Connection established successfully',
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ['/api/connections'] });
       setSelectedConnection(null);
       setDbConfig({ connectionString: '', type: 'postgres' });
@@ -753,11 +756,40 @@ export default function ConnectionsPage() {
                 </Button>
               </div>
             </div>
+          ) : googleSheetsStatus?.connected === false ? (
+            <div className="py-8 text-center space-y-4">
+              <AlertCircle className="h-12 w-12 text-amber-500 mx-auto" />
+              <div>
+                <h4 className="font-medium text-sm mb-2">Google Sheets Not Connected</h4>
+                <p className="text-sm text-muted-foreground mb-4">
+                  To import spreadsheets, you need to connect your Google account first.
+                </p>
+                <ol className="text-sm text-left text-muted-foreground space-y-2 max-w-md mx-auto">
+                  <li>1. Click the "Tools" button in the bottom left corner of Replit</li>
+                  <li>2. Select "Integrations" from the menu</li>
+                  <li>3. Find and click "Google Sheets"</li>
+                  <li>4. Click "Connect" and authorize Euno to access your Google Sheets</li>
+                  <li>5. Return here and try again</li>
+                </ol>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowGoogleSheetsDialog(false);
+                  setSelectedSpreadsheet(null);
+                }}
+              >
+                Close
+              </Button>
+            </div>
           ) : (
             <div className="py-8 text-center">
               <FileSpreadsheet className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-2">
                 No spreadsheets found in your Google Drive
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Make sure you have at least one Google Sheet in your account
               </p>
             </div>
           )}
