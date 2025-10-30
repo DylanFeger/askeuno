@@ -59,9 +59,27 @@ Key principles:
 - **Charting Library**: Recharts
 - **Replit Connectors**: Google Sheets connector for managed OAuth and API access
 
-## Recent Changes (October 27, 2025)
+## Recent Changes
 
-### Google Sheets Connector Integration
+### October 30, 2025 - Critical Stripe Payment Security Fix
+- **Problem**: Users could gain premium tier access before payment confirmation (privilege escalation vulnerability)
+- **Solution**: Implemented secure webhook-based tier upgrades with comprehensive payment verification
+- **Implementation**:
+  - Modified `/api/subscription/get-or-create-subscription` to keep users on current tier with `pending_payment` status
+  - Created secure webhook endpoint `/api/subscription/webhook` with:
+    * Raw body parsing for Stripe signature verification
+    * `stripe.webhooks.constructEvent()` to validate webhook authenticity
+    * Comprehensive event handlers (payment_intent.succeeded, payment_failed, subscription.updated/deleted)
+  - Tier upgrades now only occur AFTER `payment_intent.succeeded` webhook event
+  - Added `getUserByStripeCustomerId()` storage method for webhook user lookups
+  - Frontend displays "Payment Processing" status for pending payments with animated loader
+- **Security Benefits**: 
+  - Prevents free premium access exploit
+  - Webhook signature verification blocks forged events
+  - Comprehensive logging for payment debugging
+  - Proper status transitions (pending → active/failed)
+
+### October 27, 2025 - Google Sheets Connector Integration
 - **Problem**: Manual OAuth flow for Google Sheets was failing with "missing client_id" error
 - **Solution**: Integrated Replit's Google Sheets connector for automatic OAuth management
 - **Implementation**:
