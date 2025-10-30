@@ -24,17 +24,30 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
 });
 
-// Subscription pricing configuration
-const SUBSCRIPTION_PRICES = {
-  professional: {
-    monthly: 9900, // $99.00 in cents
-    annual: 100900, // $1,009.00 in cents (15% off monthly)
-  },
-  enterprise: {
-    monthly: 24900, // $249.00 in cents
-    annual: 254000, // $2,540.00 in cents (15% off monthly)
+/**
+ * Get Stripe price ID from environment variables
+ * Maps tier and billing cycle to the correct Stripe product price
+ */
+function getStripePriceId(tier: string, billingCycle: string): string {
+  const priceIdMap: Record<string, Record<string, string>> = {
+    professional: {
+      monthly: process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY || '',
+      annual: process.env.STRIPE_PRICE_PROFESSIONAL_ANNUAL || '',
+    },
+    enterprise: {
+      monthly: process.env.STRIPE_PRICE_ENTERPRISE_MONTHLY || '',
+      annual: process.env.STRIPE_PRICE_ENTERPRISE_ANNUAL || '',
+    }
+  };
+
+  const priceId = priceIdMap[tier]?.[billingCycle];
+  
+  if (!priceId) {
+    throw new Error(`Missing Stripe price ID for ${tier} ${billingCycle}`);
   }
-};
+  
+  return priceId;
+}
 
 /**
  * Create or retrieve subscription for user (only for paid tiers)
@@ -92,26 +105,14 @@ router.post('/get-or-create-subscription', requireAuth, requireMainUser, async (
       user = await storage.updateUser(user.id, { stripeCustomerId }) || user;
     }
 
-    // Get the price for the selected tier and billing cycle
-    const priceAmount = SUBSCRIPTION_PRICES[tier as keyof typeof SUBSCRIPTION_PRICES][billingCycle as keyof typeof SUBSCRIPTION_PRICES.professional];
+    // Get the Stripe price ID for the selected tier and billing cycle
+    const priceId = getStripePriceId(tier, billingCycle);
 
-    // Create price object in Stripe
-    const price = await stripe.prices.create({
-      unit_amount: priceAmount,
-      currency: 'usd',
-      recurring: {
-        interval: billingCycle === 'annual' ? 'year' : 'month',
-      },
-      product_data: {
-        name: `Euno ${tier.charAt(0).toUpperCase() + tier.slice(1)} Plan`,
-      },
-    });
-
-    // Create subscription
+    // Create subscription with your Stripe product
     const subscription = await stripe.subscriptions.create({
       customer: stripeCustomerId,
       items: [{
-        price: price.id,
+        price: priceId,
       }],
       payment_behavior: 'default_incomplete',
       expand: ['latest_invoice.payment_intent'],
