@@ -1,10 +1,20 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
+import express from 'express';
 import Stripe from 'stripe';
 import { requireAuth, requireMainUser, AuthenticatedRequest } from '../middleware/auth';
 import { storage } from '../storage';
 import { logger, logPaymentEvent } from '../utils/logger';
 
 const router = Router();
+
+// IMPORTANT: Webhook route needs raw body for signature verification
+// This must be registered BEFORE express.json() middleware
+router.post('/webhook', 
+  express.raw({ type: 'application/json' }),
+  async (req: Request, res: Response) => {
+    await handleStripeWebhook(req, res);
+  }
+);
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -105,20 +115,26 @@ router.post('/get-or-create-subscription', requireAuth, requireMainUser, async (
       }],
       payment_behavior: 'default_incomplete',
       expand: ['latest_invoice.payment_intent'],
+      metadata: {
+        userId: user.id.toString(),
+        requestedTier: tier,
+        requestedBillingCycle: billingCycle,
+      }
     });
 
-    // Update user with subscription info
+    // SECURITY: Store subscription ID but DO NOT upgrade tier until payment confirmed
+    // Tier will be upgraded by webhook when payment_intent.succeeded event is received
     await storage.updateUser(user.id, {
       stripeSubscriptionId: subscription.id,
-      subscriptionTier: tier,
+      stripeCustomerId: stripeCustomerId,
+      // Keep current tier - will upgrade after payment confirmation
+      subscriptionStatus: 'pending_payment',
       billingCycle: billingCycle,
-      subscriptionStatus: 'active',
-      subscriptionStartDate: new Date(),
     });
 
-    // Log payment event
-    logPaymentEvent(user.id, 'subscription_created', priceAmount / 100, {
-      tier,
+    // Log subscription creation (not payment - that happens in webhook)
+    logPaymentEvent(user.id, 'subscription_initiated', priceAmount / 100, {
+      requestedTier: tier,
       billingCycle,
       subscriptionId: subscription.id,
     });
@@ -126,7 +142,8 @@ router.post('/get-or-create-subscription', requireAuth, requireMainUser, async (
     res.json({
       subscriptionId: subscription.id,
       clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
-      status: 'requires_payment'
+      status: 'requires_payment',
+      message: 'Complete payment to activate subscription'
     });
   } catch (error: any) {
     logger.error('Subscription creation error', { error, userId: req.user.id });
@@ -299,5 +316,218 @@ router.post('/update-tier', requireAuth, requireMainUser, async (req: Authentica
     res.status(500).json({ error: 'Failed to update subscription: ' + error.message });
   }
 });
+
+/**
+ * Stripe webhook handler function
+ * SECURITY: Verifies webhook signature to prevent fake payment events
+ */
+async function handleStripeWebhook(req: Request, res: Response) {
+  const sig = req.headers['stripe-signature'];
+  
+  if (!sig) {
+    logger.error('Missing Stripe signature');
+    return res.status(400).send('Missing signature');
+  }
+
+  let event: Stripe.Event;
+
+  try {
+    // Verify webhook signature to ensure it's actually from Stripe
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      throw new Error('Missing STRIPE_WEBHOOK_SECRET environment variable');
+    }
+
+    // Use raw body for signature verification
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      webhookSecret
+    );
+  } catch (err: any) {
+    logger.error('Webhook signature verification failed', { error: err.message });
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Handle the event
+  try {
+    switch (event.type) {
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        await handlePaymentSucceeded(paymentIntent);
+        break;
+      }
+
+      case 'payment_intent.payment_failed': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        await handlePaymentFailed(paymentIntent);
+        break;
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as Stripe.Subscription;
+        await handleSubscriptionUpdated(subscription);
+        break;
+      }
+
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as Stripe.Subscription;
+        await handleSubscriptionDeleted(subscription);
+        break;
+      }
+
+      default:
+        logger.info('Unhandled webhook event type', { type: event.type });
+    }
+
+    res.json({ received: true });
+  } catch (error: any) {
+    logger.error('Webhook handler error', { error, eventType: event.type });
+    res.status(500).json({ error: 'Webhook handler failed' });
+  }
+}
+
+/**
+ * Handle successful payment - upgrade user's tier
+ */
+async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
+  logger.info('Payment succeeded', { paymentIntentId: paymentIntent.id });
+
+  // Get the subscription from the payment intent
+  const subscriptionId = paymentIntent.invoice 
+    ? (typeof paymentIntent.invoice === 'string' 
+        ? paymentIntent.invoice 
+        : paymentIntent.invoice.subscription)
+    : null;
+
+  if (!subscriptionId) {
+    logger.warn('Payment succeeded but no subscription found', { paymentIntentId: paymentIntent.id });
+    return;
+  }
+
+  // Get subscription details
+  const subscription = await stripe.subscriptions.retrieve(
+    typeof subscriptionId === 'string' ? subscriptionId : subscriptionId.toString()
+  );
+
+  const userId = subscription.metadata.userId;
+  const requestedTier = subscription.metadata.requestedTier;
+  const requestedBillingCycle = subscription.metadata.requestedBillingCycle;
+
+  if (!userId || !requestedTier) {
+    logger.error('Missing metadata in subscription', { subscriptionId: subscription.id });
+    return;
+  }
+
+  // SECURITY: Upgrade tier ONLY after payment confirmed
+  await storage.updateUser(parseInt(userId), {
+    subscriptionTier: requestedTier,
+    subscriptionStatus: 'active',
+    subscriptionStartDate: new Date(),
+  });
+
+  logger.info('User upgraded after payment confirmation', {
+    userId,
+    tier: requestedTier,
+    subscriptionId: subscription.id
+  });
+
+  // Log successful payment
+  logPaymentEvent(parseInt(userId), 'payment_succeeded', paymentIntent.amount / 100, {
+    tier: requestedTier,
+    billingCycle: requestedBillingCycle,
+    subscriptionId: subscription.id,
+    paymentIntentId: paymentIntent.id,
+  });
+}
+
+/**
+ * Handle failed payment
+ */
+async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
+  logger.warn('Payment failed', { paymentIntentId: paymentIntent.id });
+
+  // Try to find user by payment intent metadata or customer
+  const customerId = paymentIntent.customer;
+  if (!customerId) {
+    logger.warn('Payment failed but no customer found');
+    return;
+  }
+
+  // Find user by Stripe customer ID
+  const user = await storage.getUserByStripeCustomerId(
+    typeof customerId === 'string' ? customerId : customerId.id
+  );
+
+  if (!user) {
+    logger.warn('Payment failed but user not found', { customerId });
+    return;
+  }
+
+  // Mark subscription as failed
+  await storage.updateUser(user.id, {
+    subscriptionStatus: 'payment_failed',
+  });
+
+  logger.info('Marked subscription as failed', { userId: user.id });
+
+  logPaymentEvent(user.id, 'payment_failed', paymentIntent.amount / 100, {
+    paymentIntentId: paymentIntent.id,
+    failureReason: paymentIntent.last_payment_error?.message || 'Unknown',
+  });
+}
+
+/**
+ * Handle subscription updates
+ */
+async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+  const userId = subscription.metadata.userId;
+  
+  if (!userId) {
+    logger.warn('Subscription updated but no userId in metadata', { subscriptionId: subscription.id });
+    return;
+  }
+
+  // If subscription was cancelled
+  if (subscription.cancel_at_period_end) {
+    await storage.updateUser(parseInt(userId), {
+      subscriptionStatus: 'cancelled',
+    });
+    logger.info('Subscription marked as cancelled', { userId, subscriptionId: subscription.id });
+  }
+
+  // If subscription status changed to unpaid/past_due
+  if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
+    await storage.updateUser(parseInt(userId), {
+      subscriptionStatus: 'payment_failed',
+    });
+    logger.info('Subscription payment issue', { userId, status: subscription.status });
+  }
+}
+
+/**
+ * Handle subscription deletion - downgrade to free tier
+ */
+async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+  const userId = subscription.metadata.userId;
+  
+  if (!userId) {
+    logger.warn('Subscription deleted but no userId in metadata', { subscriptionId: subscription.id });
+    return;
+  }
+
+  // Downgrade to free tier
+  await storage.updateUser(parseInt(userId), {
+    subscriptionTier: 'starter',
+    subscriptionStatus: 'expired',
+    stripeSubscriptionId: null,
+  });
+
+  logger.info('User downgraded to free tier', { userId, subscriptionId: subscription.id });
+
+  logPaymentEvent(parseInt(userId), 'subscription_expired', 0, {
+    subscriptionId: subscription.id,
+  });
+}
 
 export default router;
