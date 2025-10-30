@@ -230,8 +230,19 @@ export default function SubscriptionPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
+                {/* Pending Payment Alert */}
+                {subscriptionStatus === 'pending_payment' && (
+                  <Alert className="bg-blue-50 border-blue-200">
+                    <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+                    <AlertDescription className="text-blue-900">
+                      <strong>Payment Processing</strong> Your payment is being processed. 
+                      You'll be upgraded once the payment is confirmed. This usually takes a few moments.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 {/* Free Plan Alert */}
-                {currentPlan === 'starter' && (
+                {currentPlan === 'starter' && subscriptionStatus !== 'pending_payment' && (
                   <Alert className="bg-green-50 border-green-200">
                     <Sparkles className="h-4 w-4 text-green-600" />
                     <AlertDescription className="text-green-900">
@@ -249,14 +260,27 @@ export default function SubscriptionPage() {
                     <p className="text-gray-600 mt-1">
                       {currentPlan === 'starter'
                         ? 'Free plan - no billing'
-                        : subscriptionStatus === 'active' 
-                          ? `Billed ${user.billingCycle || 'monthly'} - Next billing date: ${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}`
-                          : 'No active subscription'
+                        : subscriptionStatus === 'pending_payment'
+                          ? 'Payment pending confirmation'
+                          : subscriptionStatus === 'active' 
+                            ? `Billed ${user.billingCycle || 'monthly'} - Next billing date: ${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}`
+                            : 'No active subscription'
                       }
                     </p>
                   </div>
-                  <Badge variant={currentPlan === 'starter' ? 'secondary' : subscriptionStatus === 'active' ? 'default' : 'destructive'} className="text-lg px-4 py-2">
-                    {currentPlan === 'starter' ? 'Free' : subscriptionStatus === 'active' ? 'Active' : 'Inactive'}
+                  <Badge 
+                    variant={
+                      subscriptionStatus === 'pending_payment' ? 'outline' :
+                      currentPlan === 'starter' ? 'secondary' : 
+                      subscriptionStatus === 'active' ? 'default' : 
+                      'destructive'
+                    } 
+                    className="text-lg px-4 py-2"
+                  >
+                    {subscriptionStatus === 'pending_payment' ? 'Processing' :
+                     currentPlan === 'starter' ? 'Free' : 
+                     subscriptionStatus === 'active' ? 'Active' : 
+                     'Inactive'}
                   </Badge>
                 </div>
 
