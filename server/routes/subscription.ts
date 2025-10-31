@@ -134,10 +134,11 @@ router.post('/get-or-create-subscription', requireAuth, requireMainUser, async (
     });
 
     // Log subscription creation (not payment - that happens in webhook)
-    logPaymentEvent(user.id, 'subscription_initiated', priceAmount / 100, {
+    logPaymentEvent(user.id, 'subscription_initiated', 0, {
       requestedTier: tier,
       billingCycle,
       subscriptionId: subscription.id,
+      priceId,
     });
 
     res.json({
@@ -269,26 +270,14 @@ router.post('/update-tier', requireAuth, requireMainUser, async (req: Authentica
     // Get current subscription
     const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
     
-    // Get the price for the new tier and billing cycle
-    const priceAmount = SUBSCRIPTION_PRICES[tier as keyof typeof SUBSCRIPTION_PRICES][billingCycle as keyof typeof SUBSCRIPTION_PRICES.starter];
+    // Get the Stripe price ID for the new tier and billing cycle
+    const priceId = getStripePriceId(tier, billingCycle);
 
-    // Create new price object
-    const price = await stripe.prices.create({
-      unit_amount: priceAmount,
-      currency: 'usd',
-      recurring: {
-        interval: billingCycle === 'annual' ? 'year' : 'month',
-      },
-      product_data: {
-        name: `Euno ${tier.charAt(0).toUpperCase() + tier.slice(1)} Plan`,
-      },
-    });
-
-    // Update subscription
+    // Update subscription with the new price
     await stripe.subscriptions.update(user.stripeSubscriptionId, {
       items: [{
         id: subscription.items.data[0].id,
-        price: price.id,
+        price: priceId,
       }],
       proration_behavior: 'always_invoice',
     });
@@ -300,10 +289,11 @@ router.post('/update-tier', requireAuth, requireMainUser, async (req: Authentica
     });
 
     // Log tier change
-    logPaymentEvent(user.id, 'subscription_updated', priceAmount / 100, {
+    logPaymentEvent(user.id, 'subscription_updated', 0, {
       oldTier: user.subscriptionTier,
       newTier: tier,
       billingCycle,
+      priceId,
     });
 
     res.json({
