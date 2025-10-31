@@ -231,15 +231,12 @@ export default function Documentation() {
           <p className="text-xl text-gray-600 mb-8">
             Our support team is here to help you succeed with Euno.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Link href="/contact">
               <Button size="lg" variant="outline">
                 Contact Us
               </Button>
             </Link>
-            <Button size="lg">
-              Schedule a Demo
-            </Button>
           </div>
         </div>
       </section>
