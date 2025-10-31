@@ -36,9 +36,6 @@ export default function Footer() {
               <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
               <li><Link href="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
               <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
-              <li className="flex items-center">
-                <EmailWithCopy email="askeunoanalytics@gmail.com" className="text-gray-400 hover:text-white transition-colors" />
-              </li>
             </ul>
           </div>
           
