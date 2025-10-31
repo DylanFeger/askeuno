@@ -234,7 +234,7 @@ export default function Documentation() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/contact">
               <Button size="lg" variant="outline">
-                Contact Support
+                Contact Us
               </Button>
             </Link>
             <Button size="lg">
