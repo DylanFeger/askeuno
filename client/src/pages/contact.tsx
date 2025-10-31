@@ -182,7 +182,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Sales Inquiries</h3>
-                    <EmailWithCopy email="welcome@askeuno.com" className="text-gray-600" />
+                    <EmailWithCopy email="hello@askeuno.com" className="text-gray-600" />
                     <p className="text-sm text-gray-500 mt-1">For enterprise plans and custom needs</p>
                   </div>
                 </div>
