@@ -195,7 +195,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Office Location</h3>
-                    <p className="text-gray-600">San Francisco, CA</p>
+                    <p className="text-gray-600">Somewhere in the woods</p>
                     <p className="text-sm text-gray-500 mt-1">Remote-first company</p>
                   </div>
                 </div>
