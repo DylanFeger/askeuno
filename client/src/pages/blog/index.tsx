@@ -166,19 +166,6 @@ export default function BlogHomepage() {
               })}
             </div>
           )}
-
-          {/* Newsletter CTA */}
-          <div className="mt-20 bg-gradient-to-r from-primary to-green-700 rounded-2xl p-8 text-white text-center">
-            <h3 className="text-3xl font-bold mb-4">Stay Updated</h3>
-            <p className="text-lg mb-6 text-green-100">
-              Get the latest data insights and analytics tips delivered to your inbox
-            </p>
-            <Link href="/contact">
-              <Button size="lg" className="bg-white text-green-700 hover:bg-green-50">
-                Subscribe to Newsletter
-              </Button>
-            </Link>
-          </div>
         </div>
 
         <Footer />
