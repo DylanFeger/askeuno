@@ -217,15 +217,15 @@ export default function ConnectionsPage() {
           const storedUrl = localStorage.getItem('lightspeed_store_url');
           if (!storedUrl) {
             window.location.href = '/lightspeed-setup';
-            return Promise.resolve();
+            return Promise.resolve({ skipSuccessToast: true });
           }
           // If we have store URL, proceed with OAuth
           window.location.href = `/api/auth/lightspeed/connect`;
-          return Promise.resolve();
+          return Promise.resolve({ skipSuccessToast: true });
         }
         // OAuth flow - redirect to backend OAuth endpoint
         window.location.href = `/api/auth/${data.provider}/connect`;
-        return Promise.resolve();
+        return Promise.resolve({ skipSuccessToast: true });
       }
     },
     onSuccess: (data: any) => {
