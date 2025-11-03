@@ -8,6 +8,7 @@ import { eq } from 'drizzle-orm';
 import { logger } from '../utils/logger';
 import * as chatService from '../services/chatService';
 import { TIERS } from '../ai/tiers';
+import { checkRateLimit } from '../ai/rate';
 import { v4 as uuidv4 } from 'uuid';
 import { 
   mapQueryToSchema, 
@@ -66,6 +67,15 @@ router.post('/send', requireAuth, async (req: Request, res: Response) => {
     }
     
     const tier = user.subscriptionTier || 'starter';
+    
+    // Rate limiting - increment usage counter
+    const rateLimit = await checkRateLimit(userId, tier);
+    if (!rateLimit.allowed) {
+      return res.status(429).json({
+        error: rateLimit.message || 'Rate limit exceeded',
+        retryAfter: 60
+      });
+    }
     
     // Load connected data sources and schemas
     const userDataSources = await db

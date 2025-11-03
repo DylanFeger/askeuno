@@ -90,3 +90,46 @@ export async function checkRateLimit(
   
   return { allowed: true };
 }
+
+export function getQueryStatus(userId: number, tier: string): {
+  queriesUsed: number;
+  queryLimit: number;
+  isUnlimited: boolean;
+  timeUntilReset: number;
+} {
+  // Default to starter tier if tier is undefined or unknown
+  const normalizedTier = tier || 'starter';
+  const tierConfig = TIERS[normalizedTier as keyof typeof TIERS] || TIERS.starter;
+  
+  const key = `${userId}-${normalizedTier}`;
+  const now = Date.now();
+  const hourAgo = now - 3600000;
+  
+  const entry = rateLimitCache.get(key);
+  
+  if (!entry) {
+    return {
+      queriesUsed: 0,
+      queryLimit: tierConfig.maxQueriesPerHour,
+      isUnlimited: tierConfig.maxQueriesPerHour === Infinity,
+      timeUntilReset: 0
+    };
+  }
+  
+  // Filter timestamps to only include those from the last hour
+  const recentTimestamps = entry.timestamps.filter(ts => ts > hourAgo);
+  
+  // Calculate time until oldest timestamp expires
+  let timeUntilReset = 0;
+  if (recentTimestamps.length > 0) {
+    const oldestTimestamp = recentTimestamps[0];
+    timeUntilReset = Math.max(0, Math.ceil((oldestTimestamp + 3600000 - now) / 60000));
+  }
+  
+  return {
+    queriesUsed: recentTimestamps.length,
+    queryLimit: tierConfig.maxQueriesPerHour,
+    isUnlimited: tierConfig.maxQueriesPerHour === Infinity,
+    timeUntilReset
+  };
+}

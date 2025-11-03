@@ -6,6 +6,7 @@ import { logger } from '../utils/logger';
 import archiver from 'archiver';
 import path from 'path';
 import { downloadFromS3, deleteFromS3 } from '../services/s3Service';
+import { getQueryStatus } from '../ai/rate';
 
 // Initialize Stripe
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -17,6 +18,24 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 });
 
 const router = express.Router();
+
+// Get query status for current user
+router.get('/query-status', requireAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user!.id;
+    const tier = req.user!.subscriptionTier || 'starter';
+    
+    const status = getQueryStatus(userId, tier);
+    
+    res.json(status);
+  } catch (error) {
+    logger.error('Query status retrieval failed', { 
+      userId: req.user?.id, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    res.status(500).json({ error: 'Failed to get query status' });
+  }
+});
 
 // Export user data (GDPR compliance)
 router.post('/export-data', requireAuth, requireMainUser, async (req: AuthenticatedRequest, res) => {

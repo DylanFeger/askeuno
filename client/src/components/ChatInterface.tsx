@@ -396,9 +396,19 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
       setLocalMessages(prev => [...prev, aiMessage]);
       setIncludeChart(false);
       
+      // Optimistically update query counter
+      queryClient.setQueryData(['/api/user/query-status'], (old: any) => {
+        if (!old || old.isUnlimited) return old;
+        return {
+          ...old,
+          queriesUsed: old.queriesUsed + 1,
+        };
+      });
+      
       // Invalidate queries to sync with server
       queryClient.invalidateQueries({ queryKey: ['/api/chat/v2/messages', data.conversationId] });
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/query-status'] });
     },
     onError: (error: any) => {
       toast({
@@ -407,6 +417,18 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
         variant: "destructive",
       });
     },
+  });
+
+  // Query for query status
+  const { data: queryStatus, refetch: refetchQueryStatus } = useQuery<{
+    queriesUsed: number;
+    queryLimit: number;
+    isUnlimited: boolean;
+    timeUntilReset: number;
+  }>({
+    queryKey: ['/api/user/query-status'],
+    enabled: !!user,
+    refetchInterval: 60000, // Refetch every 60 seconds
   });
 
   const handleSendMessage = async (forceChart: boolean = false) => {
@@ -568,9 +590,33 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
               />
             </div>
           )}
-          <div className="flex items-center space-x-2 text-sm text-gray-500">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span>Online</span>
+          <div className="flex items-center space-x-2 text-sm">
+            {queryStatus && !queryStatus.isUnlimited && (
+              <>
+                <div className={`w-2 h-2 rounded-full ${
+                  queryStatus.queriesUsed / queryStatus.queryLimit > 0.8 
+                    ? 'bg-red-500' 
+                    : queryStatus.queriesUsed / queryStatus.queryLimit > 0.5 
+                    ? 'bg-yellow-500' 
+                    : 'bg-green-500'
+                }`}></div>
+                <span className={`${
+                  queryStatus.queriesUsed / queryStatus.queryLimit > 0.8 
+                    ? 'text-red-600' 
+                    : queryStatus.queriesUsed / queryStatus.queryLimit > 0.5 
+                    ? 'text-yellow-600' 
+                    : 'text-gray-600'
+                }`}>
+                  {queryStatus.queryLimit - queryStatus.queriesUsed}/{queryStatus.queryLimit} queries left
+                </span>
+              </>
+            )}
+            {queryStatus && queryStatus.isUnlimited && (
+              <>
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-gray-600">Unlimited queries</span>
+              </>
+            )}
           </div>
         </div>
       </div>
