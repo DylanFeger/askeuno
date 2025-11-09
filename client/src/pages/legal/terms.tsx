@@ -36,7 +36,7 @@ export default function TermsOfService() {
               <p>You must provide accurate, current, and complete information during registration. You are responsible for safeguarding your account password and for any activities or actions under your account.</p>
 
               <h3>3.2 Account Security</h3>
-              <p>You must immediately notify us at <a href="mailto:askeunoanalytics@gmail.com">askeunoanalytics@gmail.com</a> of any unauthorized use of your account or any other breach of security.</p>
+              <p>You must immediately notify us at <a href="mailto:support@askeuno.com">support@askeuno.com</a> of any unauthorized use of your account or any other breach of security.</p>
 
               <h2>4. Subscription Plans and Payments</h2>
               <h3>4.1 Subscription Tiers</h3>
@@ -127,8 +127,7 @@ export default function TermsOfService() {
               <h2>11. Contact Information</h2>
               <p>For questions about these Terms, please contact us:</p>
               <p>
-                <strong>Email</strong>: <a href="mailto:askeunoanalytics@gmail.com">askeunoanalytics@gmail.com</a><br />
-                <strong>Phone</strong>: 727-222-2519
+                <strong>Email</strong>: <a href="mailto:support@askeuno.com">support@askeuno.com</a>
               </p>
 
               <div className="mt-8 pt-8 border-t border-gray-200">

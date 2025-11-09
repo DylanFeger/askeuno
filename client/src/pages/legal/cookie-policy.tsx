@@ -200,8 +200,7 @@ export default function CookiePolicy() {
               <h2>7. Contact Us</h2>
               <p>For questions about our use of cookies:</p>
               <p>
-                <strong>Email</strong>: <a href="mailto:askeunoanalytics@gmail.com">askeunoanalytics@gmail.com</a><br />
-                <strong>Phone</strong>: 727-222-2519<br />
+                <strong>Email</strong>: <a href="mailto:support@askeuno.com">support@askeuno.com</a><br />
                 <strong>Subject Line</strong>: Cookie Policy Inquiry
               </p>
 

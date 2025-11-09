@@ -18,7 +18,7 @@ export default function DataProcessingAgreement() {
           <Alert className="mb-6 bg-green-50 border-green-200">
             <FileCheck className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
-              For Enterprise customers requiring a signed DPA, please contact <a href="mailto:askeunoanalytics@gmail.com" className="underline">askeunoanalytics@gmail.com</a> to request a bilateral agreement.
+              For Enterprise customers requiring a signed DPA, please contact <a href="mailto:support@askeuno.com" className="underline">support@askeuno.com</a> to request a bilateral agreement.
             </AlertDescription>
           </Alert>
 
@@ -140,8 +140,7 @@ export default function DataProcessingAgreement() {
 
               <h2>7. Contact Information</h2>
               <p><strong>Data Protection Officer</strong><br />
-              Email: <a href="mailto:askeunoanalytics@gmail.com">askeunoanalytics@gmail.com</a><br />
-              Phone: 727-222-2519</p>
+              Email: <a href="mailto:support@askeuno.com">support@askeuno.com</a></p>
 
               <div className="mt-8 pt-8 border-t border-gray-200">
                 <p className="text-gray-600 text-sm">© 2025 Euno. All rights reserved.</p>

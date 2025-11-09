@@ -97,7 +97,7 @@ export default function DataRetentionPolicy() {
               <p>Users can delete their account via:</p>
               <ul>
                 <li>Settings → Account → Delete Account</li>
-                <li>Email request to <a href="mailto:askeunoanalytics@gmail.com">askeunoanalytics@gmail.com</a></li>
+                <li>Email request to <a href="mailto:support@askeuno.com">support@askeuno.com</a></li>
               </ul>
 
               <p><strong>Process</strong>:</p>
@@ -130,7 +130,7 @@ export default function DataRetentionPolicy() {
               <h3>5.1 Access Your Data</h3>
               <p>Request a copy of all data we hold:</p>
               <ul>
-                <li>Email <a href="mailto:askeunoanalytics@gmail.com">askeunoanalytics@gmail.com</a></li>
+                <li>Email <a href="mailto:support@askeuno.com">support@askeuno.com</a></li>
                 <li>Subject: "Data Access Request"</li>
                 <li>Response within 30 days</li>
                 <li>Delivered in machine-readable format (JSON/CSV)</li>
@@ -140,7 +140,7 @@ export default function DataRetentionPolicy() {
               <p>Request deletion of your account or specific data:</p>
               <ul>
                 <li>Via Settings → Account → Delete Account, or</li>
-                <li>Email <a href="mailto:askeunoanalytics@gmail.com">askeunoanalytics@gmail.com</a></li>
+                <li>Email <a href="mailto:support@askeuno.com">support@askeuno.com</a></li>
                 <li>Subject: "Data Deletion Request"</li>
                 <li>Processed within 30 days</li>
               </ul>
@@ -156,8 +156,7 @@ export default function DataRetentionPolicy() {
               <h2>6. Contact Information</h2>
               <p>For questions about data retention:</p>
               <p>
-                <strong>Email</strong>: <a href="mailto:askeunoanalytics@gmail.com">askeunoanalytics@gmail.com</a><br />
-                <strong>Phone</strong>: 727-222-2519<br />
+                <strong>Email</strong>: <a href="mailto:support@askeuno.com">support@askeuno.com</a><br />
                 <strong>Subject Line</strong>: "Data Retention Inquiry"
               </p>
 

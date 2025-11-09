@@ -38,7 +38,7 @@ export default function RefundPolicy() {
 
               <p><strong>How to Request:</strong></p>
               <ul>
-                <li>Email <a href="mailto:askeunoanalytics@gmail.com">askeunoanalytics@gmail.com</a> with subject "Refund Request"</li>
+                <li>Email <a href="mailto:support@askeuno.com">support@askeuno.com</a> with subject "Refund Request"</li>
                 <li>Include your account email and reason (optional)</li>
                 <li>Refunds processed within 5-7 business days</li>
               </ul>
@@ -91,7 +91,7 @@ export default function RefundPolicy() {
 
               <p><strong>Via Email:</strong></p>
               <ul>
-                <li>Send request to <a href="mailto:askeunoanalytics@gmail.com">askeunoanalytics@gmail.com</a></li>
+                <li>Send request to <a href="mailto:support@askeuno.com">support@askeuno.com</a></li>
                 <li>Include account email</li>
                 <li>We'll confirm within 24 hours</li>
               </ul>
@@ -148,8 +148,7 @@ export default function RefundPolicy() {
               <h2>8. Contact Information</h2>
               <p>For questions about our Refund Policy:</p>
               <p>
-                <strong>Email</strong>: <a href="mailto:askeunoanalytics@gmail.com">askeunoanalytics@gmail.com</a><br />
-                <strong>Phone</strong>: 727-222-2519<br />
+                <strong>Email</strong>: <a href="mailto:support@askeuno.com">support@askeuno.com</a><br />
                 <strong>Response Time</strong>: Within 24 hours
               </p>
 
