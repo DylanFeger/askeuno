@@ -244,7 +244,7 @@ Logged-out users are not tracked beyond what's necessary for site security.
 Euno is not directed at users under 18 years of age. We do not knowingly collect data from children.
 
 If cookies were set for a minor, parents/guardians can:
-- Request deletion via askeunoanalytics@gmail.com
+- Request deletion via support@askeuno.com
 - Clear browser cookies
 - Adjust browser privacy settings
 
@@ -310,11 +310,10 @@ We do not store sensitive information in cookies:
 
 For questions about our use of cookies:
 
-**Email**: askeunoanalytics@gmail.com  
-**Phone**: 727-222-2519  
+**Email**: support@askeuno.com  
 **Subject Line**: Cookie Policy Inquiry
 
-**Data Protection Officer**: askeunoanalytics@gmail.com
+**Data Protection Officer**: support@askeuno.com
 
 ## 17. Additional Resources
 

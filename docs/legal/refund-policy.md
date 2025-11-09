@@ -22,7 +22,7 @@ The Starter tier is free and does not involve any payments. No refunds are appli
 - No questions asked
 
 **How to Request:**
-- Email askeunoanalytics@gmail.com with subject "Refund Request"
+- Email support@askeuno.com with subject "Refund Request"
 - Include your account email and reason (optional)
 - Refunds processed within 5-7 business days
 
@@ -69,7 +69,7 @@ If you paid $1,009 for Professional Annual and cancel after 4 months:
 4. Confirm cancellation
 
 **Via Email:**
-- Send request to askeunoanalytics@gmail.com
+- Send request to support@askeuno.com
 - Include account email
 - We'll confirm within 24 hours
 
@@ -108,7 +108,7 @@ If your payment fails:
 If Euno experiences significant downtime or service disruption:
 - We may offer pro-rated credits or refunds
 - Determined on case-by-case basis
-- Report issues to askeunoanalytics@gmail.com
+- Report issues to support@askeuno.com
 
 ### 7.2 Account Violations
 No refunds if account terminated for:
@@ -141,7 +141,7 @@ Enterprise customers with custom contracts may have different refund terms as sp
 ## 9. Chargebacks and Disputes
 
 ### 9.1 Contact Us First
-Please contact askeunoanalytics@gmail.com before initiating a chargeback. We'll work to resolve any issues quickly.
+Please contact support@askeuno.com before initiating a chargeback. We'll work to resolve any issues quickly.
 
 ### 9.2 Chargeback Consequences
 If you file a chargeback instead of requesting a refund:
@@ -215,7 +215,7 @@ We reserve the right to deny refunds if we detect:
 ### 14.1 Refund Requests
 All refund requests should be sent to:
 
-**Email**: askeunoanalytics@gmail.com  
+**Email**: support@askeuno.com  
 **Subject Line**: Refund Request  
 **Include**:
 - Account email address
@@ -259,8 +259,7 @@ This policy does not affect your statutory rights under consumer protection laws
 
 For questions about our Refund Policy:
 
-**Email**: askeunoanalytics@gmail.com  
-**Phone**: 727-222-2519  
+**Email**: support@askeuno.com  
 **Response Time**: Within 24 hours
 
 ---

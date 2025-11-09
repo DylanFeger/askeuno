@@ -142,7 +142,7 @@ Object to processing of your data for specific purposes.
 ### 6.7 Withdraw Consent
 Withdraw consent for data processing at any time.
 
-**To exercise these rights, contact us at askeunoanalytics@gmail.com**
+**To exercise these rights, contact us at support@askeuno.com**
 
 ## 7. Data Security
 
@@ -220,7 +220,7 @@ Opt-out of sale of personal information. **Note: We do not sell personal informa
 ### 12.4 Right to Non-Discrimination
 You will not be discriminated against for exercising your privacy rights.
 
-**To exercise CCPA rights, contact askeunoanalytics@gmail.com**
+**To exercise CCPA rights, contact support@askeuno.com**
 
 ## 13. European Privacy Rights (GDPR)
 
@@ -247,14 +247,13 @@ Continued use after changes constitutes acceptance.
 
 For privacy questions or to exercise your rights:
 
-**Email**: askeunoanalytics@gmail.com  
-**Phone**: 727-222-2519  
+**Email**: support@askeuno.com  
 **Response Time**: Within 48 hours for urgent matters
 
 ## 17. Data Protection Officer
 
 For GDPR-related inquiries, contact our Data Protection Officer at:  
-askeunoanalytics@gmail.com
+support@askeuno.com
 
 ## 18. Additional Resources
 

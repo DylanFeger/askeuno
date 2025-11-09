@@ -315,8 +315,7 @@ Where applicable, EU Standard Contractual Clauses form part of this DPA and take
 For DPA-related inquiries:
 
 **Data Protection Officer**  
-Email: askeunoanalytics@gmail.com  
-Phone: 727-222-2519
+Email: support@askeuno.com
 
 **For Regulatory Matters**  
 Include reference: "DPA - Data Protection Inquiry"
@@ -329,7 +328,7 @@ This DPA is effective as of the date Controller accepts the Terms of Service or 
 
 ---
 
-**For Enterprise customers requiring a signed DPA**, please contact askeunoanalytics@gmail.com to request a bilateral agreement.
+**For Enterprise customers requiring a signed DPA**, please contact support@askeuno.com to request a bilateral agreement.
 
 ---
 

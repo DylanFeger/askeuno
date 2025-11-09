@@ -180,7 +180,7 @@ Euno follows these key principles:
 
 Users can delete their account via:
 - Settings → Account → Delete Account
-- Email request to askeunoanalytics@gmail.com
+- Email request to support@askeuno.com
 
 **Process**:
 1. User confirms deletion (cannot be undone after 30 days)
@@ -255,7 +255,7 @@ Under GDPR, users have the right to:
 - Necessary for legal claims
 - Required for public interest
 
-**Contact**: askeunoanalytics@gmail.com
+**Contact**: support@askeuno.com
 
 ### 6.3 CCPA Compliance (California Users)
 
@@ -345,7 +345,7 @@ If we extend retention periods:
 ### 10.1 Access Your Data
 
 Request a copy of all data we hold:
-- Email askeunoanalytics@gmail.com
+- Email support@askeuno.com
 - Subject: "Data Access Request"
 - Response within 30 days
 - Delivered in machine-readable format (JSON/CSV)
@@ -354,7 +354,7 @@ Request a copy of all data we hold:
 
 Request deletion of your account or specific data:
 - Via Settings → Account → Delete Account, or
-- Email askeunoanalytics@gmail.com
+- Email support@askeuno.com
 - Subject: "Data Deletion Request"
 - Processed within 30 days
 
@@ -362,7 +362,7 @@ Request deletion of your account or specific data:
 
 Update inaccurate or incomplete data:
 - Via Settings → Profile
-- Or email askeunoanalytics@gmail.com
+- Or email support@askeuno.com
 - Immediate updates
 
 ### 10.4 Export Your Data
@@ -376,11 +376,10 @@ Download all your data:
 
 For questions about data retention:
 
-**Email**: askeunoanalytics@gmail.com  
-**Phone**: 727-222-2519  
+**Email**: support@askeuno.com  
 **Subject Line**: "Data Retention Inquiry"
 
-**Data Protection Officer**: askeunoanalytics@gmail.com
+**Data Protection Officer**: support@askeuno.com
 
 ## 12. Additional Resources
 

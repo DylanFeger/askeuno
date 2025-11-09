@@ -24,7 +24,7 @@ You must provide accurate, current, and complete information during registration
 
 ### 3.2 Account Security
 
-You must immediately notify us at askeunoanalytics@gmail.com of any unauthorized use of your account or any other breach of security.
+You must immediately notify us at support@askeuno.com of any unauthorized use of your account or any other breach of security.
 
 ## 4. Subscription Plans and Payments
 
@@ -165,7 +165,7 @@ These Terms shall be governed by and construed in accordance with the laws of th
 
 ### 15.1 Informal Resolution
 
-We encourage you to contact us at askeunoanalytics@gmail.com to resolve any disputes informally before pursuing legal action.
+We encourage you to contact us at support@askeuno.com to resolve any disputes informally before pursuing legal action.
 
 ### 15.2 Arbitration
 
@@ -177,14 +177,13 @@ You agree to resolve disputes on an individual basis and waive the right to part
 
 ## 16. Enterprise Customers
 
-Enterprise customers may have separate agreements that supersede or supplement these Terms. Contact askeunoanalytics@gmail.com for enterprise contracts.
+Enterprise customers may have separate agreements that supersede or supplement these Terms. Contact support@askeuno.com for enterprise contracts.
 
 ## 17. Contact Information
 
 For questions about these Terms, please contact us:
 
-**Email**: askeunoanalytics@gmail.com  
-**Phone**: 727-222-2519
+**Email**: support@askeuno.com
 
 ## 18. Severability
 
