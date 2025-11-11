@@ -29,6 +29,7 @@ import connectionRoutes from "./routes/connections";
 import lightspeedRoutes from "./routes/lightspeed";
 import userRoutes from "./routes/user";
 import googleSheetsRoutes from "./routes/google-sheets";
+import feedbackRoutes from "./routes/feedback";
 import { initializeScheduler, shutdownScheduler } from "./services/scheduler";
 import { sendContactFormEmail } from "./services/awsSes";
 import { getCachedResponse, cacheQueryResponse } from "./ai/queryCache";
@@ -140,6 +141,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Team management routes
   app.use('/api', teamRoutes);
+  
+  // Feedback routes
+  app.use(feedbackRoutes);
 
   // Contact form endpoint - public with rate limiting
   app.post('/api/contact', 

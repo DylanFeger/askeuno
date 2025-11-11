@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -63,6 +63,17 @@ export const chatMessages = pgTable("chat_messages", {
   isComplete: boolean("is_complete").default(false), // For streaming messages
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const messageFeedback = pgTable("message_feedback", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").references(() => chatMessages.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  rating: text("rating").notNull(), // 'positive', 'negative'
+  comment: text("comment"), // Optional user comment
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueUserMessage: uniqueIndex("unique_user_message_feedback").on(table.userId, table.messageId)
+}));
 
 export const dataRows = pgTable("data_rows", {
   id: serial("id").primaryKey(),
@@ -241,6 +252,13 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
   content: true,
   metadata: true,
 });
+
+export const insertMessageFeedbackSchema = createInsertSchema(messageFeedback).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertMessageFeedback = z.infer<typeof insertMessageFeedbackSchema>;
+export type SelectMessageFeedback = typeof messageFeedback.$inferSelect;
 
 export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
   id: true,

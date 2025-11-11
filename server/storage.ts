@@ -9,6 +9,7 @@ import {
   connectionManager,
   dashboards,
   alerts,
+  messageFeedback,
   type User, 
   type InsertUser,
   type DataSource,
@@ -18,10 +19,12 @@ import {
   type InsertChatMessage,
   type DataRow,
   type BlogPost,
-  type InsertBlogPost
+  type InsertBlogPost,
+  type InsertMessageFeedback,
+  type SelectMessageFeedback
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, gte } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -61,6 +64,12 @@ export interface IStorage {
   deleteConversationsByDataSourceId(dataSourceId: number): Promise<void>;
   deleteConversation(id: number): Promise<void>;
   searchConversations(userId: number, searchTerm: string): Promise<{ conversation: ChatConversation, messages: ChatMessage[] }[]>;
+  
+  // Message feedback operations
+  createMessageFeedback(feedback: InsertMessageFeedback): Promise<SelectMessageFeedback>;
+  getMessageFeedback(messageId: number): Promise<SelectMessageFeedback | undefined>;
+  getMessageFeedbackStats(userId: number): Promise<{ positive: number; negative: number; total: number }>;
+  getWeeklyFeedbackReport(): Promise<Array<{ userId: number; positive: number; negative: number; total: number; satisfactionRate: number }>>;
   
   // Data rows operations
   insertDataRows(dataSourceId: number, rows: any[]): Promise<void>;
@@ -375,6 +384,113 @@ export class DatabaseStorage implements IStorage {
       .from(chatMessages)
       .where(eq(chatMessages.conversationId, conversationId))
       .orderBy(chatMessages.createdAt);
+  }
+
+  // Message feedback operations
+  async createMessageFeedback(feedback: InsertMessageFeedback): Promise<SelectMessageFeedback> {
+    // Check if feedback already exists
+    const existing = await db
+      .select()
+      .from(messageFeedback)
+      .where(
+        and(
+          eq(messageFeedback.userId, feedback.userId),
+          eq(messageFeedback.messageId, feedback.messageId)
+        )
+      )
+      .limit(1);
+    
+    if (existing.length > 0) {
+      // Update existing feedback
+      const [updated] = await db
+        .update(messageFeedback)
+        .set({ rating: feedback.rating, comment: feedback.comment })
+        .where(eq(messageFeedback.id, existing[0].id))
+        .returning();
+      return updated;
+    }
+    
+    // Create new feedback
+    const [newFeedback] = await db
+      .insert(messageFeedback)
+      .values(feedback)
+      .returning();
+    return newFeedback;
+  }
+
+  async getMessageFeedback(messageId: number): Promise<SelectMessageFeedback | undefined> {
+    const [feedback] = await db
+      .select()
+      .from(messageFeedback)
+      .where(eq(messageFeedback.messageId, messageId));
+    return feedback || undefined;
+  }
+
+  async getMessageFeedbackStats(userId: number): Promise<{ positive: number; negative: number; total: number }> {
+    // Get all feedback for messages in conversations belonging to the user
+    const result = await db
+      .select({
+        rating: messageFeedback.rating,
+        count: sql<number>`count(*)::int`
+      })
+      .from(messageFeedback)
+      .innerJoin(chatMessages, eq(messageFeedback.messageId, chatMessages.id))
+      .innerJoin(chatConversations, eq(chatMessages.conversationId, chatConversations.id))
+      .where(eq(chatConversations.userId, userId))
+      .groupBy(messageFeedback.rating);
+
+    const stats = { positive: 0, negative: 0, total: 0 };
+    
+    for (const row of result) {
+      if (row.rating === 'positive') {
+        stats.positive = row.count;
+      } else if (row.rating === 'negative') {
+        stats.negative = row.count;
+      }
+      stats.total += row.count;
+    }
+
+    return stats;
+  }
+
+  async getWeeklyFeedbackReport(): Promise<Array<{ userId: number; positive: number; negative: number; total: number; satisfactionRate: number }>> {
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    
+    const result = await db
+      .select({
+        userId: chatConversations.userId,
+        rating: messageFeedback.rating,
+        count: sql<number>`count(*)::int`
+      })
+      .from(messageFeedback)
+      .innerJoin(chatMessages, eq(messageFeedback.messageId, chatMessages.id))
+      .innerJoin(chatConversations, eq(chatMessages.conversationId, chatConversations.id))
+      .where(gte(messageFeedback.createdAt, oneWeekAgo))
+      .groupBy(chatConversations.userId, messageFeedback.rating);
+
+    // Aggregate by user
+    const userStats = new Map<number, { positive: number; negative: number; total: number }>();
+    
+    for (const row of result) {
+      if (!userStats.has(row.userId)) {
+        userStats.set(row.userId, { positive: 0, negative: 0, total: 0 });
+      }
+      const stats = userStats.get(row.userId)!;
+      
+      if (row.rating === 'positive') {
+        stats.positive = row.count;
+      } else if (row.rating === 'negative') {
+        stats.negative = row.count;
+      }
+      stats.total += row.count;
+    }
+
+    // Calculate satisfaction rate for each user
+    return Array.from(userStats.entries()).map(([userId, stats]) => ({
+      userId,
+      ...stats,
+      satisfactionRate: stats.total > 0 ? stats.positive / stats.total : 0
+    }));
   }
 
   // Data rows operations

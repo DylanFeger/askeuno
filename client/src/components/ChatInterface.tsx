@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, ChevronDown, ChevronUp, Brain, FileText, Database, AlertCircle, ChevronRight, BarChart2, Lock } from 'lucide-react';
+import { Send, Bot, User, ChevronDown, ChevronUp, Brain, FileText, Database, AlertCircle, ChevronRight, BarChart2, Lock, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
@@ -362,6 +362,29 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
       queryClient.invalidateQueries({ queryKey: ['/api/conversations'] });
     }
   };
+
+  const [feedbackGiven, setFeedbackGiven] = useState<Record<number, 'positive' | 'negative'>>({});
+
+  const feedbackMutation = useMutation({
+    mutationFn: async ({ messageId, rating }: { messageId: number; rating: 'positive' | 'negative' }) => {
+      const response = await apiRequest('POST', '/api/feedback', { messageId, rating });
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      setFeedbackGiven(prev => ({ ...prev, [variables.messageId]: variables.rating }));
+      toast({
+        title: "Feedback submitted",
+        description: "Thank you for your feedback!",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to submit feedback",
+        variant: "destructive",
+      });
+    },
+  });
 
   const sendMessageMutation = useMutation({
     mutationFn: async ({ messageContent, forceChart = false }: { messageContent: string; forceChart?: boolean }) => {
@@ -772,6 +795,33 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
                       ))
                     )}
                   </div>
+                </div>
+              )}
+              
+              {/* Feedback buttons for assistant messages */}
+              {msg.role === 'assistant' && msg.id && (
+                <div className="mt-3 flex items-center gap-2 border-t border-gray-200 pt-2">
+                  <span className="text-xs text-gray-500">Was this helpful?</span>
+                  <button
+                    onClick={() => feedbackMutation.mutate({ messageId: msg.id!, rating: 'positive' })}
+                    disabled={feedbackGiven[msg.id!] !== undefined}
+                    data-testid={`thumbs-up-${msg.id}`}
+                    className={`p-1 rounded hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      feedbackGiven[msg.id!] === 'positive' ? 'text-green-600' : 'text-gray-400'
+                    }`}
+                  >
+                    <ThumbsUp className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => feedbackMutation.mutate({ messageId: msg.id!, rating: 'negative' })}
+                    disabled={feedbackGiven[msg.id!] !== undefined}
+                    data-testid={`thumbs-down-${msg.id}`}
+                    className={`p-1 rounded hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      feedbackGiven[msg.id!] === 'negative' ? 'text-red-600' : 'text-gray-400'
+                    }`}
+                  >
+                    <ThumbsDown className="w-4 h-4" />
+                  </button>
                 </div>
               )}
             </div>
