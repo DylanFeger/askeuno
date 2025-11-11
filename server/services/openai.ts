@@ -16,7 +16,7 @@ export interface AIResponse {
   suggestedTabSwitch?: string;
 }
 
-// Helper function to detect query type and determine temperature
+// Helper function to detect query type - temperature now standardized to 0 for consistency
 function analyzeQueryType(question: string): {
   category: 'sales' | 'trends' | 'predictions' | 'general';
   temperature: number;
@@ -24,7 +24,7 @@ function analyzeQueryType(question: string): {
 } {
   const lowercaseQuestion = question.toLowerCase();
   
-  // SQL generation or data analysis tasks - low temperature for accuracy
+  // SQL generation or data analysis tasks
   if (lowercaseQuestion.includes('sql') || 
       lowercaseQuestion.includes('query') || 
       lowercaseQuestion.includes('calculate') ||
@@ -34,7 +34,7 @@ function analyzeQueryType(question: string): {
       lowercaseQuestion.includes('total')) {
     return { 
       category: 'sales', 
-      temperature: 0.2,
+      temperature: 0, // Deterministic for maximum consistency
       model: 'gpt-4o' // Best for analytical tasks
     };
   }
@@ -49,12 +49,12 @@ function analyzeQueryType(question: string): {
       lowercaseQuestion.includes('price')) {
     return { 
       category: 'sales', 
-      temperature: 0.2,
+      temperature: 0, // Deterministic for maximum consistency
       model: 'gpt-4o'
     };
   }
   
-  // Trend analysis - moderate temperature for balanced analysis
+  // Trend analysis
   if (lowercaseQuestion.includes('trend') ||
       lowercaseQuestion.includes('pattern') ||
       lowercaseQuestion.includes('change') ||
@@ -64,12 +64,12 @@ function analyzeQueryType(question: string): {
       lowercaseQuestion.includes('over time')) {
     return { 
       category: 'trends', 
-      temperature: 0.4,
+      temperature: 0, // Deterministic for maximum consistency
       model: 'gpt-4o'
     };
   }
   
-  // Predictions and forecasting - higher temperature for creativity
+  // Predictions and forecasting
   if (lowercaseQuestion.includes('predict') ||
       lowercaseQuestion.includes('forecast') ||
       lowercaseQuestion.includes('future') ||
@@ -79,7 +79,7 @@ function analyzeQueryType(question: string): {
       lowercaseQuestion.includes('estimate')) {
     return { 
       category: 'predictions', 
-      temperature: 0.6,
+      temperature: 0, // Deterministic for maximum consistency
       model: 'gpt-4o' // Using gpt-4o for all tasks
     };
   }
@@ -87,7 +87,7 @@ function analyzeQueryType(question: string): {
   // Default for general questions
   return { 
     category: 'general', 
-    temperature: 0.4,
+    temperature: 0, // Deterministic for maximum consistency
     model: 'gpt-4o'
   };
 }
@@ -374,7 +374,7 @@ export async function analyzeDataSchema(data: any[], userId?: number): Promise<a
       model: "gpt-4o",
       messages: [{ role: "user", content: systemPrompt }],
       response_format: { type: "json_object" },
-      temperature: 0.3,
+      temperature: 0, // Deterministic for maximum consistency
       max_tokens: 1000,
     });
 
@@ -422,7 +422,7 @@ export async function generateConversationTitle(
         { role: "user", content: `Generate a title for this conversation:\n\n${conversationText}` }
       ],
       response_format: { type: "json_object" },
-      temperature: 0.7,
+      temperature: 0, // Deterministic for maximum consistency
       max_tokens: 100,
     });
 

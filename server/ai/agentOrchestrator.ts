@@ -73,7 +73,7 @@ Respond in JSON format:
           { role: "system", content: "You are an expert SQL validator. Always respond with valid JSON." },
           { role: "user", content: validationPrompt }
         ],
-        temperature: 0.2,
+        temperature: 0, // Deterministic for maximum consistency
         max_tokens: 1000,
         response_format: { type: "json_object" }
       });
@@ -162,7 +162,7 @@ Limit to ${this.tierConfig.agentConfig.maxSubAgents} sub-steps maximum.`;
           { role: "system", content: "You are an analytical planning expert. Always respond with valid JSON." },
           { role: "user", content: planningPrompt }
         ],
-        temperature: 0.3,
+        temperature: 0, // Deterministic for maximum consistency
         max_tokens: 1500,
         response_format: { type: "json_object" }
       });
@@ -216,7 +216,7 @@ CRITICAL: Response must be ${responseLength} maximum. Be ultra-concise.`;
           { role: "system", content: "You are a concise senior data analyst. Every word must add value." },
           { role: "user", content: synthesisPrompt }
         ],
-        temperature: 0.4,
+        temperature: 0, // Deterministic for maximum consistency
         max_tokens: extendedResponses ? 300 : 150
       });
 

@@ -89,7 +89,7 @@ Return JSON array of suggestions with categories:
         },
         { role: "user", content: prompt }
       ],
-      temperature: 0.3, // Some creativity for varied suggestions
+      temperature: 0, // Deterministic for maximum consistency
       top_p: 1,
       max_tokens: 200,
       response_format: { type: "json_object" }

@@ -2,6 +2,7 @@ import { db } from "../db";
 import { dataSources, dataRows } from "@shared/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { logger } from "../utils/logger";
+import { validateSQL, getTierValidationOptions } from "../ai/sqlValidator";
 
 export interface DataSourceInfo {
   active: boolean;
@@ -97,36 +98,46 @@ export async function getActiveDataSource(userId: number): Promise<DataSourceInf
 
 export async function runSQL(
   dataSource: DataSourceInfo,
-  sqlQuery: string
-): Promise<{ rows: any[]; rowCount: number; tables: string[] }> {
+  sqlQuery: string,
+  tier: string = 'starter'
+): Promise<{ rows: any[]; rowCount: number; tables: string[]; validationWarnings?: string[] }> {
   try {
-    // Validate SQL - only allow SELECT and WITH
-    const upperSQL = sqlQuery.toUpperCase().trim();
-    const forbiddenKeywords = [
-      'INSERT', 'UPDATE', 'DELETE', 'CREATE', 'DROP', 
-      'ALTER', 'TRUNCATE', 'PRAGMA', 'GRANT', 'REVOKE'
-    ];
+    // Enhanced SQL validation with tier-specific rules
+    const validationOptions = getTierValidationOptions(tier);
+    const validation = await validateSQL(sqlQuery, validationOptions);
     
-    for (const keyword of forbiddenKeywords) {
-      if (upperSQL.includes(keyword)) {
-        throw new Error(`Forbidden SQL operation: ${keyword}`);
-      }
+    if (!validation.isValid) {
+      const errorMessage = validation.errors.join('; ');
+      logger.error('SQL validation failed', { 
+        errors: validation.errors,
+        sql: sqlQuery.substring(0, 100) 
+      });
+      throw new Error(`SQL validation failed: ${errorMessage}`);
     }
     
-    // Ensure LIMIT is present and <= 5000
-    if (!upperSQL.includes('LIMIT')) {
-      sqlQuery += ' LIMIT 5000';
-    } else {
-      // Check if limit is reasonable
-      const limitMatch = upperSQL.match(/LIMIT\s+(\d+)/);
-      if (limitMatch && parseInt(limitMatch[1]) > 5000) {
-        sqlQuery = sqlQuery.replace(/LIMIT\s+\d+/i, 'LIMIT 5000');
-      }
+    // Log warnings if any
+    if (validation.warnings.length > 0) {
+      logger.warn('SQL validation warnings', {
+        warnings: validation.warnings,
+        tier,
+        estimatedCost: validation.estimatedCost
+      });
     }
+    
+    // Use enhanced SQL with safety improvements
+    sqlQuery = validation.enhancedSQL;
     
     if (dataSource.type === 'file') {
       // For file-based data, query from dataRows table
       const sourceId = dataSource.handle;
+      
+      // Parse the actual LIMIT from validated SQL
+      const limitMatch = validation.enhancedSQL.toUpperCase().match(/LIMIT\s+(\d+)/);
+      const requestedLimit = limitMatch ? parseInt(limitMatch[1]) : (validationOptions.maxLimit || 5000);
+      
+      // Use the MINIMUM of requested limit and tier maximum
+      // This respects both user intent (e.g., LIMIT 10) and tier restrictions
+      const effectiveLimit = Math.min(requestedLimit, validationOptions.maxLimit || 5000);
       
       // This is a simplified implementation
       // In production, you'd translate the SQL to work with the dataRows table
@@ -134,12 +145,21 @@ export async function runSQL(
         .select()
         .from(dataRows)
         .where(eq(dataRows.dataSourceId, sourceId))
-        .limit(5000);
+        .limit(effectiveLimit);
+      
+      logger.info('SQL executed with enforced limits', {
+        tier,
+        requestedLimit,
+        tierMaxLimit: validationOptions.maxLimit,
+        effectiveLimit,
+        rowsReturned: rows.length
+      });
       
       return {
         rows: rows.map(r => r.rowData),
         rowCount: rows.length,
-        tables: ['data']
+        tables: ['data'],
+        validationWarnings: validation.warnings
       };
     }
     
@@ -148,7 +168,8 @@ export async function runSQL(
     return {
       rows: [],
       rowCount: 0,
-      tables: []
+      tables: [],
+      validationWarnings: validation.warnings
     };
     
   } catch (error) {

@@ -27,27 +27,27 @@ export enum AnalyticsTaskType {
 const MODEL_CONFIGS = {
   [AnalyticsTaskType.SQL_GENERATION]: {
     model: "gpt-4o", // Best current model for SQL accuracy
-    temperature: 0.1, // Very low for precise SQL
+    temperature: 0, // Deterministic for maximum consistency
     maxTokens: 2000
   },
   [AnalyticsTaskType.DATA_ANALYSIS]: {
     model: "gpt-4o", // Balanced for analysis
-    temperature: 0.3,
+    temperature: 0, // Deterministic for maximum consistency
     maxTokens: 3000
   },
   [AnalyticsTaskType.TREND_PREDICTION]: {
     model: "gpt-4o", 
-    temperature: 0.5, // Higher for creative predictions
+    temperature: 0, // Deterministic for maximum consistency
     maxTokens: 2500
   },
   [AnalyticsTaskType.ANOMALY_DETECTION]: {
     model: "gpt-4o",
-    temperature: 0.2,
+    temperature: 0, // Deterministic for maximum consistency
     maxTokens: 2000
   },
   [AnalyticsTaskType.NATURAL_LANGUAGE]: {
     model: "gpt-4o",
-    temperature: 0.4,
+    temperature: 0, // Deterministic for maximum consistency
     maxTokens: 1500
   }
 };

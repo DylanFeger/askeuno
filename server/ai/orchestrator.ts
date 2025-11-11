@@ -558,7 +558,7 @@ async function executeMultiStepQuery(
         const finalSQL = validation.sql || sqlPlan.sql;
         
         // Execute the step
-        const stepResult = await runSQL(dataSource, finalSQL);
+        const stepResult = await runSQL(dataSource, finalSQL, tier);
         
         stepResults.push({
           description: step.description,
@@ -727,7 +727,7 @@ async function executeDataQuery(
     const finalSQL = validation.sql || sqlPlan.sql;
     
     // Execute SQL
-    const queryResult = await runSQL(dataSource, finalSQL);
+    const queryResult = await runSQL(dataSource, finalSQL, tier);
     
     // Generate analysis based on tier
     const analysis = await generateAnalysis(
