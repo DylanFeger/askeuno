@@ -12,6 +12,7 @@ import { multiSourceService } from "../services/multiSourceService";
 import { AIAgentOrchestrator } from "./agentOrchestrator";
 import { analyzeDataQuality } from "./dataQualityAnalyzer";
 import { generateUserFriendlyError } from "./errorMessages";
+import { validateAIResponse } from "./responseValidator";
 import OpenAI from "openai";
 
 const openai = new OpenAI({ 
@@ -799,6 +800,40 @@ async function executeDataQuery(
     // Prepend data quality disclosure to response if issues found
     if (qualityReport.disclosureMessage) {
       analysis.text = `${qualityReport.disclosureMessage}\n\n${analysis.text}`;
+    }
+    
+    // Validate AI response to prevent hallucinations
+    const responseValidation = validateAIResponse(analysis.text, queryResult, message);
+    
+    if (!responseValidation.isValid) {
+      logger.warn('Response validation failed', {
+        errors: responseValidation.errors,
+        warnings: responseValidation.warnings
+      });
+      
+      // If response has critical errors (hallucinations), request regeneration
+      if (responseValidation.errors.length > 0) {
+        logger.error('Response contains potential hallucinations - blocking');
+        
+        return {
+          text: "I encountered an issue generating an accurate response. Please try rephrasing your question or asking about a different aspect of your data.",
+          meta: {
+            intent: "data_query",
+            tier,
+            tables: queryResult.tables,
+            rows: queryResult.rowCount,
+            limited: false
+          }
+        };
+      }
+    }
+    
+    // Log validation warnings (non-blocking)
+    if (responseValidation.warnings.length > 0) {
+      logger.warn('Response validation warnings', {
+        warnings: responseValidation.warnings,
+        confidence: responseValidation.confidence
+      });
     }
     
     // Compose response based on tier

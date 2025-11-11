@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { logger } from "../utils/logger";
+import { analyzeAndRecommendChart } from "./semanticChartAnalyzer";
 
 const openai = new OpenAI({ 
   apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || ""
@@ -271,44 +272,29 @@ Provide your analysis based ONLY on the data above.
       result.forecast = parts[1].trim();
     }
     
-    // Generate chart data for Professional and Enterprise tiers if appropriate
+    // Generate chart data for Professional and Enterprise tiers using semantic analysis
     if (tierConfig.allowCharts && queryResult.rows.length > 0) {
-      // Simple chart generation based on data structure
-      const firstRow = queryResult.rows[0];
-      const keys = Object.keys(firstRow);
-      
-      // Look for numeric and date/string fields
-      const numericFields = keys.filter(k => typeof firstRow[k] === 'number');
-      const textFields = keys.filter(k => typeof firstRow[k] === 'string');
-      
-      if (numericFields.length > 0 && textFields.length > 0) {
-        // Determine chart type based on query keywords
-        const questionLower = question.toLowerCase();
-        let chartType: "line" | "bar" | "pie" | "area" = "bar"; // default
+      try {
+        // Use OpenAI semantic analysis to determine best chart type
+        const chartRecommendation = await analyzeAndRecommendChart(question, queryResult);
         
-        // Trend/time series indicators → line chart
-        if (questionLower.match(/\b(trend|over time|monthly|weekly|daily|timeline|progression|growth|change over)\b/)) {
-          chartType = "line";
+        if (chartRecommendation) {
+          result.chart = {
+            type: chartRecommendation.type,
+            x: chartRecommendation.x,
+            y: chartRecommendation.y,
+            data: queryResult.rows.slice(0, 50) // Limit chart data
+          };
+          
+          logger.info('Semantic chart generated', {
+            chartType: chartRecommendation.type,
+            confidence: chartRecommendation.confidence,
+            reasoning: chartRecommendation.reasoning
+          });
         }
-        // Distribution/breakdown indicators → pie or bar chart
-        else if (questionLower.match(/\b(breakdown|distribution|share|percentage|proportion|by category)\b/)) {
-          chartType = queryResult.rows.length <= 8 ? "pie" : "bar";
-        }
-        // Comparison indicators → bar chart
-        else if (questionLower.match(/\b(compare|comparison|versus|vs|top|best|worst|highest|lowest|ranking)\b/)) {
-          chartType = "bar";
-        }
-        // Default: use row count to decide between line and bar
-        else {
-          chartType = queryResult.rows.length > 10 ? "line" : "bar";
-        }
-        
-        result.chart = {
-          type: chartType,
-          x: textFields[0],
-          y: numericFields[0],
-          data: queryResult.rows.slice(0, 50) // Limit chart data
-        };
+      } catch (chartError) {
+        logger.error('Error in semantic chart generation', chartError);
+        // Chart generation is optional, don't fail the entire analysis
       }
     }
     
