@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, uniqueIndex, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -73,6 +73,15 @@ export const messageFeedback = pgTable("message_feedback", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   uniqueUserMessage: uniqueIndex("unique_user_message_feedback").on(table.userId, table.messageId)
+}));
+
+export const queryTimestamps = pgTable("query_timestamps", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userTimestampIdx: index("user_timestamp_idx").on(table.userId, table.timestamp)
 }));
 
 export const dataRows = pgTable("data_rows", {
@@ -259,6 +268,14 @@ export const insertMessageFeedbackSchema = createInsertSchema(messageFeedback).o
 });
 export type InsertMessageFeedback = z.infer<typeof insertMessageFeedbackSchema>;
 export type SelectMessageFeedback = typeof messageFeedback.$inferSelect;
+
+export const insertQueryTimestampSchema = createInsertSchema(queryTimestamps).omit({
+  id: true,
+  timestamp: true,
+  createdAt: true
+});
+export type InsertQueryTimestamp = z.infer<typeof insertQueryTimestampSchema>;
+export type SelectQueryTimestamp = typeof queryTimestamps.$inferSelect;
 
 export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({
   id: true,

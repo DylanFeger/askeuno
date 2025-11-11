@@ -10,6 +10,7 @@ import {
   dashboards,
   alerts,
   messageFeedback,
+  queryTimestamps,
   type User, 
   type InsertUser,
   type DataSource,
@@ -21,7 +22,8 @@ import {
   type BlogPost,
   type InsertBlogPost,
   type InsertMessageFeedback,
-  type SelectMessageFeedback
+  type SelectMessageFeedback,
+  type SelectQueryTimestamp
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, gte } from "drizzle-orm";
@@ -70,6 +72,12 @@ export interface IStorage {
   getMessageFeedback(messageId: number): Promise<SelectMessageFeedback | undefined>;
   getMessageFeedbackStats(userId: number): Promise<{ positive: number; negative: number; total: number }>;
   getWeeklyFeedbackReport(): Promise<Array<{ userId: number; positive: number; negative: number; total: number; satisfactionRate: number }>>;
+  
+  // Query timestamp operations
+  recordQueryTimestamp(userId: number): Promise<void>;
+  getRecentQueryTimestamps(userId: number, hoursAgo?: number): Promise<SelectQueryTimestamp[]>;
+  cleanupOldQueryTimestamps(): Promise<void>;
+  checkAndRecordQuery(userId: number, hourlyLimit: number, minuteLimit?: number): Promise<{ allowed: boolean; count: number; timeUntilReset: number }>;
   
   // Data rows operations
   insertDataRows(dataSourceId: number, rows: any[]): Promise<void>;
@@ -491,6 +499,115 @@ export class DatabaseStorage implements IStorage {
       ...stats,
       satisfactionRate: stats.total > 0 ? stats.positive / stats.total : 0
     }));
+  }
+
+  // Query timestamp operations
+  async recordQueryTimestamp(userId: number): Promise<void> {
+    await db.insert(queryTimestamps).values({ userId });
+    
+    // Clean up old timestamps (older than 24 hours) after each insert
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    await db.delete(queryTimestamps).where(
+      and(
+        eq(queryTimestamps.userId, userId),
+        sql`${queryTimestamps.timestamp} < ${oneDayAgo}`
+      )
+    );
+  }
+
+  async checkAndRecordQuery(userId: number, hourlyLimit: number, minuteLimit?: number): Promise<{ allowed: boolean; count: number; timeUntilReset: number }> {
+    return await db.transaction(async (tx) => {
+      const now = new Date();
+      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+      const oneMinuteAgo = new Date(now.getTime() - 60 * 1000);
+
+      // Acquire unconditional user-level advisory lock to prevent race conditions
+      // This ensures only one transaction can check/insert for this user at a time
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(${userId})`);
+
+      // Count recent timestamps for this user
+      const hourlyTimestamps = await tx
+        .select()
+        .from(queryTimestamps)
+        .where(
+          and(
+            eq(queryTimestamps.userId, userId),
+            gte(queryTimestamps.timestamp, oneHourAgo)
+          )
+        );
+
+      // Check hourly limit
+      if (hourlyTimestamps.length >= hourlyLimit) {
+        const oldestTimestamp = hourlyTimestamps[0]?.timestamp;
+        const timeUntilReset = oldestTimestamp
+          ? Math.max(0, Math.ceil((new Date(oldestTimestamp).getTime() + 3600000 - now.getTime()) / 60000))
+          : 0;
+
+        return {
+          allowed: false,
+          count: hourlyTimestamps.length,
+          timeUntilReset
+        };
+      }
+
+      // Check minute limit (for Enterprise spam detection)
+      if (minuteLimit) {
+        const minuteTimestamps = hourlyTimestamps.filter(
+          t => new Date(t.timestamp) > oneMinuteAgo
+        );
+
+        if (minuteTimestamps.length >= minuteLimit) {
+          return {
+            allowed: false,
+            count: hourlyTimestamps.length,
+            timeUntilReset: 60 // Reset in 60 minutes
+          };
+        }
+      }
+
+      // Limits not exceeded - insert new timestamp
+      await tx.insert(queryTimestamps).values({ userId });
+
+      // Clean up old timestamps (older than 24 hours)
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      await tx.delete(queryTimestamps).where(
+        and(
+          eq(queryTimestamps.userId, userId),
+          sql`${queryTimestamps.timestamp} < ${oneDayAgo}`
+        )
+      );
+
+      return {
+        allowed: true,
+        count: hourlyTimestamps.length + 1, // Include the one we just inserted
+        timeUntilReset: 0
+      };
+    });
+  }
+
+  async getRecentQueryTimestamps(userId: number, hoursAgo: number = 1): Promise<SelectQueryTimestamp[]> {
+    const cutoffTime = new Date(Date.now() - hoursAgo * 60 * 60 * 1000);
+    
+    const timestamps = await db
+      .select()
+      .from(queryTimestamps)
+      .where(
+        and(
+          eq(queryTimestamps.userId, userId),
+          gte(queryTimestamps.timestamp, cutoffTime)
+        )
+      )
+      .orderBy(queryTimestamps.timestamp);
+    
+    return timestamps;
+  }
+
+  async cleanupOldQueryTimestamps(): Promise<void> {
+    // Delete timestamps older than 30 days
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    await db.delete(queryTimestamps).where(
+      sql`${queryTimestamps.timestamp} < ${thirtyDaysAgo}`
+    );
   }
 
   // Data rows operations

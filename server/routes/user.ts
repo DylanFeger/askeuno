@@ -25,7 +25,7 @@ router.get('/query-status', requireAuth, async (req: AuthenticatedRequest, res) 
     const userId = req.user!.id;
     const tier = req.user!.subscriptionTier || 'starter';
     
-    const status = getQueryStatus(userId, tier);
+    const status = await getQueryStatus(userId, tier);
     
     res.json(status);
   } catch (error) {

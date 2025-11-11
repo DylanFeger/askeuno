@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -112,6 +113,18 @@ export default function SubscriptionPage() {
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
   const [selectedTier, setSelectedTier] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Query for query status (same as chat interface) 
+  const { data: queryStatus, isLoading: queryStatusLoading } = useQuery<{
+    queriesUsed: number;
+    queryLimit: number;
+    isUnlimited: boolean;
+    timeUntilReset: number;
+  }>({
+    queryKey: ['/api/user/query-status'],
+    enabled: !!user,
+    refetchInterval: 60000, // Refetch every 60 seconds
+  });
 
   if (!user) {
     return (
@@ -285,26 +298,46 @@ export default function SubscriptionPage() {
                 </div>
 
                 {/* Query Usage Display */}
-                <div className="bg-gray-100 rounded-lg p-4">
+                <div className="bg-gray-100 rounded-lg p-4" data-testid="query-usage-meter">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-gray-700">Hourly Query Usage</span>
-                    <span className="text-sm text-gray-600">
-                      {user.monthlyQueryCount || 0} / {plans.find(p => p.id === currentPlan)?.queryLimit || 5} queries
-                    </span>
+                    {queryStatusLoading ? (
+                      <div className="h-4 w-24 bg-gray-300 rounded animate-pulse"></div>
+                    ) : queryStatus ? (
+                      <span className="text-sm text-gray-600" data-testid="query-usage-count">
+                        {queryStatus.isUnlimited ? (
+                          'Unlimited queries'
+                        ) : (
+                          `${queryStatus.queriesUsed} / ${queryStatus.queryLimit} queries`
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-sm text-gray-600">Loading...</span>
+                    )}
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-primary h-2.5 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(((user?.monthlyQueryCount || 0) / (plans.find(p => p.id === currentPlan)?.queryLimit || 5)) * 100, 100)}%` }}
-                    />
-                  </div>
-                  {(user.monthlyQueryCount || 0) >= (plans.find(p => p.id === currentPlan)?.queryLimit || 5) && (
-                    <Alert className="mt-3 bg-yellow-50 border-yellow-200">
-                      <AlertCircle className="h-4 w-4 text-yellow-600" />
-                      <AlertDescription className="text-yellow-900">
-                        You've reached your hourly query limit. Upgrade your plan for more queries.
-                      </AlertDescription>
-                    </Alert>
+                  {queryStatus && !queryStatus.isUnlimited && (
+                    <>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div 
+                          className="bg-primary h-2.5 rounded-full transition-all duration-300"
+                          style={{ width: `${Math.min((queryStatus.queriesUsed / queryStatus.queryLimit) * 100, 100)}%` }}
+                          data-testid="query-usage-bar"
+                        />
+                      </div>
+                      {queryStatus.queriesUsed >= queryStatus.queryLimit && (
+                        <Alert className="mt-3 bg-yellow-50 border-yellow-200">
+                          <AlertCircle className="h-4 w-4 text-yellow-600" />
+                          <AlertDescription className="text-yellow-900">
+                            You've reached your hourly query limit. {queryStatus.timeUntilReset > 0 && `Resets in ${queryStatus.timeUntilReset} minutes.`} Upgrade your plan for more queries.
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </>
+                  )}
+                  {queryStatus && queryStatus.isUnlimited && (
+                    <div className="w-full bg-green-100 rounded-full h-2.5">
+                      <div className="bg-green-500 h-2.5 rounded-full w-full" />
+                    </div>
                   )}
                 </div>
 
