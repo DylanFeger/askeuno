@@ -13,6 +13,8 @@ import { AIAgentOrchestrator } from "./agentOrchestrator";
 import { analyzeDataQuality } from "./dataQualityAnalyzer";
 import { generateUserFriendlyError } from "./errorMessages";
 import { validateAIResponse } from "./responseValidator";
+import { isVagueQuery, getDefaultInsight, getMultiSourceDefaultInsight } from "./defaultInsights";
+import { generateSmartSuggestions } from "./dataAwareSuggestions";
 import OpenAI from "openai";
 
 const openai = new OpenAI({ 
@@ -34,6 +36,7 @@ export type AiResponse = {
     rows: number;
     limited: boolean;
     metaphorUsed?: boolean;
+    suggestions?: Array<{text: string; category: string}>;
   };
 };
 
@@ -42,17 +45,19 @@ export async function handleChat({
   tier,
   message,
   conversationId,
-  extendedResponses = false
+  extendedResponses = false,
+  isSuggestionFollowup = false
 }: {
   userId: number;
   tier: string;
   message: string;
   conversationId?: number;
   extendedResponses?: boolean;
+  isSuggestionFollowup?: boolean;
 }): Promise<AiResponse> {
   try {
-    // 1. Check rate limits
-    const rateLimitResult = await checkRateLimit(userId, tier);
+    // 1. Check rate limits (suggestion follow-ups are FREE)
+    const rateLimitResult = await checkRateLimit(userId, tier, isSuggestionFollowup);
     if (!rateLimitResult.allowed) {
       return {
         text: rateLimitResult.message || "Rate limit exceeded. Please wait before sending more queries.",
@@ -403,6 +408,96 @@ async function executeMultiSourceDataQuery(
     // Initialize agent orchestrator for validation
     const agentOrch = new AIAgentOrchestrator(tier);
     
+    // Check if this is a vague query that needs a default insight
+    const vaguenessCheck = isVagueQuery(message);
+    if (vaguenessCheck.isVague && sources.length > 0) {
+      logger.info('Vague query detected - providing default insight', { 
+        query: message, 
+        insightType: vaguenessCheck.insightType,
+        sourceCount: sources.length
+      });
+      
+      // Get default insight for multi-source
+      const defaultInsightResult = getMultiSourceDefaultInsight(message, sources);
+      
+      if (defaultInsightResult && defaultInsightResult.insight.sql) {
+        const { primarySource, insight } = defaultInsightResult;
+        const tableName = primarySource.name.toLowerCase().replace(/\s+/g, '_');
+        
+        // Create dataSource format for runSQL
+        const dataSource = {
+          active: true,
+          tables: [{
+            name: tableName,
+            columns: primarySource.schema || {}
+          }]
+        };
+        
+        try {
+          // Execute the default SQL
+          const result = await runSQL(dataSource, insight.sql, tier);
+          
+          // Generate smart suggestions based on actual schema
+          const suggestions = await generateSmartSuggestions(message, sources, tier);
+          
+          // Analyze data quality
+          const columnNames = Object.keys(primarySource.schema || {});
+          const qualityAnalysis = analyzeDataQuality(result.rows, columnNames);
+          
+          // Generate AI analysis with proper parameters
+          const analysisResult = await generateAnalysis(
+            message,
+            { rows: result.rows, rowCount: result.rows.length, tables: sources.map(s => s.name) },
+            tier,
+            tierConfig,
+            [],
+            extendedResponses
+          );
+          
+          // Prepend multi-source context to the analysis
+          const analysisPrefix = `Multi-source analysis across ${sources.length} databases: ${sources.map(s => `${s.name} (${s.rowCount} rows)`).join(', ')}
+Correlated by: ${columnNames.slice(0, 3).join(', ')}
+
+`;
+          const analysis = analysisPrefix + analysisResult.text;
+          
+          const response: AiResponse = {
+            text: analysis,
+            meta: {
+              intent: "data_query",
+              tier,
+              tables: sources.map(s => s.name),
+              rows: result.rows.length,
+              limited: false,
+              metaphorUsed,
+              suggestions: suggestions
+            }
+          };
+          
+          // Add chart if suggested by default insight
+          if (insight.needsChart && insight.chartType && result.rows.length > 0) {
+            const firstRow = result.rows[0];
+            const fields = Object.keys(firstRow);
+            
+            // Use the fields from the query result
+            if (fields.length >= 2) {
+              response.chart = {
+                type: insight.chartType,
+                x: fields[0],
+                y: fields[1],
+                data: result.rows
+              };
+            }
+          }
+          
+          return response;
+        } catch (error) {
+          logger.warn('Default insight failed, falling back to normal flow', { error });
+          // Fall through to normal flow
+        }
+      }
+    }
+    
     // Generate multi-source query plan
     const queryPlan = multiSourceService.generateMultiSourceQueryPlan(message, sources);
     
@@ -572,7 +667,7 @@ async function executeMultiStepQuery(
       stepCount: multiStepPlan.steps.length 
     });
     
-    const stepResults: Array<{ description: string; result: any }> = [];
+    const stepResults: Array<{ description: string; result: any; qualityReport?: any }> = [];
     
     // Execute each step in order
     for (const step of multiStepPlan.steps) {
@@ -686,6 +781,89 @@ async function executeDataQuery(
   try {
     // Initialize agent orchestrator for this tier
     const agentOrch = new AIAgentOrchestrator(tier);
+    
+    // Check if this is a vague query that needs a default insight
+    const vaguenessCheck = isVagueQuery(message);
+    if (vaguenessCheck.isVague && dataSource.tables && dataSource.tables.length > 0) {
+      logger.info('Vague query detected - providing default insight (single-source)', { 
+        query: message, 
+        insightType: vaguenessCheck.insightType,
+        table: dataSource.tables[0]?.name
+      });
+      
+      // Get table info for default insight
+      const table = dataSource.tables[0];
+      const tableInfo = {
+        name: table.name,
+        schema: table.columns || {},
+        rowCount: dataSource.totalRows || 0
+      };
+      
+      const insight = getDefaultInsight(message, tableInfo);
+      
+      if (insight.sql) {
+        try {
+          // Execute the default SQL
+          const result = await runSQL(dataSource, insight.sql, tier);
+          
+          // Generate smart suggestions based on schema
+          const suggestions = await generateSmartSuggestions(message, [tableInfo], tier);
+          
+          // Analyze data quality
+          const columnNames = Object.keys(tableInfo.schema);
+          const qualityAnalysis = analyzeDataQuality(result.rows, columnNames);
+          
+          // Generate AI analysis
+          const analysisResult = await generateAnalysis(
+            message,
+            { rows: result.rows, rowCount: result.rows.length, tables: [table.name] },
+            tier,
+            tierConfig,
+            [],
+            extendedResponses
+          );
+          
+          // Prepend context if needed
+          let analysis = analysisResult.text;
+          if (metaphorIntro) {
+            analysis = `${metaphorIntro}\n\n${analysis}`;
+          }
+          
+          const response: AiResponse = {
+            text: analysis,
+            meta: {
+              intent: "data_query",
+              tier,
+              tables: [table.name],
+              rows: result.rows.length,
+              limited: false,
+              metaphorUsed,
+              suggestions: suggestions
+            }
+          };
+          
+          // Add chart if suggested by default insight
+          if (insight.needsChart && insight.chartType && result.rows.length > 0) {
+            const firstRow = result.rows[0];
+            const fields = Object.keys(firstRow);
+            
+            if (fields.length >= 2) {
+              response.chart = {
+                type: insight.chartType,
+                x: fields[0],
+                y: fields[1],
+                data: result.rows
+              };
+            }
+          }
+          
+          return response;
+        } catch (error) {
+          logger.warn('Default insight failed, falling back to normal flow', { error });
+          // Fall through to normal flow
+        }
+      }
+    }
     
     // Get available columns from the data source
     const availableColumns = dataSource.tables.flatMap((table: any) => 

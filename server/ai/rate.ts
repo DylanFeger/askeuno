@@ -3,10 +3,31 @@ import { storage } from "../storage";
 
 export async function checkRateLimit(
   userId: number,
-  tier: string
+  tier: string,
+  isSuggestionFollowup: boolean = false
 ): Promise<{ allowed: boolean; message?: string }> {
   const tierConfig = TIERS[tier as keyof typeof TIERS];
   
+  // Suggestion follow-ups are FREE - don't consume query credits
+  // Still check spam limits for Enterprise tier only
+  if (isSuggestionFollowup) {
+    if (tier === 'enterprise') {
+      // Still enforce spam window for Enterprise even on free suggestions
+      const minuteLimit = TIERS.enterprise.spamWindowCap;
+      const result = await storage.checkAndRecordQuery(userId, Number.MAX_SAFE_INTEGER, minuteLimit);
+      
+      if (!result.allowed) {
+        return {
+          allowed: false,
+          message: "You've sent too many queries in rapid succession. Please wait 1 hour before continuing."
+        };
+      }
+    }
+    // Suggestion follow-ups are always allowed (don't consume credits)
+    return { allowed: true };
+  }
+  
+  // Normal queries: check rate limits and consume credits
   // Enterprise tier has unlimited queries - only check spam window
   if (tier === 'enterprise') {
     const minuteLimit = TIERS.enterprise.spamWindowCap;

@@ -64,13 +64,17 @@ router.post("/chat", requireAuth, async (req, res) => {
     // Get extended responses preference from session
     const extendedResponses = (req.session as any)?.extendedResponses || false;
     
+    // Check if this is a suggestion follow-up (free, doesn't consume query credits)
+    const isSuggestionFollowup = req.body.isSuggestionFollowup === true;
+    
     // Handle chat and get AI response
     const response = await handleChat({
       userId,
       tier,
       message,
       conversationId: actualConversationId,
-      extendedResponses
+      extendedResponses,
+      isSuggestionFollowup
     });
     
     // Save AI response
