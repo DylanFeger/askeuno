@@ -31,6 +31,7 @@ import userRoutes from "./routes/user";
 import googleSheetsRoutes from "./routes/google-sheets";
 import { initializeScheduler, shutdownScheduler } from "./services/scheduler";
 import { sendContactFormEmail } from "./services/awsSes";
+import { getCachedResponse, cacheQueryResponse } from "./ai/queryCache";
 
 // Extend Express Request interface for file uploads
 interface MulterRequest extends Request {
@@ -478,29 +479,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: 'Unauthorized access to data source' });
       }
 
-      // Get sample data from the specific data source
-      const sampleData = await storage.queryDataRows(dataSource.id, '');
+      // Check cache first for identical queries
+      const cachedResponse = await getCachedResponse(userId, conversation.id, message);
+      
+      let aiResponse;
+      let responseFromCache = false;
+      
+      if (cachedResponse) {
+        // Use cached response
+        aiResponse = cachedResponse.metadata || {
+          answer: cachedResponse.content,
+          confidence: 1.0,
+          fromCache: true
+        };
+        responseFromCache = true;
+        
+        logger.info('Returning cached response', {
+          userId,
+          conversationId: conversation.id,
+          cacheAge: Date.now() - cachedResponse.createdAt.getTime()
+        });
+      } else {
+        // Generate fresh response
+        // Get sample data from the specific data source
+        const sampleData = await storage.queryDataRows(dataSource.id, '');
 
-      // Generate AI response (pass user tier for tier-specific features)
-      const aiResponse = await generateDataInsight(
-        message,
-        dataSource.schema,
-        sampleData,
-        conversationHistory,
-        userId,
-        conversation.id,
-        extendedThinking,
-        user.subscriptionTier,
-        currentCategory
-      );
+        // Generate AI response (pass user tier for tier-specific features)
+        aiResponse = await generateDataInsight(
+          message,
+          dataSource.schema,
+          sampleData,
+          conversationHistory,
+          userId,
+          conversation.id,
+          extendedThinking,
+          user.subscriptionTier,
+          currentCategory
+        );
+      }
 
-      // Save AI response
-      await storage.createChatMessage({
+      // Save AI response (even if from cache, to maintain conversation flow)
+      const savedMessage = await storage.createChatMessage({
         conversationId: conversation.id,
         role: 'assistant',
         content: aiResponse.answer,
         metadata: aiResponse,
       });
+      
+      // Cache the response for future identical queries
+      if (!responseFromCache && savedMessage?.id) {
+        await cacheQueryResponse(savedMessage.id, userId, conversation.id, message);
+      }
       
       // Update conversation category if it changed
       if (aiResponse.category && aiResponse.category !== 'general') {
