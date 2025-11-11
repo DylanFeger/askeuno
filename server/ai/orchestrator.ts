@@ -10,6 +10,8 @@ import { detectMissingColumns } from "./column-detector";
 import { findMetaphorMapping, getMetaphoricalBusinessQuery, shouldRedirectToBusinessQuery } from "./metaphors";
 import { multiSourceService } from "../services/multiSourceService";
 import { AIAgentOrchestrator } from "./agentOrchestrator";
+import { analyzeDataQuality } from "./dataQualityAnalyzer";
+import { generateUserFriendlyError } from "./errorMessages";
 import OpenAI from "openai";
 
 const openai = new OpenAI({ 
@@ -180,8 +182,15 @@ export async function handleChat({
 
   } catch (error) {
     logger.error("Chat orchestration error:", error);
+    
+    // Generate helpful error message
+    const errorMessage = generateUserFriendlyError({
+      type: 'sql_error',
+      details: { error: (error as Error).message }
+    });
+    
     return {
-      text: "I encountered an error processing your request. Please try again.",
+      text: errorMessage,
       meta: {
         intent: "error",
         tier,
@@ -323,16 +332,26 @@ function detectIntent(message: string): "data_query" | "faq_product" | "irreleva
 function guardDataAvailability(intent: string, dataSource: any): { allowed: boolean; message: string } {
   if (intent === "data_query") {
     if (!dataSource.active) {
+      const errorMessage = generateUserFriendlyError({
+        type: 'no_data',
+        details: { hasDataSource: false }
+      });
+      
       return {
         allowed: false,
-        message: "Please connect a database or upload a file first. Go to the Data Sources page to add your data."
+        message: errorMessage
       };
     }
     
     if (!dataSource.tables || dataSource.tables.length === 0) {
+      const errorMessage = generateUserFriendlyError({
+        type: 'no_data',
+        details: { hasDataSource: true }
+      });
+      
       return {
         allowed: false,
-        message: "Your data source appears to be empty. Please ensure your data has been properly uploaded or synced."
+        message: errorMessage
       };
     }
   }
@@ -515,8 +534,15 @@ async function executeMultiSourceDataQuery(
     
   } catch (error) {
     logger.error("Multi-source query execution error:", error);
+    
+    const errorMessage = generateUserFriendlyError({
+      type: 'sql_error',
+      details: { error: (error as Error).message },
+      suggestion: "Try asking about one data source at a time, or verify all your data sources are still connected."
+    });
+    
     return {
-      text: "I encountered an error while analyzing across multiple data sources. Please try rephrasing your question.",
+      text: errorMessage,
       meta: {
         intent: "error",
         tier,
@@ -560,9 +586,13 @@ async function executeMultiStepQuery(
         // Execute the step
         const stepResult = await runSQL(dataSource, finalSQL, tier);
         
+        // Analyze data quality for this step
+        const stepQualityReport = analyzeDataQuality(stepResult.rows);
+        
         stepResults.push({
           description: step.description,
-          result: stepResult
+          result: stepResult,
+          qualityReport: stepQualityReport
         });
         
       } catch (stepError) {
@@ -582,6 +612,12 @@ async function executeMultiStepQuery(
       extendedResponses
     );
     
+    // Collect all data quality disclosures from steps
+    const qualityDisclosures = stepResults
+      .map(step => step.qualityReport?.disclosureMessage)
+      .filter(Boolean)
+      .join(' ');
+    
     // Calculate total rows analyzed
     const totalRows = stepResults.reduce((sum, step) => {
       return sum + (step.result.rowCount || 0);
@@ -589,6 +625,11 @@ async function executeMultiStepQuery(
     
     // Build response
     let responseText = synthesizedAnswer;
+    
+    // Prepend quality disclosures if any
+    if (qualityDisclosures) {
+      responseText = `${qualityDisclosures}\n\n${responseText}`;
+    }
     
     if (metaphorIntro) {
       responseText = `${metaphorIntro}\n\n${responseText}`;
@@ -612,8 +653,15 @@ async function executeMultiStepQuery(
     
   } catch (error) {
     logger.error("Multi-step query error:", error);
+    
+    const errorMessage = generateUserFriendlyError({
+      type: 'sql_error',
+      details: { error: (error as Error).message },
+      suggestion: "Try breaking your question into simpler parts, or ask about one metric at a time."
+    });
+    
     return {
-      text: "I encountered an error during multi-step analysis. Please try a simpler question.",
+      text: errorMessage,
       meta: {
         intent: "error",
         tier,
@@ -729,6 +777,15 @@ async function executeDataQuery(
     // Execute SQL
     const queryResult = await runSQL(dataSource, finalSQL, tier);
     
+    // Analyze data quality and generate transparent disclosure
+    const qualityReport = analyzeDataQuality(queryResult.rows);
+    
+    logger.info('Data quality analysis', {
+      hasIssues: qualityReport.hasIssues,
+      issueCount: qualityReport.issues.length,
+      disclosure: qualityReport.disclosureMessage
+    });
+    
     // Generate analysis based on tier
     const analysis = await generateAnalysis(
       message,
@@ -738,6 +795,11 @@ async function executeDataQuery(
       undefined, // missingColumns
       extendedResponses
     );
+    
+    // Prepend data quality disclosure to response if issues found
+    if (qualityReport.disclosureMessage) {
+      analysis.text = `${qualityReport.disclosureMessage}\n\n${analysis.text}`;
+    }
     
     // Compose response based on tier
     let responseText = analysis.text;
@@ -782,8 +844,15 @@ async function executeDataQuery(
     
   } catch (error) {
     logger.error("Data query execution error:", error);
+    
+    const errorMessage = generateUserFriendlyError({
+      type: 'sql_error',
+      details: { error: (error as Error).message },
+      suggestion: "Please verify your data source is connected and contains data, then try again."
+    });
+    
     return {
-      text: "I encountered an error analyzing your data. Please check your data source and try again.",
+      text: errorMessage,
       meta: {
         intent: "data_query",
         tier,
