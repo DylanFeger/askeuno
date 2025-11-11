@@ -247,6 +247,10 @@ interface ChatMessage {
       data: any[];
       config?: any;
     };
+    suggestions?: Array<{
+      text: string;
+      category: string;
+    }>;
   };
   createdAt?: string | Date;
   conversationId?: number;
@@ -387,7 +391,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: async ({ messageContent, forceChart = false }: { messageContent: string; forceChart?: boolean }) => {
+    mutationFn: async ({ messageContent, forceChart = false, isSuggestionFollowup = false }: { messageContent: string; forceChart?: boolean; isSuggestionFollowup?: boolean }) => {
       const finalMessage = forceChart ? `Create a chart or graph for: ${messageContent}` : messageContent;
       
       // Generate a unique request ID for deduplication
@@ -400,10 +404,11 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
         requestId,
         extendedResponses,
         includeChart: forceChart || includeChart,
+        isSuggestionFollowup,
       });
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       setCurrentConversationId(data.conversationId);
       
       // Add the AI response to local messages immediately
@@ -419,14 +424,16 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
       setLocalMessages(prev => [...prev, aiMessage]);
       setIncludeChart(false);
       
-      // Optimistically update query counter
-      queryClient.setQueryData(['/api/user/query-status'], (old: any) => {
-        if (!old || old.isUnlimited) return old;
-        return {
-          ...old,
-          queriesUsed: old.queriesUsed + 1,
-        };
-      });
+      // Only update query counter if this is NOT a free suggestion follow-up
+      if (!variables.isSuggestionFollowup) {
+        queryClient.setQueryData(['/api/user/query-status'], (old: any) => {
+          if (!old || old.isUnlimited) return old;
+          return {
+            ...old,
+            queriesUsed: old.queriesUsed + 1,
+          };
+        });
+      }
       
       // Invalidate queries to sync with server
       queryClient.invalidateQueries({ queryKey: ['/api/chat/v2/messages', data.conversationId] });
@@ -495,6 +502,25 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const handleSuggestionClick = async (suggestionText: string) => {
+    // Add user message to local messages immediately
+    const userMessage: ChatMessage = {
+      id: Date.now(), // Temporary ID
+      role: 'user',
+      content: suggestionText,
+      createdAt: new Date(),
+      conversationId: currentConversationId || 0,
+    };
+    
+    setLocalMessages(prev => [...prev, userMessage]);
+    
+    // Send with isSuggestionFollowup flag to bypass rate limiting
+    sendMessageMutation.mutate({ 
+      messageContent: suggestionText, 
+      isSuggestionFollowup: true 
+    });
   };
 
   const scrollToBottom = () => {
@@ -749,17 +775,17 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
               {msg.role === 'assistant' && (msg.metadata?.suggestions || msg.metadata?.suggestedFollowUps) && (
                 <div className="mt-3">
                   <div className="flex flex-wrap gap-2">
-                    {/* Handle new suggestion format */}
+                    {/* Handle new suggestion format (data-aware, free to click) */}
                     {msg.metadata?.suggestions && msg.metadata.suggestions.length > 0 && (
                       <>
-                        <p className="text-xs text-gray-500 w-full mb-1">Next steps:</p>
+                        <p className="text-xs text-gray-500 w-full mb-1">
+                          Next steps <span className="text-green-600 font-medium">(free to explore)</span>:
+                        </p>
                         {msg.metadata.suggestions.map((suggestion: any, index: number) => (
                           <button
                             key={index}
-                            onClick={() => {
-                              setMessage(suggestion.text || suggestion);
-                              handleSendMessage(false);
-                            }}
+                            onClick={() => handleSuggestionClick(suggestion.text || suggestion)}
+                            data-testid={`suggestion-${index}`}
                             className={`inline-flex items-center space-x-1 text-xs px-3 py-1.5 rounded-full 
                               transition-all hover:scale-105 
                               ${suggestion.category === 'action' 
@@ -784,10 +810,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
                       msg.metadata.suggestedFollowUps.map((followUp: string, index: number) => (
                         <button
                           key={index}
-                          onClick={() => {
-                            setMessage(followUp);
-                            handleSendMessage(false);
-                          }}
+                          onClick={() => handleSuggestionClick(followUp)}
                           className="inline-flex items-center text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all hover:scale-105"
                         >
                           {followUp}
