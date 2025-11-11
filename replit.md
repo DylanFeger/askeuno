@@ -61,6 +61,67 @@ Key principles:
 
 ## Recent Changes
 
+### November 11, 2025 - AI Chatbot Consistency & Reliability Enhancements (8/10 Complete)
+**Goal**: Enhance chatbot consistency, dependability, and reliability through systematic improvements
+
+**Completed Improvements**:
+1. **Temperature Standardization (✅ Complete)**
+   - Set `temperature=0` across all OpenAI API calls for maximum consistency
+   - Applied to: prompts.ts, orchestrator.ts, analytics-agent.ts
+   - Result: Deterministic, repeatable responses for identical queries
+
+2. **SQL Validation Enhancement (✅ Complete)**
+   - Tier-based query limits: Starter (3 validation attempts), Professional (5), Enterprise (10)
+   - Safety checks: Enforces LIMIT on queries, detects expensive JOINs, 30-second max execution
+   - Validates read-only operations (prevents INSERT/UPDATE/DELETE)
+   - Respects user intent while ensuring query safety
+
+3. **Data Quality Disclosure (✅ Complete)**
+   - Row-level completeness analysis detects: NULL values, outliers, bad dates, mixed types
+   - Transparent disclosure in AI responses (e.g., "Note: 15 of 100 records have missing data.")
+   - **Never auto-fixes** - always discloses and proceeds with analysis on available data
+   - Helps users understand data limitations and make informed decisions
+
+4. **Improved Error Messages (✅ Complete)**
+   - Actionable, transparent error messages throughout orchestrator
+   - Suggests data source updates when quality issues detected
+   - Example: "I found 20% missing revenue data. Results may not reflect full picture. Consider updating your data source."
+
+5. **Semantic Chart Analysis (✅ Complete)**
+   - Upgraded from keyword-based to semantic analysis using OpenAI
+   - AI determines best chart type based on actual data structure and query intent
+   - Graceful fallback to heuristics with pre-populated fields for consistent behavior
+   - Supports: line, bar, pie, area, scatter charts with proper field detection
+
+6. **Response Validation (✅ Complete)**
+   - Prevents hallucinations by verifying AI mentions only numbers from actual query results
+   - Regex validation handles: negative numbers, percentages, accounting formats, currency
+   - Pattern: `/-?\$?\d+(?:,\d{3})*(?:\.\d+)?%?/g`
+   - Flags suspiciously short/generic answers, blocks references to non-existent columns
+
+7. **Smart Query Caching (✅ Complete)**
+   - SHA-256 hash-based deduplication with query normalization
+   - 1-hour TTL for cached responses
+   - Normalization: lowercase, trim, collapse whitespace, strip punctuation
+   - Integration preserves conversation flow while improving response speed
+
+8. **User Feedback System (✅ Complete)**
+   - Thumbs up/down buttons on each AI response
+   - Database storage with `uniqueIndex` on (userId, messageId) preventing duplicates
+   - Upsert logic handles concurrent submissions gracefully
+   - Weekly feedback report aggregates last 7 days by user with satisfaction rate
+   - API routes: POST /api/feedback, GET /api/feedback/stats, GET /api/feedback/weekly-report
+
+**Remaining Tasks**:
+9. Comprehensive test suite for common business queries
+10. Logging and monitoring for AI quality metrics
+
+**Technical Files Modified**:
+- `server/ai/prompts.ts`, `server/ai/orchestrator.ts`, `server/ai/sqlValidator.ts`
+- `server/ai/responseValidator.ts`, `server/ai/semanticChartAnalyzer.ts`, `server/ai/queryCache.ts`
+- `server/routes/feedback.ts`, `shared/schema.ts`, `server/storage.ts`
+- `client/src/components/ChatInterface.tsx`
+
 ### October 30, 2025 - Critical Stripe Payment Security Fix
 - **Problem**: Users could gain premium tier access before payment confirmation (privilege escalation vulnerability)
 - **Solution**: Implemented secure webhook-based tier upgrades with comprehensive payment verification
