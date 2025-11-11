@@ -61,6 +61,23 @@ Key principles:
 
 ## Recent Changes
 
+### November 11, 2025 - Query Tracking & Feedback System Database Setup
+- **Problem**: `message_feedback` table missing from database, causing 500 errors on feedback button clicks
+- **Solution**: Created missing database tables using SQL migration
+- **Implementation**:
+  - Created `message_feedback` table with unique index on (user_id, message_id)
+  - Created `query_timestamps` table with index on (user_id, timestamp) for atomic rate limiting
+  - Both tables support the chatbot reliability enhancements
+- **Tables Created**:
+  ```sql
+  -- User feedback storage (thumbs up/down)
+  message_feedback (id, message_id, user_id, rating, comment, created_at)
+  
+  -- Query rate limiting with atomic transactions
+  query_timestamps (id, user_id, timestamp, created_at)
+  ```
+- **Note**: Tables were defined in `shared/schema.ts` but not pushed to database due to drizzle-kit prompts
+
 ### November 11, 2025 - AI Chatbot Consistency & Reliability Enhancements (8/10 Complete)
 **Goal**: Enhance chatbot consistency, dependability, and reliability through systematic improvements
 
