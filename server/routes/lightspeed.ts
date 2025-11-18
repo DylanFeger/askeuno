@@ -201,8 +201,8 @@ router.get('/oauth/callback/lightspeed', async (req: Request, res: Response) => 
     delete req.session.codeVerifier;
     delete (req.session as any).userId;
 
-    // Redirect to success page
-    res.redirect('/connections/lightspeed/success');
+    // Redirect to chat page
+    res.redirect('/chat?source=lightspeed');
   } catch (error) {
     console.error('OAuth callback error:', error);
     res.status(500).send('An error occurred during authentication');

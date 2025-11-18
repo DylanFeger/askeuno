@@ -230,7 +230,7 @@ router.get('/auth/:provider/callback', async (req, res) => {
     delete req.session.codeVerifier;
     delete req.session.oauthProvider;
 
-    res.redirect('/connections?success=true');
+    res.redirect(`/chat?source=${provider}`);
   } catch (error) {
     console.error(`Error in OAuth callback for ${provider}:`, error);
     res.redirect('/connections?error=token_exchange_failed');

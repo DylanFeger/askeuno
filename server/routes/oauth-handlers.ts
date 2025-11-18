@@ -242,7 +242,7 @@ const callbackHandler = (async (req: AuthenticatedRequest, res: Response) => {
     delete req.session.oauthProvider;
 
     logger.info('OAuth connection successful', { provider, userId: req.user.id });
-    res.redirect('/connections?success=true');
+    res.redirect(`/chat?source=${provider}`);
   } catch (error: any) {
     logger.error('OAuth callback error', { provider, error: error.message, userId: req.user.id });
     res.redirect(`/connections?error=${encodeURIComponent('Failed to connect. Please try again.')}`);

@@ -229,12 +229,19 @@ export default function ConnectionsPage() {
       }
     },
     onSuccess: (data: any) => {
-      // Don't show success toast for Google Sheets (it has its own in importGoogleSheetMutation)
+      // Don't show success toast for OAuth flows (they redirect to chat)
       if (!data?.skipSuccessToast) {
         toast({
           title: 'Success',
           description: 'Connection established successfully',
         });
+        
+        // Redirect to chat for database connections
+        if (data?.connection) {
+          setTimeout(() => {
+            setLocation(`/chat?source=database`);
+          }, 500);
+        }
       }
       queryClient.invalidateQueries({ queryKey: ['/api/connections'] });
       setSelectedConnection(null);
