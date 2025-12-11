@@ -1,0 +1,147 @@
+I need you to update my lightspeed.ts OAuth router to fix several critical issues.
+Do NOT change any unrelated code.
+Make only the changes listed below and ensure the file still compiles.
+
+Required Changes (Do all of these exactly):
+1. Remove PKCE completely
+
+Lightspeed Retail R-Series does NOT support PKCE.
+Remove all of the following from the file:
+
+generateCodeVerifier function
+
+generateCodeChallenge function
+
+Any code_verifier
+
+Any code_challenge
+
+Any code_challenge_method
+
+Any session storage of PKCE values
+
+Any use of PKCE parameters in the authorization URL or token request
+
+Use standard OAuth 2.0 “authorization_code” flow with client secret.
+
+2. Make ENCRYPTION_KEY required instead of randomly generated
+
+Replace:
+
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || crypto.randomBytes(32).toString("hex");
+
+
+With:
+
+if (!process.env.ENCRYPTION_KEY) {
+  throw new Error("ENCRYPTION_KEY environment variable is required");
+}
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+
+
+This prevents random keys breaking token decryption after restarts.
+
+3. Require LS_REDIRECT_URI be explicitly set
+
+Remove the fallback:
+
+process.env.LS_REDIRECT_URI || `${process.env.APP_URL || "https://askeuno.com"}/api/oauth/callback/lightspeed`
+
+
+Replace it with:
+
+if (!process.env.LS_REDIRECT_URI) {
+  throw new Error("LS_REDIRECT_URI must be set");
+}
+const redirectUri = process.env.LS_REDIRECT_URI;
+
+
+Apply this in BOTH the authorization URL and the token exchange request.
+
+4. Remove store URL validation
+
+Delete the function:
+
+function validateStoreUrl(...)
+
+
+And remove the validation check that uses it.
+Lightspeed R-Series does not require or validate store URLs in this manner.
+
+5. Simplify environment variable naming
+
+Use ONLY the LS_* environment variables.
+Remove all fallback code involving LIGHTSPEED_* variants.
+
+Specifically:
+
+LS_CLIENT_ID
+
+LS_CLIENT_SECRET
+
+LS_AUTH_URL
+
+LS_TOKEN_URL
+
+LS_API_BASE
+
+LS_REDIRECT_URI
+
+Delete all references to LIGHTSPEED_CLIENT_ID, LIGHTSPEED_CLIENT_SECRET, etc.
+
+6. Reduce the OAuth scope
+
+Replace:
+
+scope = "employee:all"
+
+
+With:
+
+scope = "employee:inventory employee:reports"
+
+
+These are safer and more consistently allowed by Lightspeed's permissions.
+
+7. Double-check the token refresh logic
+
+Ensure the refresh token request does not include PKCE values anymore.
+
+Token refresh request should contain ONLY:
+
+grant_type
+
+refresh_token
+
+client_id
+
+client_secret
+
+Remove anything else left over from PKCE.
+
+8. Do not auto-generate URLs
+
+Make the Lightspeed URLs deterministic:
+
+Authorization URL
+https://cloud.lightspeedapp.com/auth/oauth/authorize
+
+Token URL
+https://cloud.lightspeedapp.com/auth/oauth/token
+
+API Base URL
+https://api.lightspeedapp.com/API
+
+Replace all fallbacks and auto-construction with these constants unless explicitly overridden by LS_AUTH_URL or LS_TOKEN_URL.
+
+Important Constraints
+
+Do NOT modify the database schema.
+
+Do NOT change the route structure.
+
+Do NOT alter the business logic except where required above.
+
+The final file must still run and export the router normally.
+
+Make these changes and show me the updated file.
