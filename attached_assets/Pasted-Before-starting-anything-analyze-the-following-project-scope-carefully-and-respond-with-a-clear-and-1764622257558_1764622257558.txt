@@ -1,0 +1,64 @@
+Before starting anything, analyze the following project scope carefully and respond with a clear and honest assessment of whether you are confident you can fully build this system inside a single Replit environment. Your answer must consider technical limitations such as background tasks, webhook reliability, token security, database connections, scheduled jobs, rate limits, and multi-service architectures. After giving your confidence level, explain any limitations or blockers.
+
+Do not begin implementation until after providing the confidence assessment.
+
+Here is the exact system I need built:
+
+Project Overview
+Developing a comprehensive Lightspeed Retail integration that enables secure data connectivity and synchronization for my business platform.
+
+OAuth Integration
+Secure authentication flow enabling users to connect their Lightspeed accounts with proper permission management and token handling.
+
+Data Synchronization
+Reliable data synchronization system to keep the platform updated with sales, inventory, customer, and product information.
+
+Reliable Architecture
+Robust solution with proper error handling, rate limiting, security measures, and monitoring capabilities.
+
+Platform Integration
+Seamless integration with the existing platform, enabling users to access and utilize their Lightspeed data effectively.
+
+Detailed Scope of Work
+
+OAuth 2.0 Authentication System
+- OAuth 2.0 authorization flow setup
+- Token storage and refresh mechanism
+- Account connection management
+- Connection status monitoring
+- Error handling for authentication issues
+- Account disconnection functionality
+
+Data Import and Synchronization
+- Initial data import setup
+- Sales and transaction data handling
+- Product and inventory information sync
+- Customer data integration
+- Multi-location data support
+- Data validation and error handling
+
+Webhook and Update System
+- Webhook receiver implementation
+- Processing of data updates
+- Duplicate data prevention
+- Retry mechanism for failed processes
+- Background processing system
+- Logging and monitoring setup
+
+System Architecture and Reliability
+- API rate limiting implementation
+- Fallback systems for reliability
+- Error monitoring and alerts
+- Database schema design
+- Health checks and status reporting
+- Scalable system architecture
+
+Testing and Documentation
+- Testing of core functionality
+- Integration testing with Lightspeed sandbox environment
+- API documentation and code comments
+- Testing tools and collections
+- Knowledge transfer session
+- Basic troubleshooting documentation
+
+Please evaluate whether a single Replit project can realistically implement everything listed above, including long-running background jobs, webhook stability, secure token storage, database scaling, and reliable sync architecture. 
