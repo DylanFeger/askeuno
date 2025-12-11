@@ -201,15 +201,13 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Use PORT from environment variable with fallback to 5000
-  // This allows the app to work in different deployment environments
-  const port = parseInt(process.env.PORT || '5000', 10);
+  // Use PORT from environment variable, or 80 for production, 5000 for development
+  const port = parseInt(process.env.PORT || (process.env.NODE_ENV === 'production' ? '80' : '5000'), 10);
   // Always bind to 0.0.0.0 for Replit port detection
   const host = '0.0.0.0';
   server.listen({
     port,
     host,
-    // reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
   });
