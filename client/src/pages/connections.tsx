@@ -213,8 +213,8 @@ export default function ConnectionsPage() {
       } else {
         // For Lightspeed, use the dedicated lightspeed.ts router
         if (data.provider === 'lightspeed') {
-          // Redirect to Lightspeed setup page which calls POST /api/lightspeed/start
-          window.location.href = '/connections-lightspeed';
+          // Redirect to Lightspeed connection page which calls POST /api/lightspeed/start
+          window.location.href = '/connections/lightspeed';
           return Promise.resolve({ skipSuccessToast: true });
         }
         // OAuth flow - redirect to backend OAuth endpoint
