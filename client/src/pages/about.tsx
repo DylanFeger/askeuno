@@ -3,8 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'wouter';
 import EunoLogo from '@/components/EunoLogo';
 import Footer from '@/components/Footer';
-import teamPhoto1 from '@assets/158085F3-5AB3-4BA2-B873-5406AD185492_1_105_c_1756074643217.jpeg';
-import teamPhoto2 from '@assets/505E49C6-CE66-4BB9-8E96-652EACC49A90_1_105_c_1756074686062.jpeg';
+import { Users } from 'lucide-react';
 
 export default function About() {
   return (
@@ -42,19 +41,17 @@ export default function About() {
       <section className="pt-8 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8">
-            <Card className="overflow-hidden">
-              <img 
-                src={teamPhoto1} 
-                alt="Team on the farm" 
-                className="w-full h-full object-cover"
-              />
+            <Card className="overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center h-64">
+              <div className="text-center p-8">
+                <Users className="w-16 h-16 text-primary/40 mx-auto mb-4" />
+                <p className="text-gray-500">Team photo coming soon</p>
+              </div>
             </Card>
-            <Card className="overflow-hidden">
-              <img 
-                src={teamPhoto2} 
-                alt="Team on the farm" 
-                className="w-full h-full object-cover"
-              />
+            <Card className="overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center h-64">
+              <div className="text-center p-8">
+                <Users className="w-16 h-16 text-primary/40 mx-auto mb-4" />
+                <p className="text-gray-500">Team photo coming soon</p>
+              </div>
             </Card>
           </div>
           
