@@ -211,16 +211,10 @@ export default function ConnectionsPage() {
         setShowGoogleSheetsDialog(true);
         return Promise.resolve({ skipSuccessToast: true });
       } else {
-        // For Lightspeed, check if we need store URL first
+        // For Lightspeed, use the dedicated lightspeed.ts router
         if (data.provider === 'lightspeed') {
-          // Check if we already have a store URL stored
-          const storedUrl = localStorage.getItem('lightspeed_store_url');
-          if (!storedUrl) {
-            window.location.href = '/lightspeed-setup';
-            return Promise.resolve({ skipSuccessToast: true });
-          }
-          // If we have store URL, proceed with OAuth
-          window.location.href = `/api/auth/lightspeed/connect`;
+          // Redirect to Lightspeed setup page which calls POST /api/lightspeed/start
+          window.location.href = '/connections-lightspeed';
           return Promise.resolve({ skipSuccessToast: true });
         }
         // OAuth flow - redirect to backend OAuth endpoint

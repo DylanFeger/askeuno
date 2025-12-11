@@ -95,38 +95,7 @@ router.get('/auth/quickbooks/connect', requireAuth, ((req: AuthenticatedRequest,
   res.redirect(authUrl);
 }) as any);
 
-router.get('/auth/lightspeed/connect', requireAuth, ((req: AuthenticatedRequest, res: Response) => {
-  const state = generateState();
-  const codeVerifier = generateCodeVerifier();
-  const codeChallenge = generateCodeChallenge(codeVerifier);
-  
-  req.session.oauthState = state;
-  req.session.codeVerifier = codeVerifier;
-  req.session.oauthProvider = 'lightspeed';
-
-  // Support both LIGHTSPEED_* and LS_* environment variables
-  const clientId = process.env.LIGHTSPEED_CLIENT_ID || process.env.LS_CLIENT_ID || '';
-  const redirectUri = `${process.env.APP_URL || 'https://askeuno.com'}/api/oauth/callback/lightspeed`;
-  
-  const params = new URLSearchParams({
-    client_id: clientId,
-    redirect_uri: redirectUri,
-    response_type: 'code',
-    scope: 'employee:all', // Full analytics access with employee permissions
-    state: state,
-    code_challenge: codeChallenge,
-    code_challenge_method: 'S256',
-  });
-
-  const authUrl = `https://cloud.lightspeedapp.com/auth/oauth/authorize?${params}`;
-  logger.info('Initiating Lightspeed OAuth', { 
-    userId: req.user.id,
-    clientId: clientId.substring(0, 10) + '...',
-    redirectUri,
-    authUrl: authUrl.substring(0, 100) + '...'
-  });
-  res.redirect(authUrl);
-}) as any);
+// Lightspeed OAuth is handled by server/routes/lightspeed.ts
 
 router.get('/auth/stripe/connect', requireAuth, ((req: AuthenticatedRequest, res: Response) => {
   const state = generateState();
@@ -182,11 +151,7 @@ const callbackHandler = (async (req: AuthenticatedRequest, res: Response) => {
         scopes = ['accounting'];
         break;
       
-      case 'lightspeed':
-        tokenData = await exchangeLightspeedCode(code as string, req.session.codeVerifier);
-        accountLabel = 'Lightspeed Account';
-        scopes = ['employee:all'];
-        break;
+      // Lightspeed OAuth callback is handled by server/routes/lightspeed.ts
       
       case 'stripe':
         tokenData = await exchangeStripeCode(code as string);
@@ -331,45 +296,7 @@ async function exchangeQuickBooksCode(code: string, codeVerifier: string): Promi
   };
 }
 
-async function exchangeLightspeedCode(code: string, codeVerifier?: string): Promise<any> {
-  // Support both LIGHTSPEED_* and LS_* environment variables
-  const clientId = process.env.LIGHTSPEED_CLIENT_ID || process.env.LS_CLIENT_ID || '';
-  const clientSecret = process.env.LIGHTSPEED_CLIENT_SECRET || process.env.LS_CLIENT_SECRET || '';
-  const tokenUrl = process.env.LIGHTSPEED_TOKEN_URL || process.env.LS_TOKEN_URL || 'https://cloud.lightspeedapp.com/auth/oauth/token';
-  const redirectUri = `${process.env.APP_URL || 'https://askeuno.com'}/api/oauth/callback/lightspeed`;
-  
-  const params: any = {
-    code,
-    client_id: clientId,
-    client_secret: clientSecret,
-    redirect_uri: redirectUri,
-    grant_type: 'authorization_code',
-  };
-  
-  // Add PKCE verifier if available
-  if (codeVerifier) {
-    params.code_verifier = codeVerifier;
-  }
-  
-  const response = await fetch(tokenUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams(params),
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Lightspeed token exchange failed: ${error}`);
-  }
-
-  const data = await response.json();
-  return {
-    access_token: data.access_token,
-    refresh_token: data.refresh_token,
-    expires_at: Date.now() + (data.expires_in * 1000),
-    account_id: data.account_id,
-  };
-}
+// exchangeLightspeedCode removed - Lightspeed OAuth is handled by server/routes/lightspeed.ts
 
 async function exchangeStripeCode(code: string): Promise<any> {
   const response = await fetch('https://connect.stripe.com/oauth/token', {
