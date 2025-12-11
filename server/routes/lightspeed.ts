@@ -75,7 +75,7 @@ router.post('/lightspeed/start', requireAuth, async (req: Request, res: Response
   const authUrl = new URL(process.env.LS_AUTH_URL || process.env.LIGHTSPEED_AUTH_URL || 'https://cloud.lightspeedapp.com/auth/oauth/authorize');
   authUrl.searchParams.append('response_type', 'code');
   authUrl.searchParams.append('client_id', process.env.LS_CLIENT_ID || process.env.LIGHTSPEED_CLIENT_ID || '');
-  authUrl.searchParams.append('redirect_uri', process.env.LS_REDIRECT_URI || process.env.LIGHTSPEED_REDIRECT_URI || `${process.env.APP_URL || 'https://cno.com'}/api/oauth/callback/lightspeed`);
+  authUrl.searchParams.append('redirect_uri', process.env.LS_REDIRECT_URI || process.env.LIGHTSPEED_REDIRECT_URI || `${process.env.APP_URL || 'https://askeuno.com'}/api/oauth/callback/lightspeed`);
   // Using employee:all for comprehensive analytics access
   // For more restricted access, use: 'employee:inventory employee:reports employee:register'
   authUrl.searchParams.append('scope', 'employee:all');
