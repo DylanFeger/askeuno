@@ -1,3 +1,5 @@
+import eunoLogo from '../../attached_assets/783975A8-71CE-4C7A-ABF2-78280874D18D_1754584577565.png';
+
 interface EunoLogoProps {
   className?: string;
   style?: React.CSSProperties;
@@ -6,28 +8,19 @@ interface EunoLogoProps {
 export default function EunoLogo({ className = "w-10 h-10", style }: EunoLogoProps) {
   return (
     <div 
-      className={`${className} flex items-center justify-center`}
+      className={`${className} bg-white rounded-lg overflow-hidden flex items-center justify-center`}
       style={style}
     >
-      <svg 
-        viewBox="0 0 100 100" 
+      <img 
+        src={eunoLogo} 
+        alt="Euno" 
         className="w-full h-full"
-        aria-label="Euno Logo"
-      >
-        <circle cx="50" cy="50" r="45" fill="hsl(142, 25%, 45%)" />
-        <text 
-          x="50" 
-          y="50" 
-          textAnchor="middle" 
-          dominantBaseline="central" 
-          fill="white" 
-          fontSize="40" 
-          fontWeight="bold"
-          fontFamily="system-ui, -apple-system, sans-serif"
-        >
-          E
-        </text>
-      </svg>
+        style={{ 
+          objectFit: 'contain',
+          filter: 'brightness(1.15) saturate(0.85) contrast(1.1)',
+          mixBlendMode: 'multiply' as any
+        }}
+      />
     </div>
   );
 }

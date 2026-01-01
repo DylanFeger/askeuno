@@ -12,6 +12,11 @@ if (!process.env.ENCRYPTION_KEY) {
   throw new Error("ENCRYPTION_KEY environment variable is required");
 }
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+
+// Validate ENCRYPTION_KEY length (AES-256 requires 32 bytes = 64 hex characters)
+if (ENCRYPTION_KEY.length !== 64) {
+  throw new Error("ENCRYPTION_KEY must be exactly 64 hex characters (32 bytes for AES-256)");
+}
 const IV_LENGTH = 16;
 
 // Lightspeed OAuth constants
@@ -118,8 +123,16 @@ router.get(
       }
       const redirectUri = process.env.LS_REDIRECT_URI;
 
-      const clientId = process.env.LS_CLIENT_ID || "";
-      const clientSecret = process.env.LS_CLIENT_SECRET || "";
+      const clientId = process.env.LS_CLIENT_ID;
+      const clientSecret = process.env.LS_CLIENT_SECRET;
+
+      // Validate required credentials
+      if (!clientId || !clientSecret) {
+        console.error("[Lightspeed OAuth] Missing client credentials");
+        return res.status(500).send("Server configuration error: Missing Lightspeed credentials");
+      }
+
+      console.log("[Lightspeed OAuth] Exchanging code for tokens...");
 
       // Exchange code for tokens (standard OAuth 2.0, no PKCE)
       const tokenResponse = await fetch(LS_TOKEN_URL, {
@@ -135,13 +148,51 @@ router.get(
       });
 
       if (!tokenResponse.ok) {
-        const error = await tokenResponse.text();
-        console.error("Token exchange failed:", error);
-        return res.status(502).send("Failed to exchange authorization code");
+        const errorText = await tokenResponse.text();
+        console.error("[Lightspeed OAuth] Token exchange failed:", {
+          status: tokenResponse.status,
+          statusText: tokenResponse.statusText,
+          error: errorText,
+        });
+        return res.status(502).send("Failed to exchange authorization code. Please try again.");
       }
 
       const tokenData = await tokenResponse.json();
-      const { access_token, refresh_token, expires_in, account_id } = tokenData;
+      console.log("[Lightspeed OAuth] Token response keys:", Object.keys(tokenData));
+      
+      const { access_token, refresh_token, expires_in } = tokenData;
+      
+      // account_id might not be in token response - try to get it from API if missing
+      let account_id = tokenData.account_id;
+      
+      if (!account_id) {
+        console.log("[Lightspeed OAuth] No account_id in token response, fetching from API...");
+        try {
+          const accountResponse = await fetch(`${LS_API_BASE}/Account.json`, {
+            headers: {
+              Authorization: `Bearer ${access_token}`,
+              Accept: "application/json",
+            },
+          });
+          
+          if (accountResponse.ok) {
+            const accountData = await accountResponse.json();
+            // Lightspeed returns { Account: { accountID: "..." } } or similar
+            account_id = accountData.Account?.accountID || accountData.Account?.id || accountData.accountID;
+            console.log("[Lightspeed OAuth] Fetched account_id:", account_id);
+          } else {
+            console.error("[Lightspeed OAuth] Failed to fetch account info:", accountResponse.status);
+          }
+        } catch (err) {
+          console.error("[Lightspeed OAuth] Error fetching account:", err);
+        }
+      }
+      
+      // If still no account_id, fail the connection - we need a real account ID
+      if (!account_id) {
+        console.error("[Lightspeed OAuth] Could not obtain account_id from token response or API");
+        return res.status(502).send("Failed to retrieve Lightspeed account information. Please try again or contact support.");
+      }
 
       // Calculate expiration time with buffer
       const expiresAt = new Date(Date.now() + (expires_in - 120) * 1000);

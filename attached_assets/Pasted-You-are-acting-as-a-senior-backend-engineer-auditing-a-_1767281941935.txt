@@ -1,0 +1,136 @@
+You are acting as a senior backend engineer auditing a production OAuth integration that is currently failing for real users.
+
+Your task is to **audit, debug, and optimize** the attached Express + TypeScript file that handles **Lightspeed Retail OAuth** for a SaaS product (AskEuno).
+
+⚠️ This code is already deployed and users are seeing errors when attempting to connect their Lightspeed accounts. Assume failures are real and happening now.
+
+---
+
+## OBJECTIVE
+
+1. Identify **why users cannot successfully connect Lightspeed**
+2. Identify **any Lightspeed-specific OAuth mistakes**
+3. Identify **runtime errors or missing dependencies**
+4. Propose **exact code changes** (not vague suggestions)
+5. Flag **anything that could break in production**
+6. Return a **clear list of fixes in priority order**
+
+---
+
+## STEP 1 — OAuth FLOW VERIFICATION (DO NOT SKIP)
+
+Verify each step of the OAuth flow **line by line**:
+
+* `/api/lightspeed/start`
+* Redirect to Lightspeed
+* `/api/oauth/callback/lightspeed`
+* Token exchange
+* Account ID handling
+* Database upsert
+
+Specifically check:
+
+* Is `LS_REDIRECT_URI` **guaranteed to exactly match** the redirect URI registered in Lightspeed HQ?
+* Are `LS_CLIENT_ID` and `LS_CLIENT_SECRET` validated before use?
+* Is the `scope` string valid for Lightspeed Retail R-Series?
+* Does Lightspeed require additional scopes for basic API access?
+* Is the OAuth flow correct **without PKCE** for Lightspeed?
+
+If anything is ambiguous, flag it.
+
+---
+
+## STEP 2 — RUNTIME FAILURE CHECKS (CRITICAL)
+
+Look for **runtime crashes or silent failures**, including but not limited to:
+
+* Is `fetch` available in this runtime?
+
+  * If not, explicitly recommend importing `node-fetch` and show where.
+* Could encryption fail due to:
+
+  * Invalid `ENCRYPTION_KEY` length?
+  * Wrong encoding (`hex` vs `base64`)?
+* Could `decrypt()` throw and crash requests?
+* Are session values (`req.session.oauthState`, `req.session.userId`) guaranteed to persist across redirects?
+
+If a crash is possible, **show the exact line and failure mode**.
+
+---
+
+## STEP 3 — LIGHTSPEED API ASSUMPTIONS (VERY IMPORTANT)
+
+Audit all assumptions about Lightspeed responses:
+
+* Does the token response **always** include `account_id`?
+* If not, how should the account ID actually be retrieved?
+* Is `${LS_API_BASE}/Account/${accountId}.json` a valid endpoint?
+* Does Lightspeed require `/API/V3/Account/{id}` instead?
+* Are headers correct (`Bearer` token vs other formats)?
+
+If any endpoint is wrong, identify the correct one.
+
+---
+
+## STEP 4 — DATABASE + STATE LOGIC
+
+Check for logic flaws that could break users:
+
+* Could multiple failed attempts poison the connection record?
+* Could refresh token logic mark connections unhealthy too aggressively?
+* Is `ensureLightspeedToken()` safe to call concurrently?
+* Is token refresh retried infinitely?
+
+Flag anything that could cause:
+
+* Endless failures
+* Stuck connections
+* Users unable to reconnect
+
+---
+
+## STEP 5 — SECURITY & CONFIG VALIDATION
+
+Without refactoring the entire system, verify:
+
+* Is AES-256-CBC being used safely?
+* Should the encryption key length be validated?
+* Should tokens ever be logged?
+* Are cookies/session settings implicitly required for this to work?
+
+Only recommend **practical fixes**, not theoretical ones.
+
+---
+
+## OUTPUT FORMAT (STRICT)
+
+Return your findings in **this exact structure**:
+
+### 1. Root Causes Likely Breaking User Connections
+
+* Bullet list, ordered by likelihood
+
+### 2. Definite Bugs (Code Will Fail)
+
+* File line references
+* Exact failure explanation
+
+### 3. Lightspeed-Specific Corrections Required
+
+* OAuth
+* Scopes
+* Endpoints
+
+### 4. Required Code Changes
+
+* Show **exact code snippets** to add/change/remove
+
+### 5. Optional Improvements (Non-blocking)
+
+* Clearly labeled as optional
+
+Do **not** rewrite the entire file.
+Do **not** explain OAuth basics.
+Focus only on **why this is failing and how to fix it**.
+
+If something cannot be confirmed, explicitly say so and explain what evidence is missing.
