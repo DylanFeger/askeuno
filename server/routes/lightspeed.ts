@@ -84,11 +84,16 @@ router.post(
     authUrl.searchParams.append("state", state);
 
     const clientId = process.env.LS_CLIENT_ID || "";
-    console.log("[Lightspeed OAuth] Starting flow:", {
-      userId,
-      clientId: clientId.substring(0, 10) + "...",
-      authUrl: authUrl.toString().substring(0, 150) + "...",
-    });
+    const clientIdLength = clientId.length;
+    const clientIdPreview = clientId.substring(0, 10);
+    const clientIdSuffix = clientId.substring(clientId.length - 5);
+    
+    console.log("[Lightspeed OAuth] === DEBUG START ===");
+    console.log("[Lightspeed OAuth] Client ID length:", clientIdLength);
+    console.log("[Lightspeed OAuth] Client ID preview:", clientIdPreview + "..." + clientIdSuffix);
+    console.log("[Lightspeed OAuth] Redirect URI:", redirectUri);
+    console.log("[Lightspeed OAuth] Full auth URL:", authUrl.toString());
+    console.log("[Lightspeed OAuth] === DEBUG END ===");
 
     res.json({ redirect: authUrl.toString() });
   },
