@@ -10,8 +10,8 @@ frontend:
   phases:
     preBuild:
       commands:
-        # Install dependencies
-        - npm ci
+        # Install dependencies (including devDependencies needed for build)
+        - npm ci --include=dev
         # Verify environment variables are set
         - |
           if [ -z "$DATABASE_URL" ]; then
