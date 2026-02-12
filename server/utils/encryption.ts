@@ -77,3 +77,32 @@ export function decryptConnectionData(encryptedData: any): any {
     throw error;
   }
 }
+
+/**
+ * Simple encrypt function for string values (backward compatibility)
+ */
+export function encrypt(data: string): string {
+  if (!data) return data;
+  const encrypted = encryptConnectionData({ value: data });
+  return JSON.stringify(encrypted);
+}
+
+/**
+ * Simple decrypt function for string values (backward compatibility)
+ */
+export function decrypt(encryptedData: string): string {
+  if (!encryptedData) return encryptedData;
+  try {
+    const parsed = JSON.parse(encryptedData);
+    const decrypted = decryptConnectionData(parsed);
+    return decrypted?.value || encryptedData;
+  } catch (error) {
+    // If parsing fails, try to decrypt as-is (might be old format)
+    try {
+      const decrypted = decryptConnectionData({ encrypted: encryptedData });
+      return typeof decrypted === 'string' ? decrypted : encryptedData;
+    } catch {
+      return encryptedData;
+    }
+  }
+}
