@@ -35,7 +35,8 @@ export default function OAuthCallback() {
         }
 
         // Forward the OAuth callback to the backend
-        const response = await fetch(`/api/callback/${provider}?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`, {
+        const { getApiUrl } = await import('@/lib/queryClient');
+        const response = await fetch(getApiUrl(`/api/callback/${provider}?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`), {
           method: 'GET',
           credentials: 'include',
         });

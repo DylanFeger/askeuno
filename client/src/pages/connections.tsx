@@ -192,7 +192,8 @@ export default function ConnectionsPage() {
         const formData = new FormData();
         formData.append('file', data.file);
         formData.append('name', data.name);
-        const response = await fetch('/api/upload', {
+        const { getApiUrl } = await import('@/lib/queryClient');
+        const response = await fetch(getApiUrl('/api/upload'), {
           method: 'POST',
           body: formData,
           credentials: 'include',
@@ -218,7 +219,8 @@ export default function ConnectionsPage() {
           return Promise.resolve({ skipSuccessToast: true });
         }
         // OAuth flow - redirect to backend OAuth endpoint
-        window.location.href = `/api/auth/${data.provider}/connect`;
+        const { getApiUrl } = await import('@/lib/queryClient');
+        window.location.href = getApiUrl(`/api/auth/${data.provider}/connect`);
         return Promise.resolve({ skipSuccessToast: true });
       }
     },

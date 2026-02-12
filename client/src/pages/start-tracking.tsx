@@ -132,7 +132,8 @@ export default function StartTracking() {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await fetch('/api/upload', {
+      const { getApiUrl } = await import('@/lib/queryClient');
+      const response = await fetch(getApiUrl('/api/upload'), {
         method: 'POST',
         body: formData,
         credentials: 'include'

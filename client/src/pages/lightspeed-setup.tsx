@@ -64,7 +64,8 @@ export default function LightspeedSetup() {
     }
 
     // Redirect to the OAuth endpoint with the store URL
-    window.location.href = `/api/auth/lightspeed/connect?store_url=${encodeURIComponent(storedUrl)}`;
+    const { getApiUrl } = await import('@/lib/queryClient');
+    window.location.href = getApiUrl(`/api/auth/lightspeed/connect?store_url=${encodeURIComponent(storedUrl)}`);
   };
 
   const handleCancel = () => {

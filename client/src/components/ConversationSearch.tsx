@@ -29,7 +29,8 @@ export function ConversationSearch({ onConversationSelect, currentConversationId
     queryKey: ['/api/conversations/search', searchTerm],
     queryFn: async () => {
       if (!searchTerm.trim()) return [];
-      const response = await fetch(`/api/conversations/search?q=${encodeURIComponent(searchTerm)}`, {
+      const { getApiUrl } = await import('@/lib/queryClient');
+      const response = await fetch(getApiUrl(`/api/conversations/search?q=${encodeURIComponent(searchTerm)}`), {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Search failed');

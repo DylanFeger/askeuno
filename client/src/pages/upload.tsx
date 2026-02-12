@@ -72,7 +72,8 @@ export default function UploadPage() {
       }, 200);
 
       try {
-        const response = await fetch('/api/files/upload', {
+        const { getApiUrl } = await import('@/lib/queryClient');
+        const response = await fetch(getApiUrl('/api/files/upload'), {
           method: 'POST',
           credentials: 'include',
           body: formData,

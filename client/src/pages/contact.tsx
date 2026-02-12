@@ -26,7 +26,8 @@ export default function Contact() {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('/api/contact', {
+      const { getApiUrl } = await import('@/lib/queryClient');
+      const response = await fetch(getApiUrl('/api/contact'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
