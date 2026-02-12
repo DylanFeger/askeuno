@@ -1,0 +1,55 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Build output (we build in Docker)
+dist
+
+# Development files
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+tests/
+*.test.ts
+*.spec.ts
+coverage/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Logs
+logs/
+*.log
+
+# Uploads (mounted as volume)
+uploads/
+
+# Replit specific
+.replit
+replit.md
+.local/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Docker
+docker-compose*.yml
+Dockerfile*

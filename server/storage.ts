@@ -295,7 +295,7 @@ export class DatabaseStorage implements IStorage {
         .where(eq(chatConversations.dataSourceId, dataSourceId))
         .orderBy(desc(chatConversations.createdAt));
     } catch (error) {
-      console.error('Error getting conversations by data source:', error);
+      logger.error('Error getting conversations by data source', { error, dataSourceId });
       return [];
     }
   }
@@ -318,7 +318,7 @@ export class DatabaseStorage implements IStorage {
         await db.delete(chatConversations).where(eq(chatConversations.dataSourceId, dataSourceId));
       }
     } catch (error) {
-      console.error('Error deleting conversations by data source:', error);
+      logger.error('Error deleting conversations by data source', { error, dataSourceId });
       // Continue with deletion even if conversations fail
     }
   }
@@ -631,7 +631,11 @@ export class DatabaseStorage implements IStorage {
       try {
         await db.insert(dataRows).values(dataRowsToInsert);
       } catch (error: any) {
-        console.error(`Error inserting batch ${i / BATCH_SIZE + 1}:`, error);
+        logger.error(`Error inserting batch ${i / BATCH_SIZE + 1}`, { 
+          error, 
+          batchNumber: i / BATCH_SIZE + 1,
+          dataSourceId 
+        });
         throw new Error(`Failed to insert data rows at batch ${i / BATCH_SIZE + 1}: ${error.message}`);
       }
     }

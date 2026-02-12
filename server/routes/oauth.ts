@@ -4,6 +4,7 @@ import { connectionManager } from '@shared/schema';
 import crypto from 'crypto';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { logger } from '../utils/logger';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -118,7 +119,7 @@ router.get('/auth/lightspeed/connect', (req, res) => {
 
   // Use the user's specific store URL
   const authUrl = `https://${storeUrl}/oauth/authorize?${params}`;
-  console.log('Lightspeed OAuth initiated', { userId: req.user.id, storeUrl });
+  logger.info('Lightspeed OAuth initiated', { userId: req.user.id, storeUrl });
   res.redirect(authUrl);
 });
 
@@ -155,19 +156,19 @@ router.get('/auth/:provider/callback', async (req, res) => {
 
   // Handle OAuth errors
   if (error) {
-    console.error(`OAuth error for ${provider}:`, error);
+    logger.error(`OAuth error for ${provider}`, { error, provider });
     return res.redirect(`/connections?error=${error}`);
   }
 
   // Verify state for CSRF protection
   if (state !== req.session.oauthState) {
-    console.error('State mismatch in OAuth callback');
+    logger.error('State mismatch in OAuth callback', { provider });
     return res.redirect('/connections?error=state_mismatch');
   }
 
   // Verify provider matches
   if (provider !== req.session.oauthProvider) {
-    console.error('Provider mismatch in OAuth callback');
+    logger.error('Provider mismatch in OAuth callback', { provider, expectedProvider: req.session.oauthProvider });
     return res.redirect('/connections?error=provider_mismatch');
   }
 
@@ -232,7 +233,7 @@ router.get('/auth/:provider/callback', async (req, res) => {
 
     res.redirect(`/chat?source=${provider}`);
   } catch (error) {
-    console.error(`Error in OAuth callback for ${provider}:`, error);
+    logger.error(`Error in OAuth callback for ${provider}`, { error, provider, stack: error instanceof Error ? error.stack : undefined });
     res.redirect('/connections?error=token_exchange_failed');
   }
 });

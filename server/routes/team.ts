@@ -4,6 +4,7 @@ import { z } from "zod";
 import { randomBytes } from "crypto";
 import { sendEmail } from "../services/awsSes";
 import QRCode from "qrcode";
+import { logger } from "../utils/logger";
 
 // Extend Express Request to include session with userId
 interface AuthRequest extends Request {
@@ -65,7 +66,7 @@ router.get("/team", requireEnterpriseMainUser, async (req: AuthRequest, res: Res
       maxCount: 5,
     });
   } catch (error) {
-    console.error("Error getting team:", error);
+    logger.error("Error getting team", { error });
     res.status(500).json({ error: "Failed to get team members" });
   }
 });
@@ -124,7 +125,7 @@ router.post("/team/invite", requireEnterpriseMainUser, async (req: AuthRequest, 
       inviteUrl,
     });
   } catch (error: any) {
-    console.error("Error sending invitation:", error);
+    logger.error("Error sending invitation", { error });
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: "Invalid email address" });
     }
@@ -138,11 +139,11 @@ router.get("/team/invite-link", requireEnterpriseMainUser, async (req: AuthReque
     const userId = req.session.userId;
     
     if (!userId) {
-      console.error("No userId in session");
+      logger.error("No userId in session");
       return res.status(401).json({ error: "Not authenticated" });
     }
     
-    console.log(`Generating invite link for user ${userId}`);
+    logger.info(`Generating invite link for user ${userId}`);
     
     // Generate a reusable invite token for QR/link sharing
     const inviteToken = randomBytes(32).toString('hex');
@@ -152,25 +153,27 @@ router.get("/team/invite-link", requireEnterpriseMainUser, async (req: AuthReque
     const placeholderEmail = `invite-${Date.now()}@pending.euno.com`;
     
     // Store as a generic invitation
-    console.log(`Creating team invitation with token: ${inviteToken.substring(0, 10)}...`);
+    logger.debug(`Creating team invitation with token: ${inviteToken.substring(0, 10)}...`);
     await storage.createTeamInvitation(userId, placeholderEmail, inviteToken, expiresAt);
     
     const baseUrl = process.env.APP_URL || process.env.FRONTEND_URL || 'https://askeuno.com';
     const inviteUrl = `${baseUrl}/accept-invite/${inviteToken}`;
     
-    console.log(`Generating QR code for URL: ${inviteUrl}`);
+    logger.debug(`Generating QR code for URL: ${inviteUrl}`);
     // Generate QR code
     const qrCode = await QRCode.toDataURL(inviteUrl);
     
-    console.log(`Invite link generated successfully`);
+    logger.info(`Invite link generated successfully`);
     res.json({
       inviteUrl,
       qrCode,
       expiresAt,
     });
   } catch (error) {
-    console.error("Error generating invite link:", error);
-    console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
+    logger.error("Error generating invite link", { 
+      error, 
+      stack: error instanceof Error ? error.stack : 'No stack trace' 
+    });
     res.status(500).json({ error: "Failed to generate invite link" });
   }
 });
@@ -221,7 +224,7 @@ router.post("/team/resend/:invitationId", requireEnterpriseMainUser, async (req:
     
     res.json({ message: "Invitation resent." });
   } catch (error) {
-    console.error("Error resending invitation:", error);
+    logger.error("Error resending invitation", { error, invitationId });
     res.status(500).json({ error: "Failed to resend invitation" });
   }
 });
@@ -245,7 +248,7 @@ router.delete("/team/member/:memberId", requireEnterpriseMainUser, async (req: A
     
     res.json({ message: "Team member removed successfully" });
   } catch (error) {
-    console.error("Error removing team member:", error);
+    logger.error("Error removing team member", { error, memberId });
     res.status(500).json({ error: "Failed to remove team member" });
   }
 });
@@ -319,7 +322,7 @@ router.post("/accept-invite/:token", async (req: AuthRequest, res: Response) => 
       role: 'chat_only_user',
     });
   } catch (error) {
-    console.error("Error accepting invitation:", error);
+    logger.error("Error accepting invitation", { error, token });
     res.status(500).json({ error: "Failed to accept invitation" });
   }
 });

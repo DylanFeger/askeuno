@@ -8,7 +8,13 @@
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "drizzle-kit studio",
+    "docker:start": "./scripts/start-docker.sh",
+    "docker:stop": "./scripts/stop-docker.sh",
+    "init": "./scripts/init.sh",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.17.0",
@@ -106,6 +112,9 @@
     "react-icons": "^5.4.0",
     "react-resizable-panels": "^2.1.7",
     "recharts": "^2.15.2",
+    "@sentry/node": "^8.45.0",
+    "@sentry/profiling-node": "^8.45.0",
+    "@sentry/react": "^8.45.0",
     "stripe": "^18.4.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",

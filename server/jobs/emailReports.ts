@@ -383,11 +383,11 @@ if (require.main === module) {
   
   sendWeeklyReports()
     .then(result => {
-      console.log('Email job completed:', JSON.stringify(result, null, 2));
+      logger.info('Email job completed', { result });
       process.exit(0);
     })
     .catch(error => {
-      console.error('Email job failed:', error);
+      logger.error('Email job failed', { error });
       process.exit(1);
     });
 }

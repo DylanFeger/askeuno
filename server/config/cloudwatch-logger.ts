@@ -10,7 +10,7 @@ const isCloudWatchEnabled = false;
 
 export function setupCloudWatchLogging(logger: winston.Logger, logGroupName: string, logStreamName: string) {
   // CloudWatch logging has been removed
-  console.log('CloudWatch logging has been disabled - using console logging instead');
+  // CloudWatch logging has been disabled - using console logging instead
   return;
 }
 

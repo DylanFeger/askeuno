@@ -1,209 +1,62 @@
-import { objectStorageClient } from '../objectStorage';
-import { logger } from '../utils/logger';
-import crypto from 'crypto';
-import { setObjectAclPolicy } from '../objectAcl';
-
-const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
-
-// Get the bucket name from the private directory environment variable
-function getBucketName(): string {
-  const privateDir = process.env.PRIVATE_OBJECT_DIR || '';
-  if (!privateDir) {
-    throw new Error('PRIVATE_OBJECT_DIR not set');
-  }
-  // Extract bucket name from path like /repl-default-bucket-xxx/...
-  const parts = privateDir.split('/');
-  return parts[1] || 'repl-default-bucket';
-}
-
-export interface UploadResult {
-  success: boolean;
-  key?: string;
-  url?: string;
-  error?: string;
-}
-
 /**
- * Generate a unique S3 key for file storage
- * Format: {userId}/{timestamp}-{random}-{filename}
+ * S3 Service - Re-exports from unified storage service
+ * 
+ * This file now uses the unified storage service which automatically
+ * selects between local file storage and AWS S3 based on configuration.
+ * 
+ * For local development: Files are stored in ./uploads directory
+ * For production: Set STORAGE_MODE=s3 and configure AWS credentials
  */
-export function generateS3Key(userId: number, filename: string): string {
-  const timestamp = Date.now();
-  const random = crypto.randomBytes(8).toString('hex');
-  const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
-  return `business-${userId}/${timestamp}-${random}-${sanitizedFilename}`;
-}
+
+export {
+  uploadToS3,
+  downloadFromS3,
+  deleteFromS3,
+  checkS3Connection,
+  generateS3Key,
+  storage,
+  type UploadResult,
+} from './storageService';
+
+export { listUserFiles, streamFile, getFileMetadata } from './localStorageService';
 
 /**
- * Upload file to Object Storage with proper isolation per business
- */
-export async function uploadToS3(
-  userId: number,
-  filename: string,
-  fileBuffer: Buffer,
-  contentType: string
-): Promise<UploadResult> {
-  try {
-    const key = generateS3Key(userId, filename);
-    const bucketName = getBucketName();
-    
-    // Get the bucket and create file reference
-    const bucket = objectStorageClient.bucket(bucketName);
-    const file = bucket.file(key);
-    
-    // Upload the file
-    await file.save(fileBuffer, {
-      metadata: {
-        contentType,
-        metadata: {
-          userId: userId.toString(),
-          uploadDate: new Date().toISOString(),
-        },
-      },
-    });
-
-    // Set ACL policy for the file (public visibility for uploads)
-    await setObjectAclPolicy(file, {
-      owner: userId.toString(),
-      visibility: 'public',
-    });
-
-    logger.info('File uploaded to Object Storage', {
-      userId,
-      key,
-      filename,
-      size: fileBuffer.length,
-    });
-
-    return {
-      success: true,
-      key,
-      url: `/${bucketName}/${key}`,
-    };
-  } catch (error) {
-    logger.error('Object Storage upload error', { error, userId, filename });
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Upload failed',
-    };
-  }
-}
-
-/**
- * Get a pre-signed URL for secure file download
+ * Get a presigned URL for file download
+ * In local mode, returns a local API URL
+ * In S3 mode, returns a presigned S3 URL
  */
 export async function getPresignedDownloadUrl(
   key: string,
   expiresIn: number = 3600
 ): Promise<string> {
-  const bucketName = getBucketName();
+  const storageMode = process.env.STORAGE_MODE || 'local';
   
-  // Generate signed URL for Object Storage
-  const request = {
-    bucket_name: bucketName,
-    object_name: key,
-    method: 'GET' as const,
-    expires_at: new Date(Date.now() + expiresIn * 1000).toISOString(),
-  };
+  if (storageMode === 'local') {
+    // Return local API URL for file access
+    return `/api/files/${encodeURIComponent(key)}`;
+  }
   
-  const response = await fetch(
-    `${REPLIT_SIDECAR_ENDPOINT}/object-storage/signed-object-url`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+  // For S3 mode, generate a presigned URL
+  try {
+    const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
+    const { S3Client, GetObjectCommand } = await import('@aws-sdk/client-s3');
+    
+    const client = new S3Client({
+      region: process.env.AWS_REGION || 'us-east-1',
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
       },
-      body: JSON.stringify(request),
-    }
-  );
-  
-  if (!response.ok) {
-    throw new Error(`Failed to sign object URL: ${response.status}`);
-  }
-
-  const { signed_url: signedURL } = await response.json();
-  return signedURL;
-}
-
-/**
- * Download file from Object Storage
- */
-export async function downloadFromS3(key: string): Promise<Buffer | null> {
-  try {
-    const bucketName = getBucketName();
-    const bucket = objectStorageClient.bucket(bucketName);
-    const file = bucket.file(key);
-    
-    // Check if file exists
-    const [exists] = await file.exists();
-    if (!exists) {
-      return null;
-    }
-    
-    // Download the file
-    const [contents] = await file.download();
-    return contents;
-  } catch (error) {
-    logger.error('Object Storage download error', { error, key });
-    return null;
-  }
-}
-
-/**
- * Delete file from Object Storage
- */
-export async function deleteFromS3(key: string): Promise<boolean> {
-  try {
-    const bucketName = getBucketName();
-    const bucket = objectStorageClient.bucket(bucketName);
-    const file = bucket.file(key);
-    
-    await file.delete();
-    
-    logger.info('File deleted from Object Storage', { key });
-    return true;
-  } catch (error) {
-    logger.error('Object Storage delete error', { error, key });
-    return false;
-  }
-}
-
-/**
- * List files for a specific user
- */
-export async function listUserFiles(userId: number): Promise<string[]> {
-  try {
-    const bucketName = getBucketName();
-    const bucket = objectStorageClient.bucket(bucketName);
-    const prefix = `business-${userId}/`;
-    
-    // List files with prefix
-    const [files] = await bucket.getFiles({
-      prefix,
-      maxResults: 1000,
     });
     
-    const keys = files.map(file => file.name);
-    return keys;
-  } catch (error) {
-    logger.error('Object Storage list error', { error, userId });
-    return [];
-  }
-}
-
-/**
- * Check if Object Storage is configured and accessible
- */
-export async function checkS3Connection(): Promise<boolean> {
-  try {
-    const bucketName = getBucketName();
-    const bucket = objectStorageClient.bucket(bucketName);
+    const command = new GetObjectCommand({
+      Bucket: process.env.AWS_S3_BUCKET!,
+      Key: key,
+    });
     
-    // Try to list files to check connection
-    await bucket.getFiles({ maxResults: 1 });
-    return true;
+    return await getSignedUrl(client, command, { expiresIn });
   } catch (error) {
-    logger.error('Object Storage connection check failed', { error });
-    return false;
+    // Fallback to local URL if S3 is not configured
+    return `/api/files/${encodeURIComponent(key)}`;
   }
 }

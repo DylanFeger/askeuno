@@ -40,7 +40,7 @@ export async function connectToDataSourceV2(
     // Fall back to legacy connectors for backward compatibility
     const legacyTypes = [
       'mysql', 'postgresql', 'mongodb', 
-      'shopify', 'stripe', 'square', 'paypal', 'quickbooks',
+      'shopify', 'stripe', 'square', 'paypal', 'quickbooks', 'lightspeed',
       'googleads', 'salesforce', 'googlesheets', 's3', 'api', 'rest'
     ];
     

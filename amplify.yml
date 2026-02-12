@@ -1,12 +1,52 @@
 version: 1
+
+# ===========================================
+# Ask Euno - AWS Amplify Build Configuration
+# ===========================================
+# Full-stack application build for production
+# ===========================================
+
 frontend:
   phases:
     preBuild:
       commands:
+        # Install dependencies
         - npm ci
+        # Verify environment variables are set
+        - |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "Warning: DATABASE_URL not set"
+          fi
+        - |
+          if [ -z "$ENCRYPTION_KEY" ]; then
+            echo "Warning: ENCRYPTION_KEY not set"
+          fi
+        - |
+          if [ -z "$SESSION_SECRET" ]; then
+            echo "Warning: SESSION_SECRET not set"
+          fi
     build:
       commands:
+        # Build both frontend and backend
         - npm run build
+        # Verify build output
+        - |
+          if [ ! -d "dist" ]; then
+            echo "Error: Build failed - dist directory not found"
+            exit 1
+          fi
+        - |
+          if [ ! -d "dist/public" ]; then
+            echo "Error: Frontend build failed - dist/public not found"
+            exit 1
+          fi
+        - |
+          if [ ! -f "dist/index.js" ]; then
+            echo "Warning: Backend build may have failed - dist/index.js not found"
+          fi
+        # Display build info
+        - echo "Build completed successfully"
+        - du -sh dist
   artifacts:
     baseDirectory: dist
     files:
@@ -15,9 +55,20 @@ frontend:
     paths:
       - node_modules/**/*
 
-# Environment variables are set in Amplify Console
-# Required variables:
-# - NODE_ENV=production
-# - DATABASE_URL
-# - SESSION_SECRET
-# - OPENAI_API_KEY (optional)
+# ===========================================
+# Environment Variables (Set in Amplify Console)
+# ===========================================
+# Required:
+#   - NODE_ENV=production
+#   - DATABASE_URL (PostgreSQL connection string)
+#   - ENCRYPTION_KEY (64 hex characters)
+#   - SESSION_SECRET (32+ characters)
+#   - OPENAI_API_KEY (for AI features)
+#   - LS_CLIENT_ID, LS_CLIENT_SECRET, LS_REDIRECT_URI (Lightspeed)
+#   - AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_BUCKET (S3 storage)
+#   - APP_URL=https://askeuno.com
+#   - FRONTEND_URL=https://askeuno.com
+# Optional:
+#   - SENTRY_DSN, VITE_SENTRY_DSN (error monitoring)
+#   - STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY (payments)
+# ===========================================

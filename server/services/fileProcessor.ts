@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import * as XLSX from 'xlsx';
 import { parse } from 'csv-parse/sync';
+import { logger } from '../utils/logger';
 
 export interface ProcessedData {
   data: any[];
@@ -65,7 +66,7 @@ export async function processFile(filePath: string, fileType: string): Promise<P
       columns
     };
   } catch (error) {
-    console.error('File processing error:', error);
+    logger.error('File processing error', { error, fileType, filePath });
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     throw new Error(`Failed to process ${fileType} file: ${errorMessage}`);
   }
@@ -161,7 +162,7 @@ async function processJsonFile(filePath: string): Promise<any[]> {
     if (arrayProperties.length > 0) {
       // Use the first array found (e.g., 'inventory', 'products', 'records', etc.)
       const arrayKey = arrayProperties[0];
-      console.log(`Found nested array property: ${arrayKey} with ${jsonData[arrayKey].length} items`);
+      logger.debug(`Found nested array property: ${arrayKey} with ${jsonData[arrayKey].length} items`);
       return jsonData[arrayKey];
     }
     

@@ -9,11 +9,29 @@ import { logger } from "./utils/logger";
 import { sanitizeInput } from "./middleware/validation";
 import { enforceHTTPS, httpsSecurityHeaders } from "./middleware/https";
 import { pool, sessionPool } from "./db";
+import { initSentry, captureException } from "./config/sentry";
+import { validateEnv } from "./config/env";
+import { poolManager } from "./services/dbConnectionPool";
+
+// Validate environment variables before starting
+try {
+  validateEnv();
+  } catch (error) {
+    logger.error('Environment validation failed', { error });
+    process.exit(1);
+  }
+
+// Initialize Sentry error monitoring (optional - only if SENTRY_DSN is set)
+// Note: This is async but we don't await - it's non-blocking
+initSentry().catch(err => {
+  console.error('[Sentry] Initialization error:', err);
+  // Don't throw - Sentry is optional
+});
 
 // Global error handlers to prevent crashes
 process.on('uncaughtException', (error) => {
-  logger.error('Uncaught Exception:', error);
-  console.error('Uncaught Exception:', error);
+  logger.error('Uncaught Exception', { error, stack: error.stack });
+  captureException(error, { type: 'uncaughtException' });
   // Don't exit the process in development to allow for debugging
   if (process.env.NODE_ENV === 'production') {
     process.exit(1);
@@ -21,21 +39,30 @@ process.on('uncaughtException', (error) => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  logger.error('Unhandled Rejection', { 
+    reason: reason instanceof Error ? reason.message : String(reason),
+    stack: reason instanceof Error ? reason.stack : undefined,
+    promise: String(promise)
+  });
+  captureException(reason instanceof Error ? reason : new Error(String(reason)), {
+    type: 'unhandledRejection',
+    promise: String(promise),
+  });
   // Don't exit the process, just log the error for database connection issues
 });
 
 // Handle SIGTERM and SIGINT gracefully
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, shutting down gracefully');
+  await poolManager.closeAll();
   pool.end();
   sessionPool.end();
   process.exit(0);
 });
 
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   logger.info('SIGINT received, shutting down gracefully');
+  await poolManager.closeAll();
   pool.end();
   sessionPool.end();
   process.exit(0);
@@ -181,6 +208,19 @@ app.use((req, res, next) => {
       userId: (req as any).user?.id,
     });
 
+    // Send to Sentry
+    captureException(err, {
+      request: {
+        method: req.method,
+        url: req.url,
+        headers: req.headers,
+        ip: req.ip,
+      },
+      user: {
+        id: (req as any).user?.id,
+      },
+    });
+
     // Don't expose internal errors in production
     const message = status === 500 && process.env.NODE_ENV === 'production' 
       ? "Internal Server Error" 
@@ -203,7 +243,7 @@ app.use((req, res, next) => {
 
   // Use PORT from environment variable, or 80 for production, 5000 for development
   const port = parseInt(process.env.PORT || (process.env.NODE_ENV === 'production' ? '80' : '5000'), 10);
-  // Always bind to 0.0.0.0 for Replit port detection
+  // Bind to 0.0.0.0 to accept connections from any interface (required for Docker)
   const host = '0.0.0.0';
   server.listen({
     port,

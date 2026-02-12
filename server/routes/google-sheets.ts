@@ -1,162 +1,223 @@
+/**
+ * Google Sheets OAuth Routes
+ * Handles OAuth flow and data import from Google Sheets
+ */
+
 import { Router, Response } from 'express';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { logger } from '../utils/logger';
-import { storage } from '../storage';
-import { 
-  isGoogleSheetsConnected, 
-  listSpreadsheets, 
-  getSpreadsheetData, 
-  getSpreadsheetMetadata 
+import {
+  getGoogleAuthUrl,
+  exchangeCodeForTokens,
+  saveGoogleSheetsConnection,
+  isGoogleSheetsConnected,
+  disconnectGoogleSheets,
+  listSpreadsheets,
+  getSpreadsheetMetadata,
+  importGoogleSheet,
 } from '../services/googleSheetsConnector';
-
-// Helper function to detect schema from data
-function detectSchemaFromData(data: any[]): any {
-  if (!data || data.length === 0) return {};
-  
-  const schema: any = {};
-  const columns = Object.keys(data[0]);
-  
-  columns.forEach(col => {
-    for (let i = 0; i < Math.min(5, data.length); i++) {
-      const value = data[i][col];
-      if (value !== null && value !== undefined && value !== '') {
-        if (!isNaN(Number(value))) {
-          schema[col] = 'number';
-        } else if (value === 'true' || value === 'false') {
-          schema[col] = 'boolean';
-        } else if (!isNaN(Date.parse(String(value)))) {
-          schema[col] = 'date';
-        } else {
-          schema[col] = 'string';
-        }
-        break;
-      }
-    }
-    if (!schema[col]) {
-      schema[col] = 'string';
-    }
-  });
-  
-  return schema;
-}
+import { google } from 'googleapis';
 
 const router = Router();
 
-// Check if Google Sheets is connected via Replit connector
-router.get('/google-sheets/status', requireAuth, (async (req: AuthenticatedRequest, res: Response) => {
+/**
+ * GET /api/google-sheets/auth - Initiate OAuth flow
+ */
+router.get('/auth', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const isConnected = await isGoogleSheetsConnected();
-    res.json({ connected: isConnected });
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    // Create state with user ID for callback verification
+    const state = Buffer.from(JSON.stringify({
+      userId,
+      timestamp: Date.now(),
+    })).toString('base64');
+    
+    const authUrl = getGoogleAuthUrl(state);
+    
+    logger.info('Google Sheets OAuth initiated', { userId });
+    
+    res.json({ authUrl });
   } catch (error: any) {
-    logger.error('Error checking Google Sheets connection status', { error: error.message });
-    res.json({ connected: false });
+    logger.error('Failed to initiate Google Sheets OAuth', { error: error.message });
+    res.status(500).json({ error: error.message || 'Failed to initiate OAuth' });
   }
-}) as any);
+});
 
-// List available spreadsheets
-router.get('/google-sheets/spreadsheets', requireAuth, (async (req: AuthenticatedRequest, res: Response) => {
+/**
+ * GET /api/google-sheets/callback - OAuth callback
+ */
+router.get('/callback', async (req, res: Response) => {
   try {
-    const spreadsheets = await listSpreadsheets();
+    const { code, state, error } = req.query;
+    
+    if (error) {
+      logger.warn('Google Sheets OAuth denied', { error });
+      return res.redirect('/connections?error=google_sheets_denied');
+    }
+    
+    if (!code || !state) {
+      return res.redirect('/connections?error=invalid_callback');
+    }
+    
+    // Decode state
+    let stateData;
+    try {
+      stateData = JSON.parse(Buffer.from(state as string, 'base64').toString());
+    } catch {
+      return res.redirect('/connections?error=invalid_state');
+    }
+    
+    const { userId } = stateData;
+    
+    if (!userId) {
+      return res.redirect('/connections?error=invalid_state');
+    }
+    
+    // Exchange code for tokens
+    const tokens = await exchangeCodeForTokens(code as string);
+    
+    // Get user email from token
+    let email: string | undefined;
+    try {
+      const oauth2Client = new google.auth.OAuth2();
+      oauth2Client.setCredentials({ access_token: tokens.accessToken });
+      const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+      const userInfo = await oauth2.userinfo.get();
+      email = userInfo.data.email || undefined;
+    } catch (e) {
+      logger.warn('Could not fetch Google user email', { error: e });
+    }
+    
+    // Save connection
+    await saveGoogleSheetsConnection(
+      userId,
+      tokens.accessToken,
+      tokens.refreshToken,
+      tokens.expiresAt,
+      email
+    );
+    
+    logger.info('Google Sheets connected successfully', { userId, email });
+    
+    res.redirect('/connections?success=google_sheets_connected');
+  } catch (error: any) {
+    logger.error('Google Sheets OAuth callback failed', { error: error.message });
+    res.redirect('/connections?error=oauth_failed');
+  }
+});
+
+/**
+ * GET /api/google-sheets/status - Check connection status
+ */
+router.get('/status', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const connected = await isGoogleSheetsConnected(userId);
+    
+    res.json({ connected });
+  } catch (error: any) {
+    logger.error('Failed to check Google Sheets status', { error: error.message });
+    res.status(500).json({ error: 'Failed to check status' });
+  }
+});
+
+/**
+ * POST /api/google-sheets/disconnect - Disconnect Google Sheets
+ */
+router.post('/disconnect', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    await disconnectGoogleSheets(userId);
+    
+    logger.info('Google Sheets disconnected', { userId });
+    
+    res.json({ success: true });
+  } catch (error: any) {
+    logger.error('Failed to disconnect Google Sheets', { error: error.message });
+    res.status(500).json({ error: 'Failed to disconnect' });
+  }
+});
+
+/**
+ * GET /api/google-sheets/spreadsheets - List user's spreadsheets
+ */
+router.get('/spreadsheets', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const spreadsheets = await listSpreadsheets(userId);
+    
     res.json({ spreadsheets });
   } catch (error: any) {
-    logger.error('Error listing spreadsheets', { error: error.message, userId: req.user.id });
-    res.status(500).json({ error: 'Failed to list spreadsheets' });
+    logger.error('Failed to list spreadsheets', { error: error.message });
+    res.status(500).json({ error: error.message || 'Failed to list spreadsheets' });
   }
-}) as any);
+});
 
-// Import a specific spreadsheet
-router.post('/google-sheets/import', requireAuth, (async (req: AuthenticatedRequest, res: Response) => {
-  const { spreadsheetId, sheetName } = req.body;
-  const userId = req.user.id;
-
-  if (!spreadsheetId) {
-    return res.status(400).json({ error: 'Spreadsheet ID is required' });
-  }
-
+/**
+ * GET /api/google-sheets/spreadsheets/:id - Get spreadsheet metadata
+ */
+router.get('/spreadsheets/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    logger.info('Importing Google Sheet', { userId, spreadsheetId, sheetName });
-
-    // Get spreadsheet metadata
-    const metadata = await getSpreadsheetMetadata(spreadsheetId);
-    const spreadsheetTitle = metadata.title || 'Untitled Spreadsheet';
-
-    // Determine which sheet to import
-    let rangeToFetch = sheetName ? `${sheetName}!A1:ZZ` : 'A1:ZZ';
-    
-    // Fetch spreadsheet data
-    const rawData = await getSpreadsheetData(spreadsheetId, rangeToFetch);
-
-    if (!rawData || rawData.length === 0) {
-      return res.status(400).json({ error: 'Spreadsheet is empty or no data found' });
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
     }
-
-    // First row is headers
-    const headers = rawData[0];
-    const dataRows = rawData.slice(1);
-
-    if (dataRows.length === 0) {
-      return res.status(400).json({ error: 'No data rows found (only headers)' });
-    }
-
-    // Convert rows to objects
-    const structuredData = dataRows.map((row: any[]) => {
-      const obj: any = {};
-      headers.forEach((header: string, index: number) => {
-        obj[header] = row[index] || null;
-      });
-      return obj;
-    });
-
-    // Detect schema from the structured data
-    const schema = detectSchemaFromData(structuredData);
     
-    // For now, store data count (we can add S3 upload later if needed)
-    const rowCount = structuredData.length;
-
-    // Store the data in our database (data_rows table)
-    const dataSource = await storage.createDataSource({
-      userId,
-      name: sheetName ? `${spreadsheetTitle} - ${sheetName}` : spreadsheetTitle,
-      type: 'google_sheets',
-      connectionType: 'live', // This is a live connection
-      schema,
-      rowCount,
-      lastSyncAt: new Date(),
-      connectionData: {
-        spreadsheetId,
-        sheetName: sheetName || metadata.sheets[0]?.title || 'Sheet1',
-        spreadsheetUrl: `https://docs.google.com/spreadsheets/d/${spreadsheetId}`
-      }
-    });
+    const { id } = req.params;
+    const metadata = await getSpreadsheetMetadata(userId, id);
     
-    // Insert the actual data rows
-    await storage.insertDataRows(dataSource.id, structuredData);
-
-    logger.info('Google Sheet imported successfully', {
-      userId,
-      dataSourceId: dataSource.id,
-      spreadsheetId,
-      rowCount
-    });
-
-    res.json({
-      success: true,
-      dataSource: {
-        id: dataSource.id,
-        name: dataSource.name,
-        type: dataSource.type,
-        rowCount: dataSource.rowCount,
-        schema: dataSource.schema,
-      }
-    });
+    res.json(metadata);
   } catch (error: any) {
-    logger.error('Google Sheets import error', { 
-      error: error.message, 
+    logger.error('Failed to get spreadsheet metadata', { error: error.message });
+    res.status(500).json({ error: error.message || 'Failed to get spreadsheet' });
+  }
+});
+
+/**
+ * POST /api/google-sheets/import - Import data from a spreadsheet
+ */
+router.post('/import', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const { spreadsheetId, sheetName } = req.body;
+    
+    if (!spreadsheetId) {
+      return res.status(400).json({ error: 'spreadsheetId is required' });
+    }
+    
+    const result = await importGoogleSheet(userId, spreadsheetId, sheetName);
+    
+    logger.info('Google Sheet imported', { 
       userId, 
-      spreadsheetId 
+      spreadsheetId, 
+      rowCount: result.rowCount 
     });
+    
+    res.json(result);
+  } catch (error: any) {
+    logger.error('Failed to import Google Sheet', { error: error.message });
     res.status(500).json({ error: error.message || 'Failed to import spreadsheet' });
   }
-}) as any);
+});
 
 export default router;

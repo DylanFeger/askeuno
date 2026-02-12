@@ -4,6 +4,7 @@ import { storage } from '../storage';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { logger } from '../utils/logger';
 import { sql } from 'drizzle-orm';
+import { poolManager } from '../services/dbConnectionPool';
 
 const router = Router();
 
@@ -15,34 +16,60 @@ router.get('/', (req, res) => {
 });
 
 /**
+ * Check individual service health
+ */
+async function checkDatabase(): Promise<{ status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string }> {
+  try {
+    const start = Date.now();
+    await db.execute(sql`SELECT 1`);
+    const responseTime = Date.now() - start;
+    return { status: 'healthy', responseTime };
+  } catch (error) {
+    return {
+      status: 'unhealthy',
+      error: error instanceof Error ? error.message : 'Database connection failed',
+    };
+  }
+}
+
+async function checkOpenAI(): Promise<{ status: 'healthy' | 'unhealthy' | 'not_configured'; error?: string }> {
+  if (!process.env.OPENAI_API_KEY) {
+    return { status: 'not_configured' };
+  }
+  // OpenAI API key is set - we can't actually test it without making a request
+  // which would cost money, so we just check if it's configured
+  return { status: 'healthy' };
+}
+
+async function checkConnectionPools(): Promise<{ status: 'healthy'; stats: any }> {
+  const stats = poolManager.getStats();
+  return { status: 'healthy', stats };
+}
+
+/**
  * Public health check endpoint for deployment monitoring
  */
 router.get('/check', async (req, res) => {
-  try {
-    // Test database connection
-    const start = Date.now();
-    await db.execute(sql`SELECT 1`);
-    const dbResponseTime = Date.now() - start;
-
-    res.json({
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      database: {
-        connected: true,
-        responseTime: `${dbResponseTime}ms`
-      }
-    });
-  } catch (error) {
-    logger.error('Health check failed', { error });
-    res.status(503).json({
-      status: 'unhealthy',
-      timestamp: new Date().toISOString(),
-      database: {
-        connected: false,
-        error: 'Database connection failed'
-      }
-    });
-  }
+  const checks = {
+    database: await checkDatabase(),
+    openai: await checkOpenAI(),
+    connectionPools: await checkConnectionPools(),
+  };
+  
+  const allHealthy = checks.database.status === 'healthy';
+  const status = allHealthy ? 'healthy' : 'degraded';
+  
+  res.status(allHealthy ? 200 : 503).json({
+    status,
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    checks,
+    memory: {
+      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+      rss: Math.round(process.memoryUsage().rss / 1024 / 1024),
+    },
+  });
 });
 
 /**

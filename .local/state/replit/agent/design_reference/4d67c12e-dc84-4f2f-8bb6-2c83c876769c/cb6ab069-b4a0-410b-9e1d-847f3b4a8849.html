@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acre - AI-Powered Data Platform for Small Business</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'purple-primary': '#8B5CF6',
+                        'purple-secondary': '#A78BFA',
+                        'purple-light': '#F3F4F6',
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="font-inter bg-white">
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-b border-gray-100 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-purple-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-database text-white text-sm"></i>
+                    </div>
+                    <span class="text-xl font-bold text-gray-900">Acre</span>
+                </div>
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="#features" class="text-gray-600 hover:text-purple-primary transition-colors">Features</a>
+                    <a href="#pricing" class="text-gray-600 hover:text-purple-primary transition-colors">Pricing</a>
+                    <button class="bg-purple-primary text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
+                        Get Started
+                    </button>
+                </nav>
+                <button class="md:hidden text-gray-600">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto text-center">
+            <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+                Turn Your Business Data Into 
+                <span class="text-purple-primary">Instant Insights</span>
+            </h1>
+            <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                Upload your data, ask questions, get clear answers. No technical skills needed. 
+                Your AI assistant handles all the complexity.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button class="bg-purple-primary text-white px-8 py-3 rounded-lg font-medium hover:bg-purple-600 transition-colors">
+                    Start Free Trial
+                </button>
+                <button class="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                    Watch Demo
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Interface -->
+    <section class="py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- @COMPONENT: MainInterface -->
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                <!-- Upload Area -->
+                <div class="p-8 border-b border-gray-100">
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl font-semibold text-gray-900 mb-2">Upload Your Data</h2>
+                        <p class="text-gray-600">Drag & drop files or click to browse</p>
+                    </div>
+                    
+                    <!-- File Upload Dropzone -->
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-purple-primary transition-colors cursor-pointer" id="uploadDropzone">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                        <p class="text-lg font-medium text-gray-700 mb-2">Drop files here or click to upload</p>
+                        <p class="text-sm text-gray-500">Supports CSV, Excel, JSON files up to 10MB</p>
+                        <input type="file" class="hidden" id="fileInput" accept=".csv,.xlsx,.xls,.json" multiple data-implementation="Handle file validation and upload">
+                    </div>
+
+                    <!-- Quick Connect Options -->
+                    <div class="mt-6">
+                        <p class="text-sm text-gray-600 text-center mb-4">Or connect your data sources:</p>
+                        <div class="flex flex-wrap gap-3 justify-center">
+                            <button class="flex items-center space-x-2 bg-green-50 text-green-700 px-4 py-2 rounded-lg hover:bg-green-100 transition-colors">
+                                <i class="fab fa-google text-green-600"></i>
+                                <span>Google Sheets</span>
+                            </button>
+                            <button class="flex items-center space-x-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors">
+                                <i class="fas fa-calculator text-blue-600"></i>
+                                <span>QuickBooks</span>
+                            </button>
+                            <button class="flex items-center space-x-2 bg-purple-50 text-purple-700 px-4 py-2 rounded-lg hover:bg-purple-100 transition-colors">
+                                <i class="fas fa-table text-purple-600"></i>
+                                <span>Excel Online</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Chat Interface -->
+                <div class="p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-semibold text-gray-900">Ask Your AI Assistant</h2>
+                        <div class="flex items-center space-x-2 text-sm text-gray-500">
+                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span>Online</span>
+                        </div>
+                    </div>
+
+                    <!-- Chat Messages -->
+                    <div class="space-y-4 mb-6 max-h-96 overflow-y-auto" id="chatMessages">
+                        <!-- Welcome Message -->
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 bg-purple-primary rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-robot text-white text-sm"></i>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-4 max-w-md">
+                                <p class="text-gray-800">Hello! I'm your AI assistant. Upload your data and I'll help you get insights instantly. Try asking me things like:</p>
+                                <ul class="mt-2 text-sm text-gray-600">
+                                    <li>• "What were our best selling products last month?"</li>
+                                    <li>• "Show me our revenue trends"</li>
+                                    <li>• "Which customers spend the most?"</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Sample User Message -->
+                        <div class="flex items-start space-x-3 justify-end">
+                            <div class="bg-purple-primary rounded-lg p-4 max-w-md text-white">
+                                <p>What were our top 5 products by revenue last quarter?</p>
+                            </div>
+                            <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-user text-gray-600 text-sm"></i>
+                            </div>
+                        </div>
+
+                        <!-- Sample AI Response -->
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 bg-purple-primary rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-robot text-white text-sm"></i>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-4 max-w-md">
+                                <p class="text-gray-800 mb-3">Based on your Q3 sales data, here are your top 5 products by revenue:</p>
+                                <ol class="text-sm text-gray-700 space-y-1">
+                                    <li>1. Premium Widget - $45,230</li>
+                                    <li>2. Basic Service Pack - $32,890</li>
+                                    <li>3. Advanced Module - $28,640</li>
+                                    <li>4. Starter Kit - $21,450</li>
+                                    <li>5. Pro Tools - $18,920</li>
+                                </ol>
+                                <button class="mt-3 text-purple-primary text-sm hover:text-purple-600 transition-colors">
+                                    <i class="fas fa-chevron-down mr-1"></i>
+                                    Show more details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-1 relative">
+                            <input 
+                                type="text" 
+                                placeholder="Ask me anything about your data..."
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-primary focus:border-transparent outline-none"
+                                id="chatInput"
+                                data-implementation="Handle chat input and send to AI backend"
+                            >
+                            <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-purple-primary transition-colors">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </div>
+                        <button class="bg-purple-primary text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: MainInterface -->
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Everything You Need, Nothing You Don't</h2>
+                <p class="text-xl text-gray-600">Simple, powerful, and secure data insights for your business</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white rounded-xl p-8 shadow-sm">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-upload text-purple-primary text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Instant Upload</h3>
+                    <p class="text-gray-600">Drop your files and they're instantly understood. No setup, no configuration, no waiting.</p>
+                </div>
+                
+                <div class="bg-white rounded-xl p-8 shadow-sm">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-comments text-green-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Natural Conversation</h3>
+                    <p class="text-gray-600">Ask questions in plain English. Get clear, actionable answers in seconds.</p>
+                </div>
+                
+                <div class="bg-white rounded-xl p-8 shadow-sm">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-shield-alt text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3">Enterprise Security</h3>
+                    <p class="text-gray-600">Your data is encrypted and secure. We never share or sell your information.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-20 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
+                <p class="text-xl text-gray-600">Choose the plan that fits your business needs</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Starter Plan -->
+                <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
+                        <div class="text-4xl font-bold text-gray-900 mb-2">
+                            $19
+                            <span class="text-lg font-normal text-gray-600">/month</span>
+                        </div>
+                        <p class="text-gray-600">Perfect for small businesses</p>
+                    </div>
+                    <ul class="space-y-4 mb-8">
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Up to 3 data sources</span>
+                        </li>
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>100 AI queries/month</span>
+                        </li>
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>5GB storage</span>
+                        </li>
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Email support</span>
+                        </li>
+                    </ul>
+                    <button class="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors">
+                        Start Free Trial
+                    </button>
+                </div>
+                
+                <!-- Professional Plan -->
+                <div class="bg-white rounded-2xl p-8 shadow-lg border-2 border-purple-primary relative">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-purple-primary text-white px-4 py-1 rounded-full text-sm font-medium">
+                        Most Popular
+                    </div>
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
+                        <div class="text-4xl font-bold text-gray-900 mb-2">
+                            $49
+                            <span class="text-lg font-normal text-gray-600">/month</span>
+                        </div>
+                        <p class="text-gray-600">For growing businesses</p>
+                    </div>
+                    <ul class="space-y-4 mb-8">
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Unlimited data sources</span>
+                        </li>
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>500 AI queries/month</span>
+                        </li>
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>50GB storage</span>
+                        </li>
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Priority support</span>
+                        </li>
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Custom reports</span>
+                        </li>
+                    </ul>
+                    <button class="w-full bg-purple-primary text-white py-3 rounded-lg font-medium hover:bg-purple-600 transition-colors">
+                        Start Free Trial
+                    </button>
+                </div>
+                
+                <!-- Enterprise Plan -->
+                <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
+                        <div class="text-4xl font-bold text-gray-900 mb-2">
+                            $99
+                            <span class="text-lg font-normal text-gray-600">/month</span>
+                        </div>
+                        <p class="text-gray-600">For larger organizations</p>
+                    </div>
+                    <ul class="space-y-4 mb-8">
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Unlimited everything</span>
+                        </li>
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Advanced AI features</span>
+                        </li>
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>500GB storage</span>
+                        </li>
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>24/7 phone support</span>
+                        </li>
+                        <li class="flex items-center space-x-3">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Custom integrations</span>
+                        </li>
+                    </ul>
+                    <button class="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors">
+                        Contact Sales
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-8 h-8 bg-purple-primary rounded-lg flex items-center justify-center">
+                            <i class="fas fa-database text-white text-sm"></i>
+                        </div>
+                        <span class="text-xl font-bold">Acre</span>
+                    </div>
+                    <p class="text-gray-400">Making business data simple and actionable for everyone.</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Product</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Features</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Security</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Integrations</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">About</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Blog</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Careers</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Help Center</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Documentation</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Status</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 Acre. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // File Upload Functionality
+        (function() {
+            const uploadDropzone = document.getElementById('uploadDropzone');
+            const fileInput = document.getElementById('fileInput');
+            const chatInput = document.getElementById('chatInput');
+            const chatMessages = document.getElementById('chatMessages');
+
+            // File upload interactions
+            uploadDropzone.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            uploadDropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadDropzone.classList.add('border-purple-primary', 'bg-purple-50');
+            });
+
+            uploadDropzone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                uploadDropzone.classList.remove('border-purple-primary', 'bg-purple-50');
+            });
+
+            uploadDropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadDropzone.classList.remove('border-purple-primary', 'bg-purple-50');
+                // TODO: Handle file upload processing
+                const files = e.dataTransfer.files;
+                handleFileUpload(files);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                // TODO: Handle file upload processing
+                const files = e.target.files;
+                handleFileUpload(files);
+            });
+
+            function handleFileUpload(files) {
+                // TODO: Implement file validation and upload logic
+                console.log('Files to upload:', files);
+                
+                // Show success message in chat
+                const messageHtml = `
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-purple-primary rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-robot text-white text-sm"></i>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-4 max-w-md">
+                            <p class="text-gray-800">Great! I've processed your file and it's ready to analyze. What would you like to know about your data?</p>
+                        </div>
+                    </div>
+                `;
+                chatMessages.insertAdjacentHTML('beforeend', messageHtml);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // Chat functionality
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            function sendMessage() {
+                const message = chatInput.value.trim();
+                if (!message) return;
+
+                // Add user message
+                const userMessageHtml = `
+                    <div class="flex items-start space-x-3 justify-end">
+                        <div class="bg-purple-primary rounded-lg p-4 max-w-md text-white">
+                            <p>${message}</p>
+                        </div>
+                        <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-user text-gray-600 text-sm"></i>
+                        </div>
+                    </div>
+                `;
+                chatMessages.insertAdjacentHTML('beforeend', userMessageHtml);
+                chatInput.value = '';
+
+                // TODO: Send message to AI backend and get response
+                // Simulate AI response
+                setTimeout(() => {
+                    const aiResponseHtml = `
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 bg-purple-primary rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-robot text-white text-sm"></i>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-4 max-w-md">
+                                <p class="text-gray-800">I'm analyzing your question about "${message}". Let me process your data and provide you with insights...</p>
+                                <button class="mt-3 text-purple-primary text-sm hover:text-purple-600 transition-colors">
+                                    <i class="fas fa-chevron-down mr-1"></i>
+                                    Show more details
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    chatMessages.insertAdjacentHTML('beforeend', aiResponseHtml);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 1000);
+
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -135,7 +135,37 @@ router.post('/:id/sync', requireAuth, requireMainUser, async (req: Authenticated
     await storage.updateDataSource(dataSourceId, { status: 'syncing' });
 
     // Decrypt connection data
-    const connectionData = decryptConnectionData(dataSource.connectionData);
+    let connectionData = decryptConnectionData(dataSource.connectionData);
+
+    // For Lightspeed, ensure we have a valid access token
+    if (dataSource.type === 'lightspeed') {
+      const { getLightspeedConnectionFromDataSource, ensureValidLightspeedToken } = await import('../services/lightspeedService');
+      
+      // Get fresh token if needed
+      const tokenData = await ensureValidLightspeedToken(req.user.id);
+      if (tokenData) {
+        // Update connectionData with fresh token
+        connectionData = {
+          ...connectionData,
+          accountId: tokenData.accountId,
+          accessToken: tokenData.accessToken,
+        };
+      } else {
+        // Try to get from dataSource
+        const lightspeedConn = await getLightspeedConnectionFromDataSource(dataSourceId, req.user.id);
+        if (lightspeedConn) {
+          connectionData = {
+            ...connectionData,
+            accountId: lightspeedConn.accountId,
+            accessToken: lightspeedConn.accessToken,
+          };
+        } else {
+          return res.status(401).json({ 
+            error: 'Lightspeed connection expired. Please reconnect your account.' 
+          });
+        }
+      }
+    }
 
     // Perform sync using V2 connector framework
     const syncResult = await connectToDataSourceV2(dataSource.type, connectionData);

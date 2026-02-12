@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acre - Data Platform for Small Businesses</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#8B5CF6',
+                        'primary-dark': '#7C3AED',
+                        'primary-light': '#A78BFA',
+                        neutral: {
+                            50: '#F8FAFC',
+                            100: '#F1F5F9',
+                            200: '#E2E8F0',
+                            300: '#CBD5E1',
+                            400: '#94A3B8',
+                            500: '#64748B',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1E293B',
+                            900: '#0F172A'
+                        }
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-neutral-50 font-inter">
+    <!-- @COMPONENT: Header -->
+    <header class="bg-white shadow-sm border-b border-neutral-200 fixed w-full top-0 z-50">
+        <div class="px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <div class="text-2xl font-bold text-primary">Acre</div>
+                    <div class="ml-2 text-sm text-neutral-500">Data Platform</div>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#" class="text-primary font-medium">Dashboard</a>
+                    <a href="#" class="text-neutral-600 hover:text-primary">Data Sources</a>
+                    <a href="#" class="text-neutral-600 hover:text-primary">AI Assistant</a>
+                    <a href="#" class="text-neutral-600 hover:text-primary">Reports</a>
+                </nav>
+                
+                <!-- User Profile -->
+                <div class="flex items-center space-x-4">
+                    <div class="hidden md:block">
+                        <!-- AI usage indicator -->
+                        <div class="flex items-center space-x-2 bg-primary/10 px-3 py-1 rounded-full">
+                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span class="text-sm text-primary">87 AI queries left</span>
+                        </div>
+                    </div>
+                    
+                    <div class="relative">
+                        <button class="flex items-center space-x-2 text-neutral-700 hover:text-primary">
+                            <div class="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-primary text-sm"></i>
+                            </div>
+                            <span class="hidden md:inline text-sm font-medium">Sarah Johnson</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <!-- @COMPONENT: MainLayout -->
+    <div class="pt-16 min-h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            
+            <!-- @COMPONENT: WelcomeSection -->
+            <div class="mb-8">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-neutral-900">Welcome back, Sarah</h1>
+                        <p class="mt-2 text-neutral-600">Here's what's happening with your data today</p>
+                    </div>
+                    <div class="mt-4 sm:mt-0">
+                        <button class="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-dark transition-colors">
+                            <i class="fas fa-plus mr-2"></i>
+                            Upload Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: WelcomeSection -->
+
+            <!-- @COMPONENT: StatsOverview -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-neutral-600">Total Data Sources</p>
+                            <p class="text-2xl font-bold text-neutral-900">8</p>
+                        </div>
+                        <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-database text-primary text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-green-600 text-sm font-medium">+2 this month</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-neutral-600">Storage Used</p>
+                            <p class="text-2xl font-bold text-neutral-900">2.4 GB</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-cloud text-blue-600 text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-neutral-600 text-sm">of 10 GB limit</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-neutral-600">AI Queries Today</p>
+                            <p class="text-2xl font-bold text-neutral-900">13</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-robot text-green-600 text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-green-600 text-sm font-medium">+5 from yesterday</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-neutral-600">Last Sync</p>
+                            <p class="text-2xl font-bold text-neutral-900">2m ago</p>
+                        </div>
+                        <div class="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-sync text-orange-600 text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-green-600 text-sm font-medium">All sources synced</span>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: StatsOverview -->
+
+            <!-- @COMPONENT: MainContent -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Left Column: Data Sources & Upload -->
+                <div class="lg:col-span-2 space-y-6">
+                    
+                    <!-- @COMPONENT: FileUpload -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-xl font-semibold text-neutral-900">Quick Upload</h2>
+                            <button class="text-primary hover:text-primary-dark">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="border-2 border-dashed border-neutral-300 rounded-lg p-8 text-center hover:border-primary/50 transition-colors" id="uploadArea">
+                            <div class="w-16 h-16 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-cloud-upload-alt text-primary text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-neutral-900 mb-2">Drop files here or click to browse</h3>
+                            <p class="text-neutral-600 mb-4">Supports CSV, Excel, and JSON files up to 50MB</p>
+                            <button class="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-dark transition-colors">
+                                Select Files
+                            </button>
+                        </div>
+                        
+                        <!-- Upload Progress (hidden by default) -->
+                        <div class="mt-4 hidden" id="uploadProgress">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm text-neutral-600">Uploading sales_data.csv</span>
+                                <span class="text-sm text-neutral-600">75%</span>
+                            </div>
+                            <div class="w-full bg-neutral-200 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 75%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: FileUpload -->
+
+                    <!-- @COMPONENT: DataSources -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-xl font-semibold text-neutral-900">Data Sources</h2>
+                            <button class="text-primary hover:text-primary-dark font-medium">
+                                <i class="fas fa-plus mr-2"></i>
+                                Connect New
+                            </button>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <!-- @MAP: dataSources.map(source => ( -->
+                            <div class="flex items-center justify-between p-4 border border-neutral-200 rounded-lg hover:bg-neutral-50">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-file-excel text-green-600 text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-medium text-neutral-900">Sales Data Q4 2024</h3>
+                                        <p class="text-sm text-neutral-600">Last updated: 2 minutes ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                    <span class="text-sm text-neutral-600">Active</span>
+                                    <button class="text-neutral-400 hover:text-neutral-600">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between p-4 border border-neutral-200 rounded-lg hover:bg-neutral-50">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-chart-line text-blue-600 text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-medium text-neutral-900">Google Sheets - Marketing</h3>
+                                        <p class="text-sm text-neutral-600">Last sync: 1 hour ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                    <span class="text-sm text-neutral-600">Connected</span>
+                                    <button class="text-neutral-400 hover:text-neutral-600">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between p-4 border border-neutral-200 rounded-lg hover:bg-neutral-50">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-calculator text-purple-600 text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-medium text-neutral-900">QuickBooks Online</h3>
+                                        <p class="text-sm text-neutral-600">Last sync: 3 hours ago</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                    <span class="text-sm text-neutral-600">Syncing</span>
+                                    <button class="text-neutral-400 hover:text-neutral-600">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: DataSources -->
+
+                    <!-- @COMPONENT: DataVisualization -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-xl font-semibold text-neutral-900">Revenue Overview</h2>
+                            <div class="flex items-center space-x-2">
+                                <select class="text-sm border border-neutral-300 rounded px-3 py-1">
+                                    <option>Last 30 days</option>
+                                    <option>Last 90 days</option>
+                                    <option>Last year</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="h-64">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: DataVisualization -->
+                </div>
+
+                <!-- Right Column: AI Chat & Activity -->
+                <div class="space-y-6">
+                    
+                    <!-- @COMPONENT: AIChat -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-xl font-semibold text-neutral-900">AI Assistant</h2>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span class="text-sm text-neutral-600">Online</span>
+                            </div>
+                        </div>
+                        
+                        <div class="h-80 overflow-y-auto mb-4 space-y-4" id="chatMessages">
+                            <!-- AI Message -->
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-robot text-primary text-sm"></i>
+                                </div>
+                                <div class="bg-neutral-100 rounded-lg p-3 max-w-xs">
+                                    <p class="text-sm text-neutral-800">Hi Sarah! I can help you analyze your data. What would you like to know about your sales performance?</p>
+                                </div>
+                            </div>
+                            
+                            <!-- User Message -->
+                            <div class="flex items-start space-x-3 justify-end">
+                                <div class="bg-primary rounded-lg p-3 max-w-xs">
+                                    <p class="text-sm text-white">Show me the top 5 products by revenue this quarter</p>
+                                </div>
+                                <div class="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-user text-primary text-sm"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- AI Response -->
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-robot text-primary text-sm"></i>
+                                </div>
+                                <div class="bg-neutral-100 rounded-lg p-3 max-w-xs">
+                                    <p class="text-sm text-neutral-800">Here are your top 5 products by revenue this quarter:</p>
+                                    <div class="mt-2 text-sm space-y-1">
+                                        <div class="flex justify-between">
+                                            <span>Product A</span>
+                                            <span class="font-medium">$12,450</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>Product B</span>
+                                            <span class="font-medium">$9,230</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>Product C</span>
+                                            <span class="font-medium">$8,120</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>Product D</span>
+                                            <span class="font-medium">$7,890</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>Product E</span>
+                                            <span class="font-medium">$6,340</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-neutral-200 pt-4">
+                            <div class="flex items-center space-x-2">
+                                <input type="text" placeholder="Ask me anything about your data..." class="flex-1 border border-neutral-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                                <button class="bg-primary text-white p-2 rounded-lg hover:bg-primary-dark transition-colors">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: AIChat -->
+
+                    <!-- @COMPONENT: RecentActivity -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                        <h2 class="text-xl font-semibold text-neutral-900 mb-4">Recent Activity</h2>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-upload text-green-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-neutral-800">Sales data uploaded</p>
+                                    <p class="text-xs text-neutral-500">2 minutes ago</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-sync text-blue-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-neutral-800">Google Sheets synced</p>
+                                    <p class="text-xs text-neutral-500">1 hour ago</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-chart-bar text-purple-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-neutral-800">Report generated</p>
+                                    <p class="text-xs text-neutral-500">3 hours ago</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-robot text-orange-600 text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-neutral-800">AI query answered</p>
+                                    <p class="text-xs text-neutral-500">4 hours ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: RecentActivity -->
+
+                    <!-- @COMPONENT: NotificationCenter -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
+                        <h2 class="text-xl font-semibold text-neutral-900 mb-4">Notifications</h2>
+                        
+                        <div class="space-y-3">
+                            <div class="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
+                                <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
+                                    <i class="fas fa-check text-white text-xs"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-green-800">Data processing complete</p>
+                                    <p class="text-xs text-green-600">Your sales data is now ready for analysis</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                                <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
+                                    <i class="fas fa-info text-white text-xs"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-blue-800">Scheduled sync at 2:00 AM</p>
+                                    <p class="text-xs text-blue-600">Your data sources will update automatically</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start space-x-3 p-3 bg-orange-50 rounded-lg">
+                                <div class="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center mt-0.5">
+                                    <i class="fas fa-exclamation text-white text-xs"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm text-orange-800">Storage at 24% capacity</p>
+                                    <p class="text-xs text-orange-600">Consider upgrading your plan</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: NotificationCenter -->
+                </div>
+            </div>
+            <!-- @END_COMPONENT: MainContent -->
+        </div>
+    </div>
+    <!-- @END_COMPONENT: MainLayout -->
+
+    <script>
+        // Initialize revenue chart
+        (function() {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Revenue',
+                        data: [12000, 15000, 13000, 17000],
+                        borderColor: '#8B5CF6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        })();
+
+        // File upload drag and drop functionality
+        (function() {
+            const uploadArea = document.getElementById('uploadArea');
+            const uploadProgress = document.getElementById('uploadProgress');
+            
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('border-primary');
+            });
+            
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('border-primary');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('border-primary');
+                
+                // TODO: Implement file upload logic
+                // Show upload progress
+                uploadProgress.classList.remove('hidden');
+                
+                // Simulate upload completion after 3 seconds
+                setTimeout(() => {
+                    uploadProgress.classList.add('hidden');
+                    // TODO: Add success notification
+                }, 3000);
+            });
+        })();
+
+        // Chat functionality
+        (function() {
+            const chatMessages = document.getElementById('chatMessages');
+            const chatInput = document.querySelector('input[placeholder="Ask me anything about your data..."]');
+            const sendButton = document.querySelector('button[class*="paper-plane"]');
+            
+            function addMessage(message, isUser = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `flex items-start space-x-3 ${isUser ? 'justify-end' : ''}`;
+                
+                messageDiv.innerHTML = `
+                    ${isUser ? '' : '<div class="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0"><i class="fas fa-robot text-primary text-sm"></i></div>'}
+                    <div class="bg-${isUser ? 'primary' : 'neutral-100'} rounded-lg p-3 max-w-xs">
+                        <p class="text-sm text-${isUser ? 'white' : 'neutral-800'}">${message}</p>
+                    </div>
+                    ${isUser ? '<div class="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center flex-shrink-0"><i class="fas fa-user text-primary text-sm"></i></div>' : ''}
+                `;
+                
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            function sendMessage() {
+                const message = chatInput.value.trim();
+                if (message) {
+                    addMessage(message, true);
+                    chatInput.value = '';
+                    
+                    // TODO: Implement AI response logic
+                    // Simulate AI response
+                    setTimeout(() => {
+                        addMessage("I'm analyzing your data to provide insights. This is a placeholder response.", false);
+                    }, 1000);
+                }
+            }
+            
+            sendButton.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

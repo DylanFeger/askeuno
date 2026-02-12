@@ -8,6 +8,7 @@ import { db } from "../db";
 import { logger } from "../utils/logger";
 import { dataSources, dataRows } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { getDatabaseConnection, executeLiveDatabaseQuery } from "../services/databaseQueryService";
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -377,14 +378,14 @@ export async function processAnalyticsQuery(request: AnalyticsRequest): Promise<
 }
 
 /**
- * Execute SQL and return results  
- * NOTE: This is a simplified implementation for MVP
- * Production should connect to actual data sources
+ * Execute SQL and return results
+ * Supports both live database connections and file-based data sources
  */
 export async function executeSQLQuery(
   sql: string, 
   dataSourceId: number,
-  maxRows: number = 1000
+  maxRows: number = 1000,
+  userId?: number
 ): Promise<{ success: boolean; data?: any[]; error?: string }> {
   try {
     // Get data source details
@@ -397,8 +398,42 @@ export async function executeSQLQuery(
     if (!dataSource) {
       return { success: false, error: 'Data source not found' };
     }
+
+    // Check if this is a live database connection
+    if (dataSource.connectionType === 'live' && 
+        (dataSource.type === 'postgres' || dataSource.type === 'mysql')) {
+      
+      if (!userId) {
+        return { success: false, error: 'User ID required for live database queries' };
+      }
+
+      // Get database connection details
+      const dbConnection = await getDatabaseConnection(dataSourceId, userId);
+      
+      if (!dbConnection) {
+        logger.warn('Could not get database connection for live data source', {
+          dataSourceId,
+          userId,
+          type: dataSource.type
+        });
+        // Fall through to file-based query
+      } else {
+        // Execute query against live database
+        const result = await executeLiveDatabaseQuery(sql, dbConnection, maxRows);
+        
+        if (result.success) {
+          logger.info('Live database query executed successfully', {
+            dataSourceId,
+            rowsReturned: result.rowCount || 0,
+            dbType: dbConnection.type
+          });
+        }
+        
+        return result;
+      }
+    }
     
-    // For MVP: Execute simplified query against data_rows table
+    // For file-based data sources, execute simplified query against data_rows table
     // Extract LIMIT from SQL if present
     const limitMatch = sql.match(/LIMIT\s+(\d+)/i);
     const limit = limitMatch ? Math.min(parseInt(limitMatch[1]), maxRows) : maxRows;
@@ -421,11 +456,7 @@ export async function executeSQLQuery(
     // Transform to data array
     const data = rows.map(r => r.rowData);
     
-    // Apply basic SQL operations (simplified)
-    // In production, this should use a proper SQL parser/executor
-    // For now, just return the data
-    
-    logger.info('SQL query executed', {
+    logger.info('File-based SQL query executed', {
       dataSourceId,
       rowsReturned: data.length,
       maxRows

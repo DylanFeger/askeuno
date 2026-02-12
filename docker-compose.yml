@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: euno-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: euno
+      POSTGRES_PASSWORD: euno_dev_password
+      POSTGRES_DB: euno_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U euno -d euno_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for job queues and caching
+  redis:
+    image: redis:7-alpine
+    container_name: euno-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Application (optional - can run locally for dev)
+  # app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: euno-app
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5000:5000"
+  #   environment:
+  #     - NODE_ENV=development
+  #     - DATABASE_URL=postgresql://euno:euno_dev_password@postgres:5432/euno_db
+  #     - REDIS_HOST=redis
+  #     - REDIS_PORT=6379
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./uploads:/app/uploads
+  #     - ./logs:/app/logs
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: euno-network

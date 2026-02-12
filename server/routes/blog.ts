@@ -3,6 +3,7 @@ import { storage } from '../storage';
 import { insertBlogPostSchema } from '@shared/schema';
 import { requireAuth } from '../middleware/auth';
 import { z } from 'zod';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -12,7 +13,7 @@ router.get('/', async (req, res) => {
     const posts = await storage.getAllBlogPosts();
     res.json(posts);
   } catch (error) {
-    console.error('Error fetching blog posts:', error);
+    logger.error('Error fetching blog posts', { error });
     res.status(500).json({ error: 'Failed to fetch blog posts' });
   }
 });
@@ -24,7 +25,7 @@ router.get('/category/:category', async (req, res) => {
     const posts = await storage.getBlogPostsByCategory(category);
     res.json(posts);
   } catch (error) {
-    console.error('Error fetching posts by category:', error);
+    logger.error('Error fetching posts by category', { error, category });
     res.status(500).json({ error: 'Failed to fetch posts' });
   }
 });
@@ -39,7 +40,7 @@ router.get('/search', async (req, res) => {
     const posts = await storage.searchBlogPosts(q);
     res.json(posts);
   } catch (error) {
-    console.error('Error searching blog posts:', error);
+    logger.error('Error searching blog posts', { error, query });
     res.status(500).json({ error: 'Failed to search posts' });
   }
 });
@@ -54,7 +55,7 @@ router.get('/:slug', async (req, res) => {
     }
     res.json(post);
   } catch (error) {
-    console.error('Error fetching blog post:', error);
+    logger.error('Error fetching blog post', { error, id });
     res.status(500).json({ error: 'Failed to fetch blog post' });
   }
 });
@@ -76,7 +77,7 @@ router.post('/', requireAuth, async (req, res) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid blog post data', details: error.errors });
     }
-    console.error('Error creating blog post:', error);
+    logger.error('Error creating blog post', { error });
     res.status(500).json({ error: 'Failed to create blog post' });
   }
 });
@@ -97,7 +98,7 @@ router.put('/:id', requireAuth, async (req, res) => {
     }
     res.json(post);
   } catch (error) {
-    console.error('Error updating blog post:', error);
+    logger.error('Error updating blog post', { error, id });
     res.status(500).json({ error: 'Failed to update blog post' });
   }
 });
@@ -114,7 +115,7 @@ router.delete('/:id', requireAuth, async (req, res) => {
     await storage.deleteBlogPost(parseInt(id));
     res.status(204).send();
   } catch (error) {
-    console.error('Error deleting blog post:', error);
+    logger.error('Error deleting blog post', { error, id });
     res.status(500).json({ error: 'Failed to delete blog post' });
   }
 });

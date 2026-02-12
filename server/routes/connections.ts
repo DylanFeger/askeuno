@@ -7,6 +7,7 @@ import { Pool } from 'pg';
 import mysql from 'mysql2/promise';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth';
 import { logger } from '../utils/logger';
+import { getDatabaseSchema } from '../services/databaseQueryService';
 
 const router = Router();
 
@@ -56,7 +57,7 @@ router.get('/connections', requireAuth, (async (req: AuthenticatedRequest, res: 
 
     res.json(connections);
   } catch (error) {
-    console.error('Error fetching connections:', error);
+    logger.error('Error fetching connections', { error, userId: req.user?.id });
     res.status(500).json({ error: 'Failed to fetch connections' });
   }
 }) as any);
@@ -198,6 +199,43 @@ router.post('/connections/database', requireAuth, (async (req: AuthenticatedRequ
     // Encrypt and store connection
     const encryptedConnection = encrypt(connectionString);
 
+    // Get database schema for the data source
+    let schema: any = null;
+    let rowCount = 0;
+    try {
+      const dbConnection = {
+        type: dbType === 'mysql' ? 'mysql' as const : 'postgres' as const,
+        connectionString,
+        isReadOnly: true
+      };
+      const schemaResult = await getDatabaseSchema(dbConnection);
+      if (schemaResult) {
+        // Convert schema to the format expected by dataSources
+        const schemaObj: any = {};
+        for (const table of schemaResult.tables) {
+          for (const column of table.columns) {
+            // Use table.column as key to avoid conflicts
+            const key = `${table.name}.${column.name}`;
+            schemaObj[key] = {
+              name: column.name,
+              type: column.type,
+              table: table.name
+            };
+          }
+        }
+        schema = schemaObj;
+        // Estimate row count (we'll update this on first sync)
+        rowCount = 0;
+      }
+    } catch (schemaError) {
+      logger.warn('Could not fetch database schema', {
+        error: schemaError instanceof Error ? schemaError.message : 'Unknown error',
+        dbType
+      });
+      // Continue without schema - it can be fetched later
+    }
+
+    // Create connectionManager entry
     const [newConnection] = await db
       .insert(connectionManager)
       .values({
@@ -212,9 +250,29 @@ router.post('/connections/database', requireAuth, (async (req: AuthenticatedRequ
       })
       .returning();
 
+    // Also create a dataSource entry so the chat system can use it
+    // Store the encrypted connection string directly (same as connectionManager)
+    const encryptedConnectionData = encryptedConnection;
+
+    const [newDataSource] = await db
+      .insert(dataSources)
+      .values({
+        userId: req.user.id,
+        name: name || `${dbType} Database`,
+        type: dbType === 'mysql' ? 'mysql' : 'postgres',
+        connectionType: 'live',
+        connectionData: encryptedConnectionData,
+        schema: schema,
+        rowCount: rowCount,
+        status: 'active',
+        lastSyncAt: new Date(),
+      })
+      .returning();
+
     logger.info('Database connection established successfully', { 
       userId: req.user.id, 
       connectionId: newConnection.id,
+      dataSourceId: newDataSource.id,
       dbType,
       action: 'connection_created'
     });
@@ -225,6 +283,11 @@ router.post('/connections/database', requireAuth, (async (req: AuthenticatedRequ
         id: newConnection.id,
         provider: newConnection.provider,
         accountLabel: newConnection.accountLabel,
+      },
+      dataSource: {
+        id: newDataSource.id,
+        name: newDataSource.name,
+        type: newDataSource.type
       }
     });
   } catch (error: any) {

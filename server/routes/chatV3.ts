@@ -120,7 +120,9 @@ router.post('/analyze', requireAuth, async (req: Request, res: Response) => {
       // Get sample data for context
       const dataResult = await executeSQLQuery(
         `SELECT * LIMIT 10`,
-        dataSourceId
+        dataSourceId,
+        10,
+        userId
       );
       
       if (dataResult.success) {
@@ -169,7 +171,8 @@ router.post('/analyze', requireAuth, async (req: Request, res: Response) => {
       const sqlResult = await executeSQLQuery(
         analyticsResult.sql, 
         dataSourceId,
-        tierConfig.maxRowsPerQuery
+        tierConfig.maxRowsPerQuery,
+        userId
       );
       
       if (sqlResult.success) {

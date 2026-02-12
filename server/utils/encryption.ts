@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { logger } from './logger';
 
 const algorithm = 'aes-256-gcm';
 const secretKey = process.env.ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');
@@ -30,7 +31,7 @@ export function encryptConnectionData(data: any): any {
       authTag: authTag.toString('base64')
     };
   } catch (error) {
-    console.error('Encryption error:', error);
+    logger.error('Encryption error', { error });
     // In development, return data as-is
     if (process.env.NODE_ENV === 'development') {
       return data;
@@ -68,7 +69,7 @@ export function decryptConnectionData(encryptedData: any): any {
     
     return JSON.parse(decrypted.toString('utf8'));
   } catch (error) {
-    console.error('Decryption error:', error);
+    logger.error('Decryption error', { error });
     // In development, return data as-is
     if (process.env.NODE_ENV === 'development') {
       return encryptedData;

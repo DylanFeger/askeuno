@@ -1,9 +1,14 @@
 import { Router, Request, Response } from "express";
 import crypto from "crypto";
 import { db } from "../db";
-import { connectionManager } from "@shared/schema";
+import { connectionManager, dataSources } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import { requireAuth } from "../middleware/auth";
+import { logger } from "../utils/logger";
+import { storage } from "../storage";
+import { connectToDataSource } from "../services/dataConnector";
+import { encryptConnectionData } from "../utils/encryption";
+import { captureException } from "../config/sentry";
 
 const router = Router();
 
@@ -83,17 +88,11 @@ router.post(
     authUrl.searchParams.append("scope", "employee:inventory employee:reports");
     authUrl.searchParams.append("state", state);
 
-    const clientId = process.env.LS_CLIENT_ID || "";
-    const clientIdLength = clientId.length;
-    const clientIdPreview = clientId.substring(0, 10);
-    const clientIdSuffix = clientId.substring(clientId.length - 5);
-    
-    console.log("[Lightspeed OAuth] === DEBUG START ===");
-    console.log("[Lightspeed OAuth] Client ID length:", clientIdLength);
-    console.log("[Lightspeed OAuth] Client ID preview:", clientIdPreview + "..." + clientIdSuffix);
-    console.log("[Lightspeed OAuth] Redirect URI:", redirectUri);
-    console.log("[Lightspeed OAuth] Full auth URL:", authUrl.toString());
-    console.log("[Lightspeed OAuth] === DEBUG END ===");
+    logger.info("Lightspeed OAuth initiated", {
+      userId,
+      redirectUri,
+      authUrl: authUrl.toString(),
+    });
 
     res.json({ redirect: authUrl.toString() });
   },
@@ -113,8 +112,9 @@ router.get(
     const userId = (req.session as any).userId;
 
     if (!userId) {
-      console.error("Missing session data:", {
-        userId: !!userId,
+      logger.error("Lightspeed OAuth: Missing session data", {
+        hasUserId: !!userId,
+        sessionKeys: Object.keys(req.session || {}),
       });
       return res
         .status(400)
@@ -133,11 +133,15 @@ router.get(
 
       // Validate required credentials
       if (!clientId || !clientSecret) {
-        console.error("[Lightspeed OAuth] Missing client credentials");
+        logger.error("Lightspeed OAuth: Missing client credentials", { userId });
+        captureException(new Error("Missing Lightspeed credentials"), {
+          context: "lightspeed_oauth",
+          userId,
+        });
         return res.status(500).send("Server configuration error: Missing Lightspeed credentials");
       }
 
-      console.log("[Lightspeed OAuth] Exchanging code for tokens...");
+      logger.info("Lightspeed OAuth: Exchanging code for tokens", { userId });
 
       // Exchange code for tokens (standard OAuth 2.0, no PKCE)
       const tokenResponse = await fetch(LS_TOKEN_URL, {
@@ -154,16 +158,26 @@ router.get(
 
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();
-        console.error("[Lightspeed OAuth] Token exchange failed:", {
+        logger.error("Lightspeed OAuth: Token exchange failed", {
+          userId,
           status: tokenResponse.status,
           statusText: tokenResponse.statusText,
+          error: errorText,
+        });
+        captureException(new Error(`Token exchange failed: ${tokenResponse.status}`), {
+          context: "lightspeed_oauth",
+          userId,
+          status: tokenResponse.status,
           error: errorText,
         });
         return res.status(502).send("Failed to exchange authorization code. Please try again.");
       }
 
       const tokenData = await tokenResponse.json();
-      console.log("[Lightspeed OAuth] Token response keys:", Object.keys(tokenData));
+      logger.info("Lightspeed OAuth: Token exchange successful", {
+        userId,
+        tokenKeys: Object.keys(tokenData),
+      });
       
       const { access_token, refresh_token, expires_in } = tokenData;
       
@@ -171,7 +185,7 @@ router.get(
       let account_id = tokenData.account_id;
       
       if (!account_id) {
-        console.log("[Lightspeed OAuth] No account_id in token response, fetching from API...");
+        logger.info("Lightspeed OAuth: No account_id in token response, fetching from API", { userId });
         try {
           const accountResponse = await fetch(`${LS_API_BASE}/Account.json`, {
             headers: {
@@ -184,18 +198,37 @@ router.get(
             const accountData = await accountResponse.json();
             // Lightspeed returns { Account: { accountID: "..." } } or similar
             account_id = accountData.Account?.accountID || accountData.Account?.id || accountData.accountID;
-            console.log("[Lightspeed OAuth] Fetched account_id:", account_id);
+            logger.info("Lightspeed OAuth: Fetched account_id from API", {
+              userId,
+              accountId: account_id,
+            });
           } else {
-            console.error("[Lightspeed OAuth] Failed to fetch account info:", accountResponse.status);
+            const errorText = await accountResponse.text();
+            logger.error("Lightspeed OAuth: Failed to fetch account info", {
+              userId,
+              status: accountResponse.status,
+              error: errorText,
+            });
           }
         } catch (err) {
-          console.error("[Lightspeed OAuth] Error fetching account:", err);
+          logger.error("Lightspeed OAuth: Error fetching account", {
+            userId,
+            error: err instanceof Error ? err.message : "Unknown error",
+          });
+          captureException(err instanceof Error ? err : new Error(String(err)), {
+            context: "lightspeed_fetch_account",
+            userId,
+          });
         }
       }
       
       // If still no account_id, fail the connection - we need a real account ID
       if (!account_id) {
-        console.error("[Lightspeed OAuth] Could not obtain account_id from token response or API");
+        logger.error("Lightspeed OAuth: Could not obtain account_id", { userId });
+        captureException(new Error("Could not obtain Lightspeed account_id"), {
+          context: "lightspeed_oauth",
+          userId,
+        });
         return res.status(502).send("Failed to retrieve Lightspeed account information. Please try again or contact support.");
       }
 
@@ -218,8 +251,10 @@ router.get(
         )
         .limit(1);
 
+      let connectionId: number;
       if (existingConnection.length > 0) {
         // Update existing connection
+        connectionId = existingConnection[0].id;
         await db
           .update(connectionManager)
           .set({
@@ -231,6 +266,8 @@ router.get(
             updatedAt: new Date(),
             accountLabel: `Lightspeed Account`,
             scopesGranted: ["employee:inventory", "employee:reports"],
+            healthStatus: "healthy",
+            lastHealthCheck: new Date(),
           })
           .where(
             and(
@@ -240,7 +277,7 @@ router.get(
           );
       } else {
         // Create new connection
-        await db.insert(connectionManager).values({
+        const [newConnection] = await db.insert(connectionManager).values({
           userId,
           provider: "lightspeed",
           accountId: account_id,
@@ -251,6 +288,129 @@ router.get(
           accountLabel: `Lightspeed Account`,
           scopesGranted: ["employee:inventory", "employee:reports"],
           isReadOnly: true,
+          healthStatus: "healthy",
+          lastHealthCheck: new Date(),
+        }).returning();
+        connectionId = newConnection.id;
+      }
+
+      // Create or update dataSource entry for chat system
+      // Check if dataSource already exists
+      const existingDataSource = await db
+        .select()
+        .from(dataSources)
+        .where(
+          and(
+            eq(dataSources.userId, userId),
+            eq(dataSources.type, "lightspeed"),
+            eq(dataSources.connectionType, "live"),
+          ),
+        )
+        .limit(1);
+
+      // Prepare connection data for dataSource (encrypted)
+      const connectionDataForDataSource = {
+        accountId: account_id,
+        accessToken: access_token, // Will be encrypted by encryptConnectionData
+        refreshToken: refresh_token, // Will be encrypted by encryptConnectionData
+        connectionManagerId: connectionId,
+      };
+      const encryptedConnectionData = encryptConnectionData(connectionDataForDataSource);
+
+      // Try to sync initial data
+      let schema: any = null;
+      let rowCount = 0;
+      let initialData: any[] = [];
+      
+      try {
+        logger.info("Starting initial Lightspeed data sync", { userId, accountId: account_id });
+        
+        const syncResult = await connectToDataSource("lightspeed", {
+          accountId: account_id,
+          accessToken: access_token,
+          environment: "production",
+        });
+
+        if (syncResult.success && syncResult.data) {
+          schema = syncResult.schema;
+          rowCount = syncResult.rowCount || 0;
+          initialData = syncResult.data || [];
+          logger.info("Initial Lightspeed data sync successful", {
+            userId,
+            accountId: account_id,
+            rowCount,
+          });
+        } else {
+          logger.warn("Initial Lightspeed data sync failed", {
+            userId,
+            accountId: account_id,
+            error: syncResult.error,
+          });
+          // Continue anyway - data source will be created but empty
+        }
+      } catch (syncError) {
+        logger.error("Error during initial Lightspeed data sync", {
+          userId,
+          accountId: account_id,
+          error: syncError instanceof Error ? syncError.message : "Unknown error",
+        });
+        captureException(syncError instanceof Error ? syncError : new Error(String(syncError)), {
+          context: "lightspeed_initial_sync",
+          userId,
+          accountId: account_id,
+        });
+        // Continue anyway - data source will be created but empty
+      }
+
+      if (existingDataSource.length > 0) {
+        // Update existing dataSource
+        await db
+          .update(dataSources)
+          .set({
+            connectionData: encryptedConnectionData,
+            schema: schema || existingDataSource[0].schema,
+            rowCount: rowCount || existingDataSource[0].rowCount,
+            status: "active",
+            lastSyncAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(eq(dataSources.id, existingDataSource[0].id));
+
+        // Clear old data and insert new if we have data
+        if (initialData.length > 0) {
+          await storage.clearDataRows(existingDataSource[0].id);
+          await storage.insertDataRows(existingDataSource[0].id, initialData);
+        }
+
+        logger.info("Lightspeed dataSource updated", {
+          userId,
+          dataSourceId: existingDataSource[0].id,
+          rowCount,
+        });
+      } else {
+        // Create new dataSource
+        const newDataSource = await storage.createDataSource({
+          userId,
+          name: "Lightspeed Retail",
+          type: "lightspeed",
+          connectionType: "live",
+          connectionData: encryptedConnectionData,
+          schema: schema,
+          rowCount: rowCount,
+          status: "active",
+          lastSyncAt: new Date(),
+          syncFrequency: 60, // Sync every 60 minutes
+        });
+
+        // Insert initial data if available
+        if (initialData.length > 0) {
+          await storage.insertDataRows(newDataSource.id, initialData);
+        }
+
+        logger.info("Lightspeed dataSource created", {
+          userId,
+          dataSourceId: newDataSource.id,
+          rowCount,
         });
       }
 
@@ -262,14 +422,22 @@ router.get(
       // Redirect to chat page
       res.redirect("/chat?source=lightspeed");
     } catch (error) {
-      console.error("OAuth callback error:", error);
-      res.status(500).send("An error occurred during authentication");
+      logger.error("Lightspeed OAuth callback error", {
+        userId: (req.session as any).userId,
+        error: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        context: "lightspeed_oauth_callback",
+        userId: (req.session as any).userId,
+      });
+      res.status(500).send("An error occurred during authentication. Please try again.");
     }
   },
 );
 
-// Helper to ensure valid token
-async function ensureLightspeedToken(
+// Helper to ensure valid token (exported for use in other services)
+export async function ensureLightspeedToken(
   userId: number,
 ): Promise<{ accessToken: string; accountId: string } | null> {
   const connection = await db
@@ -313,12 +481,11 @@ async function ensureLightspeedToken(
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(
-          "Token refresh failed with status:",
-          response.status,
-          "Error:",
-          errorText,
-        );
+        logger.error("Lightspeed token refresh failed", {
+          userId,
+          status: response.status,
+          error: errorText,
+        });
         throw new Error(`Token refresh failed: ${response.status}`);
       }
 
@@ -345,7 +512,16 @@ async function ensureLightspeedToken(
         accountId: conn.accountId!,
       };
     } catch (error) {
-      console.error("Token refresh failed:", error);
+      logger.error("Lightspeed token refresh failed", {
+        userId,
+        connectionId: conn.id,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        context: "lightspeed_token_refresh",
+        userId,
+        connectionId: conn.id,
+      });
       // Mark connection as unhealthy but don't immediately revoke - might be temporary
       await db
         .update(connectionManager)
@@ -434,7 +610,14 @@ router.get(
         name: data.Account?.name || "Unknown",
       });
     } catch (error) {
-      console.error("Lightspeed test failed:", error);
+      logger.error("Lightspeed test connection failed", {
+        userId,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+      captureException(error instanceof Error ? error : new Error(String(error)), {
+        context: "lightspeed_test",
+        userId,
+      });
       res.status(502).json({ error: "Failed to connect to Lightspeed API" });
     }
   },

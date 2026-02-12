@@ -100,8 +100,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Lightspeed OAuth routes  
   app.use('/api', lightspeedRoutes);
   
-  // Google Sheets routes (using Replit connector)
-  app.use('/api', googleSheetsRoutes);
+  // Google Sheets routes (standard OAuth)
+  app.use('/api/google-sheets', googleSheetsRoutes);
   
   // Subscription routes
   app.use('/api/subscription', subscriptionRoutes);
@@ -317,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const dataSources = await storage.getDataSourcesByUserId(userId);
       res.json(dataSources);
     } catch (error: any) {
-      console.error('Data sources error:', error);
+      logger.error('Data sources error', { error, userId: req.user?.id });
       res.status(500).json({ error: error.message });
     }
   });
@@ -336,7 +336,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversations = await storage.getConversationsByDataSourceId(dataSourceId);
       res.json(conversations);
     } catch (error: any) {
-      console.error('Get conversations by data source error:', error);
+      logger.error('Get conversations by data source error', { error, dataSourceId, userId: req.user?.id });
       res.status(500).json({ error: error.message });
     }
   });
@@ -363,7 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ success: true, message: 'Data source deleted successfully' });
     } catch (error: any) {
-      console.error('Delete data source error:', error);
+      logger.error('Delete data source error', { error, dataSourceId, userId: req.user?.id });
       res.status(500).json({ error: error.message });
     }
   });
@@ -568,7 +568,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conversationId: conversation.id,
       });
     } catch (error: any) {
-      console.error('Chat error:', error);
+      logger.error('Chat error', { error, userId: req.user?.id });
       res.status(500).json({ error: error.message });
     }
   });
@@ -586,7 +586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const results = await storage.searchConversations(userId, searchTerm);
       res.json(results);
     } catch (error: any) {
-      console.error('Search conversations error:', error);
+      logger.error('Search conversations error', { error, userId: req.user?.id, query });
       res.status(500).json({ error: error.message });
     }
   });
@@ -598,7 +598,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversations = await storage.getConversationsByUserId(userId);
       res.json(conversations);
     } catch (error: any) {
-      console.error('Get conversations error:', error);
+      logger.error('Get conversations error', { error, userId: req.user?.id });
       res.status(500).json({ error: error.message });
     }
   });
@@ -619,7 +619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ success: true, message: 'Conversation deleted successfully' });
     } catch (error: any) {
-      console.error('Delete conversation error:', error);
+      logger.error('Delete conversation error', { error, conversationId, userId: req.user?.id });
       res.status(500).json({ error: error.message });
     }
   });
@@ -631,7 +631,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const messages = await storage.getMessagesByConversationId(conversationId);
       res.json(messages);
     } catch (error: any) {
-      console.error('Messages error:', error);
+      logger.error('Messages error', { error, conversationId, userId: req.user?.id });
       res.status(500).json({ error: error.message });
     }
   });
@@ -643,7 +643,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversation = await storage.getConversation(conversationId);
       res.json(conversation);
     } catch (error: any) {
-      console.error('Get conversation error:', error);
+      logger.error('Get conversation error', { error, conversationId, userId: req.user?.id });
       res.status(500).json({ error: error.message });
     }
   });

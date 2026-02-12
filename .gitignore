@@ -9,3 +9,21 @@ server/public
 vite.config.ts.*
 *.tar.gz
 .env
+.env.local
+.env.*.local
+# Test credentials (contains sensitive info)
+LIGHTSPEED_TEST_CREDENTIALS.md
+s3-credentials.txt
+
+# Test files (moved to tests/legacy)
+tests/legacy/
+
+# Temporary documentation
+docs/temp/
+
+# Cookie files
+*cookies.txt
+*cookie.txt
+
+# Chat test logs
+chat_test_response.log
