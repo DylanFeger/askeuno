@@ -48,12 +48,25 @@ frontend:
         - echo "Build completed successfully"
         - du -sh dist
   artifacts:
-    baseDirectory: dist
+    baseDirectory: dist/public
     files:
       - '**/*'
   cache:
     paths:
       - node_modules/**/*
+  customHeaders:
+    - pattern: '**/*'
+      headers:
+        - key: 'X-Content-Type-Options'
+          value: 'nosniff'
+        - key: 'X-Frame-Options'
+          value: 'DENY'
+        - key: 'X-XSS-Protection'
+          value: '1; mode=block'
+redirects:
+  - source: '/<*>'
+    target: '/index.html'
+    status: '200'
 
 # ===========================================
 # Environment Variables (Set in Amplify Console)
