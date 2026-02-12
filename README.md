@@ -1,6 +1,6 @@
-# Acre - AI-Powered Data Platform
+# Ask Euno - AI-Powered Data Analytics Platform
 
-A secure, easy-to-use data platform for small businesses that helps you upload, store, and analyze your data through natural language queries.
+A secure, easy-to-use data analytics platform for small businesses that helps you upload, store, and analyze your data through natural language queries.
 
 ## Features
 

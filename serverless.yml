@@ -1,5 +1,5 @@
 # Serverless configuration for AWS Lambda functions
-service: acre-jobs
+service: askeuno-jobs
 
 provider:
   name: aws

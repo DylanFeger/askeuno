@@ -1,6 +1,6 @@
 module.exports = {
   apps: [{
-    name: 'acre',
+    name: 'askeuno',
     script: './dist/index.js',
     instances: 'max',
     exec_mode: 'cluster',

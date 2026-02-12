@@ -5,7 +5,7 @@
 
 set -e
 
-echo "=== Acre SSL Setup Script ==="
+echo "=== Ask Euno SSL Setup Script ==="
 echo
 
 # Check if running as root
@@ -38,7 +38,7 @@ apt install -y nginx certbot python3-certbot-nginx
 
 # Create Nginx configuration
 echo "Creating Nginx configuration..."
-cat > /etc/nginx/sites-available/acre << EOF
+cat > /etc/nginx/sites-available/askeuno << EOF
 server {
     listen 80;
     server_name $DOMAIN$([ "$USE_WWW" = "y" ] && echo " www.$DOMAIN");
@@ -58,7 +58,7 @@ server {
 EOF
 
 # Enable site
-ln -sf /etc/nginx/sites-available/acre /etc/nginx/sites-enabled/
+ln -sf /etc/nginx/sites-available/askeuno /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 
 # Test Nginx configuration
@@ -81,20 +81,20 @@ echo "Setting up automatic certificate renewal..."
 
 # Create systemd service for the app
 echo "Creating systemd service..."
-cat > /etc/systemd/system/acre.service << EOF
+cat > /etc/systemd/system/askeuno.service << EOF
 [Unit]
-Description=Acre Data Platform
+Description=Ask Euno Data Analytics Platform
 After=network.target
 
 [Service]
 Type=simple
 User=ubuntu
-WorkingDirectory=/home/ubuntu/acre
-ExecStart=/usr/bin/node /home/ubuntu/acre/dist/index.js
+WorkingDirectory=/home/ubuntu/askeuno
+ExecStart=/usr/bin/node /home/ubuntu/askeuno/dist/index.js
 Restart=always
 RestartSec=10
-StandardOutput=append:/var/log/acre/app.log
-StandardError=append:/var/log/acre/error.log
+StandardOutput=append:/var/log/askeuno/app.log
+StandardError=append:/var/log/askeuno/error.log
 Environment=NODE_ENV=production
 Environment=PORT=5000
 
@@ -103,8 +103,8 @@ WantedBy=multi-user.target
 EOF
 
 # Create log directory
-mkdir -p /var/log/acre
-chown ubuntu:ubuntu /var/log/acre
+mkdir -p /var/log/askeuno
+chown ubuntu:ubuntu /var/log/askeuno
 
 # Reload systemd
 systemctl daemon-reload
@@ -113,12 +113,12 @@ echo
 echo "=== SSL Setup Complete! ==="
 echo
 echo "Next steps:"
-echo "1. Clone your repository to /home/ubuntu/acre"
+echo "1. Clone your repository to /home/ubuntu/askeuno"
 echo "2. Install dependencies: npm install"
 echo "3. Build the application: npm run build"
-echo "4. Set up environment variables in /home/ubuntu/acre/.env"
-echo "5. Start the service: sudo systemctl start acre"
-echo "6. Enable auto-start: sudo systemctl enable acre"
+echo "4. Set up environment variables in /home/ubuntu/askeuno/.env"
+echo "5. Start the service: sudo systemctl start askeuno"
+echo "6. Enable auto-start: sudo systemctl enable askeuno"
 echo
 echo "Your site will be available at: https://$DOMAIN"
 echo "SSL certificate will auto-renew every 60 days"

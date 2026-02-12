@@ -1,6 +1,6 @@
-# AWS SES (Simple Email Service) Setup Guide for Acre
+# AWS SES (Simple Email Service) Setup Guide for Ask Euno
 
-This guide will help you set up AWS SES to send emails from Acre, including welcome emails, password resets, and weekly reports.
+This guide will help you set up AWS SES to send emails from Ask Euno, including welcome emails, password resets, and weekly reports.
 
 ## Prerequisites
 
@@ -21,7 +21,7 @@ You'll need:
 3. **Create a New User for SES**
    - Click "Users" in the left sidebar
    - Click "Create user"
-   - Username: `acre-ses-user`
+   - Username: `askeuno-ses-user`
    - Click "Next"
 
 4. **Set Permissions**
@@ -144,9 +144,9 @@ Once you've added all secrets, the application will automatically use AWS SES fo
 2. Verify the recipient email is also verified (if in sandbox mode)
 3. Check SES Console for bounce/complaint notifications
 
-## Email Templates in Acre
+## Email Templates in Ask Euno
 
-Acre uses AWS SES for:
+Ask Euno uses AWS SES for:
 
 1. **Welcome Emails** - Sent when users register
 2. **Password Reset** - Sent when users request password reset

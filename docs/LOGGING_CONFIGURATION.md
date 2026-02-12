@@ -1,6 +1,6 @@
 # Logging Configuration Guide
 
-This guide explains the logging setup for Acre, including local file logging and AWS CloudWatch integration.
+This guide explains the logging setup for Ask Euno, including local file logging and AWS CloudWatch integration.
 
 ## Logging Architecture
 
@@ -112,7 +112,7 @@ import { setupCloudWatchLogging } from './config/cloudwatch-logger';
 // Add CloudWatch to existing logger
 setupCloudWatchLogging(
   logger,
-  '/aws/application/acre/production',
+  '/aws/application/askeuno/production',
   'application-logs'
 );
 ```
@@ -120,7 +120,7 @@ setupCloudWatchLogging(
 ### CloudWatch Log Groups
 
 ```
-/aws/application/acre/
+/aws/application/askeuno/
 ├── production/
 │   ├── file-uploads-2024-01-09
 │   ├── etl-processing-2024-01-09

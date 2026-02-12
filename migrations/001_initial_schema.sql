@@ -1,4 +1,4 @@
--- Acre Database Schema Migration
+-- Ask Euno Database Schema Migration
 -- PostgreSQL migration script for initial setup
 -- Run this script to create all necessary tables and indexes
 

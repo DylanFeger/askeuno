@@ -1,6 +1,6 @@
 # Production Build Guide
 
-This guide explains how the Acre frontend is optimized for production deployment.
+This guide explains how the Ask Euno frontend is optimized for production deployment.
 
 ## Build Optimizations
 
@@ -56,7 +56,7 @@ npx vite-bundle-visualizer
 For production builds, ensure these are set:
 ```bash
 NODE_ENV=production
-VITE_API_URL=https://api.acre.app  # If using separate API
+VITE_API_URL=https://api.askeuno.com  # If using separate API
 ```
 
 ## Build Output Structure
@@ -142,7 +142,7 @@ frontend:
 ```nginx
 server {
     listen 80;
-    server_name acre.app;
+    server_name askeuno.com;
     root /var/www/acre/dist/public;
     
     # Enable gzip
@@ -175,7 +175,7 @@ After deployment, monitor:
 
 1. **Regular Audits**
    ```bash
-   npx lighthouse https://acre.app --view
+   npx lighthouse https://askeuno.com --view
    ```
 
 2. **Bundle Analysis**

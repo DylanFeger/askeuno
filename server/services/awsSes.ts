@@ -136,7 +136,7 @@ export async function sendWelcomeEmail(userEmail: string, username: string): Pro
     </ul>
     
     <p style="margin-top: 30px;">
-      <a href="${process.env.APP_URL || 'https://acre.app'}" style="display: inline-block; background-color: hsl(142, 25%, 45%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">Get Started</a>
+      <a href="${process.env.APP_URL || 'https://askeuno.com'}" style="display: inline-block; background-color: hsl(142, 25%, 45%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">Get Started</a>
     </p>
     
     <p style="color: #666; font-size: 14px; margin-top: 30px;">
@@ -145,34 +145,34 @@ export async function sendWelcomeEmail(userEmail: string, username: string): Pro
   </div>
   
   <div style="text-align: center; padding: 20px; color: #999; font-size: 12px;">
-    © ${new Date().getFullYear()} Euno. All rights reserved.
+    © ${new Date().getFullYear()} Ask Euno. All rights reserved.
   </div>
 </body>
 </html>`;
 
   const text = `
-Welcome to Euno!
+Welcome to Ask Euno!
 
 Hi ${username},
 
-Welcome to Euno - your secure, easy-to-use data platform. We're excited to help you upload, store, and analyze your business data with AI-powered insights.
+Welcome to Ask Euno - your secure, easy-to-use data analytics platform. We're excited to help you upload, store, and analyze your business data with AI-powered insights.
 
 Getting Started:
 • Upload your first data file (CSV, Excel, or JSON)
 • Ask questions about your data in plain English
 • Get instant insights and recommendations
 
-Get started at: ${process.env.APP_URL || 'https://acre.app'}
+Get started at: ${process.env.APP_URL || 'https://askeuno.com'}
 
 If you have any questions, feel free to reply to this email.
 
-© ${new Date().getFullYear()} Euno. All rights reserved.
+© ${new Date().getFullYear()} Ask Euno. All rights reserved.
 `;
 
   return sendEmail({
     to: userEmail,
-    from: process.env.SENDGRID_FROM_EMAIL || 'noreply@acre.app',
-    subject: 'Welcome to Euno - Your Data Platform',
+    from: process.env.SENDGRID_FROM_EMAIL || 'noreply@askeuno.com',
+    subject: 'Welcome to Ask Euno - Your Data Analytics Platform',
     html,
     text
   });

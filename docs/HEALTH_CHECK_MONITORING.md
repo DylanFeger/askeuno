@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Acre application provides a `/health` endpoint for monitoring application status and database connectivity. This endpoint is designed for use with deployment monitoring tools, load balancers, and container orchestration systems.
+The Ask Euno application provides a `/health` endpoint for monitoring application status and database connectivity. This endpoint is designed for use with deployment monitoring tools, load balancers, and container orchestration systems.
 
 ## Health Check Endpoint
 
@@ -16,7 +16,7 @@ The Acre application provides a `/health` endpoint for monitoring application st
 ```json
 {
   "status": "healthy",
-  "message": "Acre API is running",
+  "message": "Ask Euno API is running",
   "timestamp": "2025-01-09T20:00:00.000Z",
   "uptime": 3600,
   "environment": "production",
@@ -47,7 +47,7 @@ A bash script is provided for easy health monitoring:
 ./scripts/health-check.sh
 
 # Custom health URL
-HEALTH_URL=https://acre.example.com/health ./scripts/health-check.sh
+HEALTH_URL=https://askeuno.com/health ./scripts/health-check.sh
 
 # With custom timeout (seconds)
 TIMEOUT=10 ./scripts/health-check.sh
@@ -59,7 +59,7 @@ TIMEOUT=10 ./scripts/health-check.sh
 ✅ Application is healthy
 {
   "status": "healthy",
-  "message": "Acre API is running",
+  "message": "Ask Euno API is running",
   "timestamp": "2025-01-09T20:00:00.000Z",
   "uptime": 3600,
   "environment": "production",
@@ -88,7 +88,7 @@ const checkHealth = async function () {
     const response = await synthetics.executeHttpStep(
         'Check Acre Health',
         'GET',
-        'https://acre.example.com/health',
+        'https://askeuno.com/health',
         null,
         null,
         {
@@ -122,7 +122,7 @@ exports.handler = async () => {
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: acre-api
+  name: askeuno-api
 spec:
   template:
     spec:
@@ -154,7 +154,7 @@ spec:
 ```yaml
 version: '3.8'
 services:
-  acre-api:
+  askeuno-api:
     build: .
     ports:
       - "5000:5000"
@@ -192,7 +192,7 @@ init_config:
 
 instances:
   - name: acre_health
-    url: https://acre.example.com/health
+    url: https://askeuno.com/health
     timeout: 5
     method: GET
     skip_event: false
@@ -208,7 +208,7 @@ instances:
 
 ```javascript
 // New Relic Synthetics Script
-$http.get('https://acre.example.com/health', function(err, response, body) {
+$http.get('https://askeuno.com/health', function(err, response, body) {
   if (err) {
     console.error('Health check failed:', err);
     return;

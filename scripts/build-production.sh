@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Production Build Script for Acre
+# Production Build Script for Ask Euno
 # This script optimizes the React frontend for production deployment
 
 set -e
 
-echo "=== Acre Production Build ==="
+echo "=== Ask Euno Production Build ==="
 echo
 
 # Colors for output
@@ -93,7 +93,7 @@ fi
 echo
 echo -e "${BLUE}Generating build report...${NC}"
 cat > dist/build-report.txt << EOF
-Acre Production Build Report
+Ask Euno Production Build Report
 Generated: $(date)
 
 Build Configuration:

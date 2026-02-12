@@ -1,4 +1,4 @@
-# Acre Deployment Guide
+# Ask Euno Deployment Guide
 
 This guide provides step-by-step instructions for deploying Acre to production using either Replit or AWS services.
 
@@ -91,7 +91,7 @@ NODE_ENV = "production"
 
 #### Step 5: Custom Domain (Optional)
 1. In Replit deployment settings, click "Custom Domain"
-2. Add your domain (e.g., `acre.yourdomain.com`)
+2. Add your domain (e.g., `askeuno.com`)
 3. Update DNS records as instructed by Replit
 4. SSL certificate will be automatically provisioned
 

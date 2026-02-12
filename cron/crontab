@@ -1,5 +1,5 @@
-# Acre Platform Cron Jobs
-# This file contains the cron job schedules for the Acre platform
+# Ask Euno Platform Cron Jobs
+# This file contains the cron job schedules for the Ask Euno platform
 # 
 # Format: minute hour day month day_of_week command
 # 
@@ -14,47 +14,47 @@
 # ============================================
 
 # Run data sync every 6 hours
-0 */6 * * * cd /home/ubuntu/acre && NODE_ENV=production npm run job:data-sync >> /var/log/acre/data-sync.log 2>&1
+0 */6 * * * cd /home/ubuntu/askeuno && NODE_ENV=production npm run job:data-sync >> /var/log/askeuno/data-sync.log 2>&1
 
 # Run quick sync for premium users every hour (Monday-Friday, 9am-6pm)
-0 9-18 * * 1-5 cd /home/ubuntu/acre && NODE_ENV=production npm run job:data-sync-premium >> /var/log/acre/data-sync-premium.log 2>&1
+0 9-18 * * 1-5 cd /home/ubuntu/askeuno && NODE_ENV=production npm run job:data-sync-premium >> /var/log/askeuno/data-sync-premium.log 2>&1
 
 # ============================================
 # EMAIL REPORT JOBS
 # ============================================
 
 # Send weekly reports every Monday at 9am
-0 9 * * 1 cd /home/ubuntu/acre && NODE_ENV=production npm run job:email-reports >> /var/log/acre/email-reports.log 2>&1
+0 9 * * 1 cd /home/ubuntu/askeuno && NODE_ENV=production npm run job:email-reports >> /var/log/askeuno/email-reports.log 2>&1
 
 # Send monthly summary on the 1st of each month at 10am
-0 10 1 * * cd /home/ubuntu/acre && NODE_ENV=production npm run job:monthly-summary >> /var/log/acre/monthly-summary.log 2>&1
+0 10 1 * * cd /home/ubuntu/askeuno && NODE_ENV=production npm run job:monthly-summary >> /var/log/askeuno/monthly-summary.log 2>&1
 
 # ============================================
 # MAINTENANCE JOBS
 # ============================================
 
 # Clean up old logs daily at 2am
-0 2 * * * cd /home/ubuntu/acre && NODE_ENV=production npm run job:cleanup-logs >> /var/log/acre/cleanup.log 2>&1
+0 2 * * * cd /home/ubuntu/askeuno && NODE_ENV=production npm run job:cleanup-logs >> /var/log/askeuno/cleanup.log 2>&1
 
 # Database optimization weekly on Sunday at 3am
-0 3 * * 0 cd /home/ubuntu/acre && NODE_ENV=production npm run job:optimize-db >> /var/log/acre/db-optimize.log 2>&1
+0 3 * * 0 cd /home/ubuntu/askeuno && NODE_ENV=production npm run job:optimize-db >> /var/log/askeuno/db-optimize.log 2>&1
 
 # Refresh materialized views every 30 minutes
-*/30 * * * * cd /home/ubuntu/acre && NODE_ENV=production npm run job:refresh-views >> /var/log/acre/refresh-views.log 2>&1
+*/30 * * * * cd /home/ubuntu/askeuno && NODE_ENV=production npm run job:refresh-views >> /var/log/askeuno/refresh-views.log 2>&1
 
 # ============================================
 # MONITORING & ALERTS
 # ============================================
 
 # Health check every 5 minutes
-*/5 * * * * cd /home/ubuntu/acre && NODE_ENV=production npm run job:health-check >> /var/log/acre/health-check.log 2>&1
+*/5 * * * * cd /home/ubuntu/askeuno && NODE_ENV=production npm run job:health-check >> /var/log/askeuno/health-check.log 2>&1
 
 # ============================================
 # LOG ROTATION
 # ============================================
 
 # Rotate logs weekly
-0 0 * * 0 /usr/sbin/logrotate /etc/logrotate.d/acre
+0 0 * * 0 /usr/sbin/logrotate /etc/logrotate.d/askeuno
 
 # ============================================
 # NOTES
@@ -74,5 +74,5 @@
 # tail -f /var/log/syslog | grep CRON
 # 
 # Create log directory:
-# sudo mkdir -p /var/log/acre
-# sudo chown ubuntu:ubuntu /var/log/acre
+# sudo mkdir -p /var/log/askeuno
+# sudo chown ubuntu:ubuntu /var/log/askeuno

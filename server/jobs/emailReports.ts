@@ -198,15 +198,15 @@ function formatEmailHtml(report: UserReport): string {
         Your current plan: <strong>${report.subscriptionTier.charAt(0).toUpperCase() + report.subscriptionTier.slice(1)}</strong>
       </p>
       
-      <a href="https://acre.app/dashboard" style="display: inline-block; background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: 500;">
+      <a href="https://askeuno.com/dashboard" style="display: inline-block; background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: 500;">
         View Dashboard
       </a>
     </div>
   </div>
   
   <div style="margin-top: 30px; text-align: center; color: #999; font-size: 12px;">
-    <p>You're receiving this because you're subscribed to Euno weekly reports.</p>
-    <p><a href="https://acre.app/settings/notifications" style="color: #0066cc;">Manage notification preferences</a></p>
+    <p>You're receiving this because you're subscribed to Ask Euno weekly reports.</p>
+    <p><a href="https://askeuno.com/settings/notifications" style="color: #0066cc;">Manage notification preferences</a></p>
   </div>
 </body>
 </html>
@@ -217,8 +217,8 @@ function formatEmailHtml(report: UserReport): string {
 async function sendUserReport(report: UserReport): Promise<EmailResult> {
   const emailData = {
     to: report.email,
-    from: process.env.SENDGRID_FROM_EMAIL || 'reports@acre.app', // Must be verified in SendGrid
-    subject: `Your Weekly Euno Report - ${report.stats.messagesThisWeek} insights generated`,
+    from: process.env.SENDGRID_FROM_EMAIL || 'reports@askeuno.com', // Must be verified in SendGrid
+    subject: `Your Weekly Ask Euno Report - ${report.stats.messagesThisWeek} insights generated`,
     html: formatEmailHtml(report),
     text: `Hi ${report.username}, here's your weekly Euno report. You generated ${report.stats.messagesThisWeek} insights this week from ${report.stats.dataSources} data sources.` // Plain text fallback
   };
