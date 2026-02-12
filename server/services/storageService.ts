@@ -25,14 +25,14 @@ async function initS3() {
       S3Client = S3;
       
       s3Client = new S3Client({
-        region: process.env.AWS_REGION || 'us-east-1',
+        region: process.env.S3_REGION || process.env.AWS_REGION || 'us-east-1',
         credentials: {
-          accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+          accessKeyId: process.env.S3_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID!,
+          secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY!,
         },
       });
       
-      logger.info('S3 client initialized', { region: process.env.AWS_REGION });
+      logger.info('S3 client initialized', { region: process.env.S3_REGION || process.env.AWS_REGION });
     } catch (error) {
       logger.warn('Failed to initialize S3 client, falling back to local storage', { error });
     }
@@ -95,7 +95,7 @@ const s3StorageImpl: StorageInterface = {
     try {
       const { PutObjectCommand } = await import('@aws-sdk/client-s3');
       const key = localStorageService.generateStorageKey(userId, filename);
-      const bucket = process.env.AWS_S3_BUCKET!;
+      const bucket = process.env.S3_BUCKET || process.env.AWS_S3_BUCKET!;
       
       await s3Client.send(new PutObjectCommand({
         Bucket: bucket,
@@ -134,7 +134,7 @@ const s3StorageImpl: StorageInterface = {
     
     try {
       const { GetObjectCommand } = await import('@aws-sdk/client-s3');
-      const bucket = process.env.AWS_S3_BUCKET!;
+      const bucket = process.env.S3_BUCKET || process.env.AWS_S3_BUCKET!;
       
       const response = await s3Client.send(new GetObjectCommand({
         Bucket: bucket,
@@ -166,7 +166,7 @@ const s3StorageImpl: StorageInterface = {
     
     try {
       const { DeleteObjectCommand } = await import('@aws-sdk/client-s3');
-      const bucket = process.env.AWS_S3_BUCKET!;
+      const bucket = process.env.S3_BUCKET || process.env.AWS_S3_BUCKET!;
       
       await s3Client.send(new DeleteObjectCommand({
         Bucket: bucket,
@@ -190,7 +190,7 @@ const s3StorageImpl: StorageInterface = {
     
     try {
       const { ListObjectsV2Command } = await import('@aws-sdk/client-s3');
-      const bucket = process.env.AWS_S3_BUCKET!;
+      const bucket = process.env.S3_BUCKET || process.env.AWS_S3_BUCKET!;
       const prefix = `business-${userId}/`;
       
       const response = await s3Client.send(new ListObjectsV2Command({
@@ -215,7 +215,7 @@ const s3StorageImpl: StorageInterface = {
     
     try {
       const { HeadBucketCommand } = await import('@aws-sdk/client-s3');
-      const bucket = process.env.AWS_S3_BUCKET!;
+      const bucket = process.env.S3_BUCKET || process.env.AWS_S3_BUCKET!;
       
       await s3Client.send(new HeadBucketCommand({ Bucket: bucket }));
       return true;
@@ -232,7 +232,7 @@ const s3StorageImpl: StorageInterface = {
 
 // Select storage implementation based on configuration
 function getStorageImpl(): StorageInterface {
-  if (STORAGE_MODE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_S3_BUCKET) {
+  if (STORAGE_MODE === 's3' && (process.env.S3_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID) && (process.env.S3_BUCKET || process.env.AWS_S3_BUCKET)) {
     return s3StorageImpl;
   }
   return localStorageImpl;
