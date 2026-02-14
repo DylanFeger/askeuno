@@ -7,7 +7,7 @@ build:
     build:
       - npm run build
 run:
-  command: NODE_ENV=production node dist/index.js
+  command: node dist/index.js
   network:
     port: 5000
     env: PORT
