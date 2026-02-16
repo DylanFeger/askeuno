@@ -14,6 +14,8 @@ vite.config.ts.*
 # Test credentials (contains sensitive info)
 LIGHTSPEED_TEST_CREDENTIALS.md
 s3-credentials.txt
+PRODUCTION_SECRETS.txt
+PRODUCTION_DATABASE_URL.txt
 
 # Test files (moved to tests/legacy)
 tests/legacy/

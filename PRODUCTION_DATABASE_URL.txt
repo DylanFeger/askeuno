@@ -1,10 +1,14 @@
 # Ask Euno - Production Database URL
-# Generated: $(date)
+# Generated: February 14, 2026
 # Provider: Neon
 # Project: Ask Euno Production
 
-DATABASE_URL=postgresql://neondb_owner:npg_6ynBMLYo3ZjN@ep-empty-wind-ahgv35fa-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require
+# Full connection string (for psql and direct connections)
+DATABASE_URL=postgresql://neondb_owner:npg_6ynBMLYo3ZjN@ep-empty-wind-ahgv35fa-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+
+# For AWS Amplify (use this version - simpler SSL mode)
+DATABASE_URL_AMPLIFY=postgresql://neondb_owner:npg_6ynBMLYo3ZjN@ep-empty-wind-ahgv35fa-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require
 
 # Note: This is your production database connection string
-# Add this to AWS Amplify environment variables as DATABASE_URL
+# Add DATABASE_URL_AMPLIFY to AWS Amplify environment variables as DATABASE_URL
 # Keep this file secure - it contains database credentials
