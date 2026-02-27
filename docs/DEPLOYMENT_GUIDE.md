@@ -1,476 +1,426 @@
-# Ask Euno Deployment Guide
+# 🚀 Ask Euno MVP - Complete Deployment Guide
 
-This guide provides step-by-step instructions for deploying Acre to production using either Replit or AWS services.
+**Target**: Production deployment to AWS App Runner  
+**Domain**: askeuno.com  
+**Last Updated**: February 27, 2026
 
-## Table of Contents
-- [Environment Variables Setup](#environment-variables-setup)
-- [Option 1: Deploy to Replit](#option-1-deploy-to-replit)
-- [Option 2: Deploy to AWS](#option-2-deploy-to-aws)
-- [Post-Deployment Steps](#post-deployment-steps)
+---
 
-## Environment Variables Setup
+## 📋 Table of Contents
 
-### Required Environment Variables
-```bash
-# Database
-DATABASE_URL=postgresql://user:password@host:5432/dbname
-PGHOST=your-db-host
-PGPORT=5432
-PGUSER=your-db-user
-PGPASSWORD=your-db-password
-PGDATABASE=your-db-name
+1. [Overview](#overview)
+2. [Prerequisites](#prerequisites)
+3. [Deployment Platform](#deployment-platform)
+4. [Step-by-Step Deployment](#step-by-step-deployment)
+5. [Post-Deployment](#post-deployment)
+6. [Additional Resources](#additional-resources)
 
-# OpenAI API (for AI features)
-OPENAI_API_KEY=sk-your-openai-api-key
+---
 
-# SendGrid (for email notifications)
-SENDGRID_API_KEY=SG.your-sendgrid-api-key
+## 📖 Overview
 
-# Session Secret
-SESSION_SECRET=your-secure-session-secret-minimum-32-chars
+This guide provides complete instructions for deploying Ask Euno MVP to production using AWS App Runner.
 
-# Environment
-NODE_ENV=production
+### What You'll Deploy
+
+- **Frontend**: React application (served by Express)
+- **Backend**: Express.js API server
+- **Database**: PostgreSQL (external - Neon/Supabase/RDS)
+- **Storage**: AWS S3 for file uploads
+- **Domain**: askeuno.com with SSL
+
+### Deployment Architecture
+
+```
+┌─────────────────────────────────────┐
+│      AWS App Runner Container       │
+│  ┌───────────────────────────────┐  │
+│  │   Express Server (Port 5000)  │  │
+│  │   ├── API Routes (/api/*)     │  │
+│  │   └── Static Files (/*)       │  │
+│  └───────────────────────────────┘  │
+│         │                            │
+│         ├──> PostgreSQL (Neon/RDS)   │
+│         ├──> AWS S3 (File Storage)   │
+│         └──> OpenAI API              │
+└─────────────────────────────────────┘
+         │
+         └──> askeuno.com (Custom Domain)
 ```
 
-### Generate Secure Secrets
-```bash
-# Generate session secret
-openssl rand -base64 32
+---
 
-# Or using Node.js
-node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
-```
+## ✅ Prerequisites
 
-## Option 1: Deploy to Replit
+Before starting, ensure you have:
 
-### Full-Stack Deployment on Replit
+- [ ] **AWS Account** with App Runner access
+- [ ] **Production Database** configured (Neon/Supabase/RDS)
+- [ ] **AWS S3 Bucket** created and configured
+- [ ] **Domain** `askeuno.com` registered (or DNS access)
+- [ ] **Git Repository** with code (GitHub/Bitbucket/CodeCommit)
+- [ ] **Environment Variables** documented (see [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md))
+- [ ] **Build tested locally** (see Testing section)
 
-#### Step 1: Prepare for Deployment
-1. Ensure your Replit project is up to date
-2. Test the application locally using the dev workflow
-3. Build the production assets:
-```bash
-NODE_ENV=production npm run build
-```
+---
 
-#### Step 2: Configure Secrets in Replit
-1. Click the "Secrets" tab in your Replit workspace
-2. Add each environment variable:
-   - `DATABASE_URL` - Your Neon/PostgreSQL connection string
-   - `OPENAI_API_KEY` - Your OpenAI API key
-   - `SENDGRID_API_KEY` - Your SendGrid API key
-   - `SESSION_SECRET` - Generated secure secret
+## 🎯 Deployment Platform
 
-#### Step 3: Update .replit Configuration
-Create or update `.replit` file:
-```toml
-run = "npm start"
-entrypoint = "server/index.ts"
+### Recommended: AWS App Runner
 
-[deployment]
-run = ["sh", "-c", "npm run build && npm start"]
-deploymentTarget = "production"
+**Why App Runner?**
+- ✅ Single container for full-stack app
+- ✅ Automatic scaling
+- ✅ Built-in SSL certificates
+- ✅ Easy custom domain setup
+- ✅ Git integration for auto-deploy
 
-[[ports]]
-localPort = 5000
-externalPort = 80
+**Alternative**: AWS Amplify (for frontend-only) + App Runner (for backend)
 
-[env]
-NODE_ENV = "production"
-```
+See [DEPLOYMENT_ANALYSIS.md](./DEPLOYMENT_ANALYSIS.md) for detailed comparison.
 
-#### Step 4: Deploy Using Replit
-1. Click the "Deploy" button in your Replit workspace
-2. Choose "Production" deployment
-3. Replit will automatically:
-   - Build your application
-   - Set up HTTPS/TLS
-   - Configure health checks
-   - Provide a `.replit.app` domain
+---
 
-#### Step 5: Custom Domain (Optional)
-1. In Replit deployment settings, click "Custom Domain"
-2. Add your domain (e.g., `askeuno.com`)
-3. Update DNS records as instructed by Replit
-4. SSL certificate will be automatically provisioned
+## 🚀 Step-by-Step Deployment
 
-## Option 2: Deploy to AWS
+### Step 1: Prepare Repository
 
-### Backend Deployment to EC2
-
-#### Step 1: Launch EC2 Instance
-```bash
-# Using AWS CLI
-aws ec2 run-instances \
-  --image-id ami-0c02fb55956c7d316 \  # Amazon Linux 2023
-  --instance-type t3.medium \
-  --key-name your-key-pair \
-  --security-group-ids sg-xxxxxxxx \
-  --subnet-id subnet-xxxxxxxx \
-  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=acre-backend}]'
-```
-
-#### Step 2: Configure Security Group
-Allow inbound traffic:
-- Port 22 (SSH) - Your IP only
-- Port 80 (HTTP) - 0.0.0.0/0
-- Port 443 (HTTPS) - 0.0.0.0/0
-- Port 5000 (App) - Load balancer only
-
-#### Step 3: Connect and Setup Server
-```bash
-# Connect to instance
-ssh -i your-key.pem ec2-user@your-instance-ip
-
-# Update system
-sudo yum update -y
-
-# Install Node.js 20
-curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
-sudo yum install -y nodejs
-
-# Install Git
-sudo yum install -y git
-
-# Install PM2 for process management
-sudo npm install -g pm2
-
-# Clone repository
-git clone https://github.com/your-username/acre.git
-cd acre
-
-# Install dependencies
-npm install
-```
-
-#### Step 4: Configure Environment
-```bash
-# Create .env file
-cat > .env << EOL
-DATABASE_URL=your-database-url
-OPENAI_API_KEY=your-openai-key
-SENDGRID_API_KEY=your-sendgrid-key
-SESSION_SECRET=your-session-secret
-NODE_ENV=production
-EOL
-
-# Build application
-npm run build
-```
-
-#### Step 5: Setup PM2 Process Manager
-```bash
-# Start application with PM2
-pm2 start ecosystem.config.js --env production
-
-# Save PM2 configuration
-pm2 save
-
-# Setup PM2 to start on boot
-pm2 startup systemd
-sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u ec2-user --hp /home/ec2-user
-```
-
-#### Step 6: Setup Nginx Reverse Proxy
-```bash
-# Install Nginx
-sudo yum install -y nginx
-
-# Configure Nginx
-sudo tee /etc/nginx/conf.d/acre.conf << EOL
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location / {
-        proxy_pass http://localhost:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_cache_bypass \$http_upgrade;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-    }
-
-    location /health {
-        proxy_pass http://localhost:5000/health;
-        access_log off;
-    }
-}
-EOL
-
-# Start Nginx
-sudo systemctl start nginx
-sudo systemctl enable nginx
-```
-
-#### Step 7: Setup SSL with Let's Encrypt
-```bash
-# Install Certbot
-sudo yum install -y certbot python3-certbot-nginx
-
-# Get SSL certificate
-sudo certbot --nginx -d your-domain.com -d www.your-domain.com
-
-# Auto-renewal
-sudo systemctl enable certbot-renew.timer
-```
-
-### Frontend Deployment to AWS Amplify
-
-#### Step 1: Prepare Frontend Build
-```bash
-# Build frontend only
-cd client
-npm run build
-# Output will be in dist/public
-```
-
-#### Step 2: Create Amplify App
-```bash
-# Using AWS CLI
-aws amplify create-app --name acre-frontend --region us-east-1
-
-# Or use AWS Console:
-# 1. Go to AWS Amplify Console
-# 2. Click "New app" > "Host web app"
-# 3. Choose "Deploy without Git provider"
-# 4. Upload dist/public folder
-```
-
-#### Step 3: Configure Environment Variables
-In Amplify Console:
-1. Go to App settings > Environment variables
-2. Add variables:
-```
-VITE_API_URL=https://api.your-domain.com
-VITE_APP_NAME=Acre
-```
-
-#### Step 4: Configure Redirects
-Create `amplify.yml` in project root:
-```yaml
-version: 1
-frontend:
-  phases:
-    preBuild:
-      commands:
-        - npm ci
-    build:
-      commands:
-        - npm run build
-  artifacts:
-    baseDirectory: dist/public
-    files:
-      - '**/*'
-  cache:
-    paths:
-      - node_modules/**/*
-  customHeaders:
-    - pattern: '**/*'
-      headers:
-        - key: 'X-Frame-Options'
-          value: 'SAMEORIGIN'
-        - key: 'X-Content-Type-Options'
-          value: 'nosniff'
-        - key: 'X-XSS-Protection'
-          value: '1; mode=block'
-
-# Handle client-side routing
-redirects:
-  - source: '</^[^.]+$|\.(?!(css|gif|ico|jpg|js|png|txt|svg|woff|woff2|ttf|map|json)$)([^.]+$)/>'
-    target: '/index.html'
-    status: '200'
-    condition: null
-```
-
-#### Step 5: Deploy
-```bash
-# Manual deployment
-aws amplify start-deployment --app-id your-app-id --branch-name main
-
-# Or use continuous deployment:
-# Connect to GitHub/GitLab in Amplify Console
-# Amplify will auto-deploy on push
-```
-
-## Post-Deployment Steps
-
-### 1. Database Migrations
-```bash
-# SSH into server (EC2) or use Replit console
-npm run db:push
-```
-
-### 2. Verify Health Check
-```bash
-# Test health endpoint
-curl https://your-domain.com/health
-
-# Run monitoring script
-./scripts/health-check.sh
-```
-
-### 3. Setup Monitoring
-
-#### CloudWatch (AWS)
-```bash
-# Install CloudWatch agent on EC2
-wget https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
-sudo rpm -U ./amazon-cloudwatch-agent.rpm
-
-# Configure agent
-sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-config-wizard
-```
-
-#### Replit Monitoring
-- Replit automatically provides basic monitoring
-- View metrics in Replit dashboard under "Deployments"
-
-### 4. Setup Backup Strategy
-
-#### Database Backups
-```bash
-# Automated PostgreSQL backup script
-#!/bin/bash
-BACKUP_DIR="/backups"
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-DATABASE_URL="your-database-url"
-
-pg_dump $DATABASE_URL > $BACKUP_DIR/acre_backup_$TIMESTAMP.sql
-
-# Keep only last 7 days
-find $BACKUP_DIR -name "acre_backup_*.sql" -mtime +7 -delete
-```
-
-#### Add to crontab
-```bash
-# Daily backup at 2 AM
-0 2 * * * /home/ec2-user/backup.sh
-```
-
-### 5. Configure Alerts
-
-#### AWS CloudWatch Alarms
-```bash
-# High CPU usage
-aws cloudwatch put-metric-alarm \
-  --alarm-name acre-high-cpu \
-  --alarm-description "Alarm when CPU exceeds 80%" \
-  --metric-name CPUUtilization \
-  --namespace AWS/EC2 \
-  --statistic Average \
-  --period 300 \
-  --threshold 80 \
-  --comparison-operator GreaterThanThreshold
-
-# Application errors
-aws cloudwatch put-metric-alarm \
-  --alarm-name acre-high-error-rate \
-  --alarm-description "High application error rate" \
-  --metric-name ErrorCount \
-  --namespace Acre/Application \
-  --statistic Sum \
-  --period 300 \
-  --threshold 10
-```
-
-### 6. Security Hardening
-
-#### Update Security Headers
-Already configured in Nginx/Amplify, but verify:
-- X-Frame-Options: SAMEORIGIN
-- X-Content-Type-Options: nosniff
-- X-XSS-Protection: 1; mode=block
-- Strict-Transport-Security: max-age=31536000
-
-#### Enable AWS WAF (Optional)
-```bash
-# Create Web ACL for additional protection
-aws wafv2 create-web-acl \
-  --name acre-waf \
-  --scope REGIONAL \
-  --default-action Allow={} \
-  --rules file://waf-rules.json
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **502 Bad Gateway**
-   - Check if application is running: `pm2 status`
-   - Check logs: `pm2 logs`
-   - Verify Nginx configuration: `sudo nginx -t`
-
-2. **Database Connection Failed**
-   - Verify DATABASE_URL is correct
-   - Check security groups allow database access
-   - Test connection: `psql $DATABASE_URL -c "SELECT 1"`
-
-3. **Static Files Not Loading**
-   - Verify build completed successfully
-   - Check Nginx static file serving configuration
-   - Verify file permissions
-
-4. **High Memory Usage**
-   - Monitor with: `pm2 monit`
-   - Adjust Node.js memory: `pm2 start app.js --node-args="--max-old-space-size=4096"`
-
-### Rollback Procedure
-
-1. **Replit**: Use deployment history to rollback
-2. **EC2**: 
+1. **Verify Build Works Locally**
    ```bash
-   pm2 stop all
-   git checkout previous-tag
-   npm install
+   # Install dependencies
+   npm ci
+   
+   # Build application
    npm run build
-   pm2 restart all
+   
+   # Verify build output
+   ls -la dist/
+   ls -la dist/public/
    ```
 
-## Performance Optimization
+2. **Test Docker Build** (if using container deployment)
+   ```bash
+   # Build Docker image
+   docker build -t askeuno:test .
+   
+   # Test container
+   docker run -p 5000:5000 \
+     -e DATABASE_URL="your-db-url" \
+     -e SESSION_SECRET="test-secret" \
+     askeuno:test
+   
+   # Test health endpoint
+   curl http://localhost:5000/api/health
+   ```
 
-### 1. Enable Compression
-```javascript
-// Already configured in server/index.ts
-import compression from 'compression';
-app.use(compression());
-```
+3. **Push to Repository**
+   ```bash
+   git add .
+   git commit -m "Prepare for deployment"
+   git push origin main
+   ```
 
-### 2. CDN Setup (CloudFront)
+---
+
+### Step 2: Create App Runner Service
+
+1. **Navigate to AWS App Runner Console**
+   - Go to https://console.aws.amazon.com/apprunner
+   - Click **"Create service"**
+
+2. **Configure Source**
+   - **Source type**: Choose one:
+     - **Source code repository** (recommended for auto-deploy)
+     - **Container registry** (ECR) - if using Docker images
+   
+   **For Source Code Repository**:
+   - Connect your Git provider (GitHub/Bitbucket)
+   - Select repository: `your-org/ask-euno`
+   - Select branch: `main`
+   - **Deployment trigger**: `Automatic` (deploy on every push)
+
+3. **Configure Build**
+   - **Build configuration**: `Use a configuration file` (uses `apprunner.yaml`)
+   - Or: `Configure build settings` (manual configuration)
+   - **Runtime**: `Node.js 20`
+   - **Build command**: Auto-detected from `apprunner.yaml`
+
+4. **Configure Service**
+   - **Service name**: `ask-euno-production`
+   - **Port**: `5000`
+   - **Health check path**: `/api/health`
+   - **Health check interval**: `30` seconds
+   - **Health check timeout**: `10` seconds
+   - **Health check healthy threshold**: `1`
+   - **Health check unhealthy threshold**: `5`
+
+5. **Configure Environment Variables**
+   - Add all required environment variables (see [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md))
+   - Use [DEPLOYMENT_VARIABLES_CHECKLIST.md](./DEPLOYMENT_VARIABLES_CHECKLIST.md) as reference
+
+6. **Configure Auto-Scaling** (Optional)
+   - **Min instances**: `1`
+   - **Max instances**: `10`
+   - **Concurrency**: `100` requests per instance
+
+7. **Review and Create**
+   - Review all settings
+   - Click **"Create & deploy"**
+
+---
+
+### Step 3: Configure Custom Domain
+
+1. **Add Custom Domain**
+   - Go to App Runner service → **"Custom domains"** tab
+   - Click **"Add domain"**
+   - Enter: `askeuno.com`
+   - Click **"Add"**
+
+2. **Configure DNS**
+   - Copy CNAME record from App Runner
+   - Add CNAME record in your DNS provider:
+     - **Type**: `CNAME`
+     - **Name**: `@` (for root) or `www` (for subdomain)
+     - **Value**: `xyz123.us-east-1.awsapprunner.com` (from App Runner)
+   
+   See [CUSTOM_DOMAIN_SETUP.md](./CUSTOM_DOMAIN_SETUP.md) for detailed instructions.
+
+3. **Wait for SSL Certificate**
+   - SSL certificate provisions automatically
+   - Takes 5-30 minutes
+   - Status changes to "Active" when ready
+
+---
+
+### Step 4: Verify Deployment
+
+1. **Check Deployment Status**
+   - Go to App Runner service → **"Deployments"** tab
+   - Verify deployment status: "Successful"
+   - Review deployment logs for errors
+
+2. **Test Application**
+   - Visit: `https://askeuno.com`
+   - Test health endpoint: `https://askeuno.com/api/health`
+   - Verify application loads correctly
+   - Test critical features
+
+3. **Check Logs**
+   - Go to App Runner service → **"Logs"** tab
+   - Review application logs
+   - Check for errors or warnings
+
+---
+
+## 🎉 Post-Deployment
+
+### 1. Verify Everything Works
+
+- [ ] Application accessible at `https://askeuno.com`
+- [ ] Health check passes: `https://askeuno.com/api/health`
+- [ ] Frontend loads correctly
+- [ ] API endpoints work
+- [ ] Database connection works
+- [ ] File uploads work (S3)
+- [ ] OAuth flows work (Lightspeed)
+- [ ] AI chat works (OpenAI)
+
+### 2. Configure Monitoring
+
+- [ ] Set up Sentry error monitoring (if configured)
+- [ ] Set up CloudWatch alarms
+- [ ] Configure uptime monitoring (UptimeRobot, etc.)
+- [ ] Set up deployment notifications
+
+### 3. Enable Auto-Deployment
+
+- [ ] Verify auto-deploy is enabled
+- [ ] Test auto-deploy with small change
+- [ ] Configure branch protection (for production)
+- [ ] Set up deployment notifications
+
+See [AUTO_DEPLOYMENT.md](./AUTO_DEPLOYMENT.md) for detailed instructions.
+
+### 4. Document Deployment
+
+- [ ] Document deployment process
+- [ ] Create runbook for common issues
+- [ ] Share access with team
+- [ ] Document rollback procedure
+
+---
+
+## 🔧 Testing Deployment
+
+### Local Testing
+
+Before deploying, test locally:
+
 ```bash
-# Create CloudFront distribution
-aws cloudfront create-distribution \
-  --origin-domain-name your-domain.com \
-  --default-root-object index.html
+# 1. Install dependencies
+npm ci
+
+# 2. Build application
+npm run build
+
+# 3. Test with production-like environment
+NODE_ENV=production \
+DATABASE_URL="your-db-url" \
+SESSION_SECRET="test-secret" \
+npm start
+
+# 4. Test health endpoint
+curl http://localhost:5000/api/health
+
+# 5. Test Docker build (if using containers)
+docker build -t askeuno:test .
+docker run -p 5000:5000 \
+  -e NODE_ENV=production \
+  -e DATABASE_URL="your-db-url" \
+  askeuno:test
 ```
 
-### 3. Database Indexing
-```sql
--- Ensure indexes are optimized
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_data_sources_user_id ON data_sources(user_id);
-CREATE INDEX idx_chat_messages_conversation_id ON chat_messages(conversation_id);
-```
+### Post-Deployment Testing
 
-## Maintenance Mode
+After deployment:
 
-### Enable Maintenance Mode
-```bash
-# Create maintenance page
-echo "Under maintenance. Back soon!" > /var/www/maintenance.html
+1. **Smoke Tests**
+   - Application loads
+   - Health check passes
+   - API endpoints respond
+   - Frontend renders
 
-# Update Nginx
-sudo sed -i '1s/^/return 503;\n/' /etc/nginx/conf.d/acre.conf
-sudo systemctl reload nginx
-```
+2. **Functional Tests**
+   - User registration/login
+   - File upload
+   - Data source connections
+   - AI chat interface
+   - Dashboard creation
 
-### Disable Maintenance Mode
-```bash
-sudo sed -i '1d' /etc/nginx/conf.d/acre.conf
-sudo systemctl reload nginx
-```
+3. **Performance Tests**
+   - Response times acceptable
+   - No memory leaks
+   - Database queries optimized
+
+---
+
+## 🚨 Troubleshooting
+
+If you encounter issues:
+
+1. **Check Logs**
+   - App Runner console → Logs tab
+   - Review build logs
+   - Check application logs
+
+2. **Common Issues**
+   - See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for solutions
+
+3. **Rollback**
+   - Go to Deployments tab
+   - Select previous successful deployment
+   - Click "Deploy"
+
+---
+
+## 📚 Additional Resources
+
+### Documentation
+
+- [Deployment Analysis](./DEPLOYMENT_ANALYSIS.md) - Platform comparison
+- [Environment Variables](./ENVIRONMENT_VARIABLES.md) - Complete variable guide
+- [Environment Variables Checklist](./DEPLOYMENT_VARIABLES_CHECKLIST.md) - Quick checklist
+- [Custom Domain Setup](./CUSTOM_DOMAIN_SETUP.md) - Domain configuration
+- [Auto-Deployment](./AUTO_DEPLOYMENT.md) - CI/CD setup
+- [Troubleshooting](./TROUBLESHOOTING.md) - Common issues and solutions
+
+### AWS Resources
+
+- [AWS App Runner Documentation](https://docs.aws.amazon.com/apprunner)
+- [AWS App Runner Pricing](https://aws.amazon.com/apprunner/pricing/)
+- [AWS Certificate Manager](https://docs.aws.amazon.com/acm)
+
+### External Resources
+
+- [PostgreSQL Connection Strings](https://www.postgresql.org/docs/current/libpq-connect.html)
+- [AWS S3 Best Practices](https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html)
+
+---
+
+## ✅ Deployment Checklist
+
+Use this checklist for each deployment:
+
+### Pre-Deployment
+- [ ] Code reviewed and approved
+- [ ] Tests pass locally
+- [ ] Build succeeds locally
+- [ ] Environment variables updated (if needed)
+- [ ] Database migrations tested
+- [ ] Documentation updated
+
+### Deployment
+- [ ] App Runner service created/updated
+- [ ] Environment variables configured
+- [ ] Custom domain configured (if first deployment)
+- [ ] Deployment triggered
+- [ ] Deployment status: Successful
+
+### Post-Deployment
+- [ ] Application accessible
+- [ ] Health check passes
+- [ ] Critical features tested
+- [ ] Logs reviewed (no errors)
+- [ ] Monitoring configured
+- [ ] Team notified
+
+---
+
+## 🎯 Success Criteria
+
+Your deployment is successful when:
+
+- ✅ Application accessible at `https://askeuno.com`
+- ✅ SSL certificate active (HTTPS works)
+- ✅ Health check endpoint returns 200
+- ✅ All critical features work
+- ✅ Database connections work
+- ✅ File uploads work (S3)
+- ✅ OAuth flows work
+- ✅ AI chat works
+- ✅ No critical errors in logs
+- ✅ Auto-deployment configured (optional)
+- ✅ Monitoring active
+
+---
+
+## 🔄 Next Steps
+
+After successful deployment:
+
+1. **Monitor Application**
+   - Set up error monitoring (Sentry)
+   - Configure uptime monitoring
+   - Set up performance monitoring
+
+2. **Optimize Performance**
+   - Review database queries
+   - Add caching where appropriate
+   - Optimize build process
+
+3. **Scale as Needed**
+   - Monitor traffic
+   - Adjust auto-scaling settings
+   - Optimize resource allocation
+
+4. **Maintain and Update**
+   - Regular security updates
+   - Monitor for issues
+   - Update dependencies
+
+---
+
+**Status**: Complete ✅  
+**Last Updated**: February 27, 2026  
+**Ready for Production**: Yes 🚀
