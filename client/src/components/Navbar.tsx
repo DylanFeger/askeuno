@@ -80,12 +80,16 @@ export default function Navbar() {
                 
                 return (
                   <Link key={item.path} href={item.path}>
-                    <div className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
-                      isActive 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}>
-                      <Icon className="h-4 w-4" />
+                    <div 
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+                        isActive 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      role="menuitem"
+                      aria-current={isActive ? 'page' : undefined}
+                    >
+                      <Icon className="h-4 w-4" aria-hidden="true" />
                       <span>{item.label}</span>
                     </div>
                   </Link>
@@ -176,8 +180,10 @@ export default function Navbar() {
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
                       onClick={() => setIsMobileMenuOpen(false)}
+                      role="menuitem"
+                      aria-current={isActive ? 'page' : undefined}
                     >
-                      <Icon className="h-5 w-5" />
+                      <Icon className="h-5 w-5" aria-hidden="true" />
                       <span>{item.label}</span>
                     </div>
                   </Link>
