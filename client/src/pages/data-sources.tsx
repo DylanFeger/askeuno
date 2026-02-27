@@ -134,10 +134,11 @@ export default function DataSources() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-sage-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-6 py-24">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-sage-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-6 py-24" role="status" aria-label="Loading">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center">
-            <RefreshCw className="h-8 w-8 animate-spin text-sage-600" />
+            <RefreshCw className="h-8 w-8 animate-spin text-sage-600" aria-hidden="true" />
+            <span className="sr-only">Loading data sources...</span>
           </div>
         </div>
       </div>
@@ -147,15 +148,15 @@ export default function DataSources() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-sage-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-6 py-24">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Data Sources</h1>
-          <p className="text-gray-600 dark:text-gray-400">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">Data Sources</h1>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             Manage your connected databases and uploaded files
           </p>
         </div>
 
         {/* Add new data source buttons */}
-        <div className="mb-8 flex gap-4">
+        <div className="mb-6 sm:mb-8 flex flex-wrap gap-2 sm:gap-4">
           <Link href="/connections">
             <Button variant="outline">
               <Database className="h-4 w-4 mr-2" />

@@ -541,7 +541,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
   const selectedDataSource = dataSources.find(ds => ds.id === selectedDataSourceId);
 
   return (
-    <Card className="p-8">
+    <Card className="p-4 sm:p-6 lg:p-8">
       {/* Data Source Info Bar */}
       <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -602,9 +602,9 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
         </div>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold text-gray-900">Chat with Euno</h2>
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Chat with Euno</h2>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           {(user?.subscriptionTier === 'professional' || user?.subscriptionTier === 'enterprise') && (
             <div className="flex items-center space-x-2">
               <Brain className="w-4 h-4 text-gray-500" />
@@ -670,7 +670,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
         </div>
       </div>
 
-      <div ref={messagesContainerRef} className="space-y-4 mb-6 max-h-96 overflow-y-auto min-h-[300px]">
+      <div ref={messagesContainerRef} className="space-y-4 mb-4 sm:mb-6 max-h-[400px] sm:max-h-96 overflow-y-auto min-h-[200px] sm:min-h-[300px]">
         {/* Welcome message */}
         {messages.length === 0 && (
           <div className="flex items-start space-x-3">
@@ -859,13 +859,13 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
 
         {/* Loading indicator */}
         {sendMessageMutation.isPending && (
-          <div className="flex items-start space-x-3">
+          <div className="flex items-start space-x-3" role="status" aria-label="Processing message">
             <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-white border border-gray-200">
-              <EunoLogo className="w-6 h-6" />
+              <EunoLogo className="w-6 h-6" aria-hidden="true" />
             </div>
             <div className="bg-gray-50 rounded-lg p-4 max-w-md">
               <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" aria-hidden="true"></div>
                 <span className="text-gray-600">Analyzing your data...</span>
               </div>
             </div>
@@ -877,7 +877,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
 
       {/* Data source guard - show banner if no data source selected */}
       {!selectedDataSourceId && dataSources.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
+        <div id="data-source-required" className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3" role="alert">
           <p className="text-amber-800 text-sm">
             Please select a data source above to start asking questions about your data.
           </p>
@@ -922,7 +922,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
       <chartAccess.UpgradeModal />
       <extendedResponseAccess.UpgradeModal />
 
-      <div className="flex items-center space-x-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
         <div className="flex-1 relative">
           <Input
             type="text"
@@ -931,6 +931,8 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={!selectedDataSourceId || dataSources.length === 0}
+            aria-label="Message input"
+            aria-describedby={!selectedDataSourceId ? "data-source-required" : undefined}
           />
         </div>
         {user?.subscriptionTier === 'enterprise' && (
@@ -939,6 +941,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
             disabled={!message.trim() || sendMessageMutation.isPending || !selectedDataSourceId}
             variant="outline"
             title="Generate Chart"
+            aria-label="Generate chart"
           >
             <BarChart2 className="w-4 h-4" />
           </Button>
@@ -947,6 +950,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
           onClick={() => handleSendMessage(false)}
           disabled={!message.trim() || sendMessageMutation.isPending || !selectedDataSourceId}
           className=""
+          aria-label="Send message"
         >
           <Send className="w-4 h-4" />
         </Button>

@@ -129,8 +129,9 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-white flex items-center justify-center" role="status" aria-label="Loading">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" aria-hidden="true"></div>
+        <span className="sr-only">Loading dashboard...</span>
       </div>
     );
   }
@@ -144,16 +145,16 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-8 flex-1">
-        <div className="max-w-6xl mx-auto space-y-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1">
+        <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
           {/* System Health Dashboard */}
           <SystemHealth />
           
           {/* Data Sources Overview */}
           <div>
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold text-gray-900">Your Data Sources</h1>
-              <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4 sm:mb-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Your Data Sources</h1>
+              <div className="flex flex-wrap gap-2 sm:gap-3">
                 <Link href="/import-wizard">
                   <Button>
                     <Shield className="w-4 h-4 mr-2" />
@@ -202,7 +203,7 @@ export default function Dashboard() {
                 </Link>
               </Card>
             ) : (
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {dataSources.map((source) => (
                   <Card key={source.id} className="p-4">
                     <CardHeader className="p-0 pb-2">

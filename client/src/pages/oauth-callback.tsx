@@ -61,7 +61,7 @@ export default function OAuthCallback() {
         }, 2000);
 
       } catch (error: any) {
-        console.error('OAuth callback error:', error);
+        // Error is already handled via UI state
         setStatus('error');
         setMessage(error.message || 'Failed to establish connection. Please try again.');
       }

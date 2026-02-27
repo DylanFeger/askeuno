@@ -14,7 +14,8 @@ let stripePromise: Promise<any> | null = null;
 
 if (import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
   stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY).catch((error) => {
-    console.warn('Failed to load Stripe.js:', error);
+    // Stripe loading error is handled gracefully by returning null
+    // The component will show an error state if Stripe fails to load
     return null;
   });
 }
@@ -149,7 +150,7 @@ export default function Subscribe({ tier, billingCycle, onSuccess, onCancel }: S
           throw new Error('No client secret received');
         }
       } catch (err) {
-        console.error('Subscription creation error:', err);
+        // Error is already handled via error state
         setError(err instanceof Error ? err.message : 'Failed to create subscription');
       } finally {
         setIsLoading(false);

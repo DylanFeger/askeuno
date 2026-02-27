@@ -24,7 +24,7 @@ try {
 // Initialize Sentry error monitoring (optional - only if SENTRY_DSN is set)
 // Note: This is async but we don't await - it's non-blocking
 initSentry().catch(err => {
-  console.error('[Sentry] Initialization error:', err);
+  logger.error('[Sentry] Initialization error', { error: err });
   // Don't throw - Sentry is optional
 });
 
