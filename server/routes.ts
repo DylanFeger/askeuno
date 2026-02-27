@@ -336,7 +336,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversations = await storage.getConversationsByDataSourceId(dataSourceId);
       res.json(conversations);
     } catch (error: any) {
-      logger.error('Get conversations by data source error', { error, dataSourceId, userId: req.user?.id });
+      const dataSourceId = parseInt(req.params.id);
+      logger.error('Get conversations by data source error', { error, dataSourceId, userId: (req as AuthenticatedRequest).user?.id });
       res.status(500).json({ error: error.message });
     }
   });

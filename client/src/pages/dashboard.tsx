@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import type { DataSource } from '@shared/schema';
 import SystemHealth from '@/components/SystemHealth';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
   const [conversationId, setConversationId] = useState<number | undefined>();
@@ -42,7 +43,7 @@ export default function Dashboard() {
     }
   }, [isAuthenticated, isLoading, setLocation]);
 
-  const { data: dataSources = [] } = useQuery<DataSource[]>({
+  const { data: dataSources = [], isLoading: dataSourcesLoading } = useQuery<DataSource[]>({
     queryKey: ['/api/data-sources'],
     enabled: isAuthenticated,
   });
@@ -129,8 +130,9 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-white flex items-center justify-center" role="status" aria-label="Loading">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" aria-hidden="true"></div>
+        <span className="sr-only">Loading dashboard...</span>
       </div>
     );
   }
@@ -144,16 +146,16 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-8 flex-1">
-        <div className="max-w-6xl mx-auto space-y-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1">
+        <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
           {/* System Health Dashboard */}
           <SystemHealth />
           
           {/* Data Sources Overview */}
           <div>
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold text-gray-900">Your Data Sources</h1>
-              <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4 sm:mb-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Your Data Sources</h1>
+              <div className="flex flex-wrap gap-2 sm:gap-3">
                 <Link href="/import-wizard">
                   <Button>
                     <Shield className="w-4 h-4 mr-2" />
@@ -192,7 +194,25 @@ export default function Dashboard() {
               </div>
             </div>
             
-            {dataSources.length === 0 ? (
+            {dataSourcesLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[1, 2].map((i) => (
+                  <Card key={i} className="p-4">
+                    <CardHeader className="p-0 pb-2">
+                      <Skeleton className="h-6 w-32 mb-2" />
+                      <Skeleton className="h-4 w-24" />
+                    </CardHeader>
+                    <CardContent className="p-0 pt-2">
+                      <Skeleton className="h-4 w-20 mb-3" />
+                      <div className="flex gap-2">
+                        <Skeleton className="h-8 w-24" />
+                        <Skeleton className="h-8 w-20" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : dataSources.length === 0 ? (
               <Card className="p-8 text-center">
                 <Wifi className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No data sources connected yet</h3>
@@ -202,7 +222,7 @@ export default function Dashboard() {
                 </Link>
               </Card>
             ) : (
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {dataSources.map((source) => (
                   <Card key={source.id} className="p-4">
                     <CardHeader className="p-0 pb-2">

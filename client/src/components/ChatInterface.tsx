@@ -541,7 +541,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
   const selectedDataSource = dataSources.find(ds => ds.id === selectedDataSourceId);
 
   return (
-    <Card className="p-8">
+    <Card className="p-4 sm:p-6 lg:p-8">
       {/* Data Source Info Bar */}
       <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -602,9 +602,9 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
         </div>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold text-gray-900">Chat with Euno</h2>
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Chat with Euno</h2>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           {(user?.subscriptionTier === 'professional' || user?.subscriptionTier === 'enterprise') && (
             <div className="flex items-center space-x-2">
               <Brain className="w-4 h-4 text-gray-500" />
@@ -670,18 +670,18 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
         </div>
       </div>
 
-      <div ref={messagesContainerRef} className="space-y-4 mb-6 max-h-96 overflow-y-auto min-h-[300px]">
+      <div ref={messagesContainerRef} className="space-y-4 mb-4 sm:mb-6 max-h-[400px] sm:max-h-96 overflow-y-auto min-h-[200px] sm:min-h-[300px]">
         {/* Welcome message */}
         {messages.length === 0 && (
           <div className="flex items-start space-x-3">
             <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-white border border-gray-200">
               <EunoLogo className="w-6 h-6" />
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 max-w-md">
-              <p className="text-gray-800">
+            <div className="bg-gray-50 rounded-lg p-4 max-w-[85%] sm:max-w-md">
+              <p className="text-gray-800 text-sm sm:text-base">
                 Hello! I'm Euno, your AI assistant. Upload your data and I'll help you get insights instantly. Try asking me things like:
               </p>
-              <ul className="mt-2 text-sm text-gray-600">
+              <ul className="mt-2 text-xs sm:text-sm text-gray-600 space-y-1">
                 <li>- "What were our best selling products last month?"</li>
                 <li>- "Show me our revenue trends"</li>
                 <li>- "Which customers spend the most?"</li>
@@ -702,7 +702,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
               </div>
             )}
             
-            <div className={`rounded-lg p-4 max-w-md ${
+            <div className={`rounded-lg p-4 max-w-[85%] sm:max-w-md ${
               msg.role === 'user' 
                 ? 'bg-primary text-white' 
                 : 'bg-gray-50 text-gray-800'
@@ -786,8 +786,9 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
                             key={index}
                             onClick={() => handleSuggestionClick(suggestion.text || suggestion)}
                             data-testid={`suggestion-${index}`}
+                            aria-label={`Follow-up suggestion: ${suggestion.text || suggestion}`}
                             className={`inline-flex items-center space-x-1 text-xs px-3 py-1.5 rounded-full 
-                              transition-all hover:scale-105 
+                              transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
                               ${suggestion.category === 'action' 
                                 ? 'bg-primary text-white hover:bg-primary/90' 
                                 : suggestion.category === 'deep_dive'
@@ -797,8 +798,8 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                               }`}
                           >
-                            {suggestion.category === 'action' && <ChevronRight className="w-3 h-3" />}
-                            {suggestion.category === 'deep_dive' && <BarChart2 className="w-3 h-3" />}
+                            {suggestion.category === 'action' && <ChevronRight className="w-3 h-3" aria-hidden="true" />}
+                            {suggestion.category === 'deep_dive' && <BarChart2 className="w-3 h-3" aria-hidden="true" />}
                             <span>{suggestion.text || suggestion}</span>
                           </button>
                         ))}
@@ -829,6 +830,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
                     onClick={() => feedbackMutation.mutate({ messageId: msg.id!, rating: 'positive' })}
                     disabled={feedbackGiven[msg.id!] !== undefined}
                     data-testid={`thumbs-up-${msg.id}`}
+                    aria-label="Mark as helpful"
                     className={`p-1 rounded hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       feedbackGiven[msg.id!] === 'positive' ? 'text-green-600' : 'text-gray-400'
                     }`}
@@ -839,6 +841,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
                     onClick={() => feedbackMutation.mutate({ messageId: msg.id!, rating: 'negative' })}
                     disabled={feedbackGiven[msg.id!] !== undefined}
                     data-testid={`thumbs-down-${msg.id}`}
+                    aria-label="Mark as not helpful"
                     className={`p-1 rounded hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       feedbackGiven[msg.id!] === 'negative' ? 'text-red-600' : 'text-gray-400'
                     }`}
@@ -859,14 +862,14 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
 
         {/* Loading indicator */}
         {sendMessageMutation.isPending && (
-          <div className="flex items-start space-x-3">
+          <div className="flex items-start space-x-3" role="status" aria-label="Processing message">
             <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-white border border-gray-200">
-              <EunoLogo className="w-6 h-6" />
+              <EunoLogo className="w-6 h-6" aria-hidden="true" />
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 max-w-md">
+            <div className="bg-gray-50 rounded-lg p-4 max-w-[85%] sm:max-w-md">
               <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                <span className="text-gray-600">Analyzing your data...</span>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary" aria-hidden="true"></div>
+                <span className="text-sm sm:text-base text-gray-600">Analyzing your data...</span>
               </div>
             </div>
           </div>
@@ -877,7 +880,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
 
       {/* Data source guard - show banner if no data source selected */}
       {!selectedDataSourceId && dataSources.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
+        <div id="data-source-required" className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3" role="alert">
           <p className="text-amber-800 text-sm">
             Please select a data source above to start asking questions about your data.
           </p>
@@ -922,7 +925,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
       <chartAccess.UpgradeModal />
       <extendedResponseAccess.UpgradeModal />
 
-      <div className="flex items-center space-x-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
         <div className="flex-1 relative">
           <Input
             type="text"
@@ -931,6 +934,8 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={!selectedDataSourceId || dataSources.length === 0}
+            aria-label="Message input"
+            aria-describedby={!selectedDataSourceId ? "data-source-required" : undefined}
           />
         </div>
         {user?.subscriptionTier === 'enterprise' && (
@@ -939,6 +944,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
             disabled={!message.trim() || sendMessageMutation.isPending || !selectedDataSourceId}
             variant="outline"
             title="Generate Chart"
+            aria-label="Generate chart"
           >
             <BarChart2 className="w-4 h-4" />
           </Button>
@@ -947,6 +953,7 @@ export default function ChatInterface({ conversationId, initialMessages, onNewCo
           onClick={() => handleSendMessage(false)}
           disabled={!message.trim() || sendMessageMutation.isPending || !selectedDataSourceId}
           className=""
+          aria-label="Send message"
         >
           <Send className="w-4 h-4" />
         </Button>

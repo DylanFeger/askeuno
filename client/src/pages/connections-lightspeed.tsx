@@ -53,7 +53,7 @@ export default function LightspeedConnection() {
         setIsSubmitting(false);
       }
     } catch (err: any) {
-      console.error('Error starting Lightspeed connection:', err);
+      // Error is already handled via toast notification
       toast({
         title: 'Connection Failed',
         description: err.message || 'Failed to initiate Lightspeed connection',

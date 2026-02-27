@@ -42,7 +42,7 @@ export async function initSentry() {
       integrations: [
         ...(profilingIntegration ? [profilingIntegration()] : []),
         // Automatically instrument Express
-        Sentry.httpIntegration({ tracing: true }),
+        Sentry.httpIntegration(),
       ],
       
       // Release tracking

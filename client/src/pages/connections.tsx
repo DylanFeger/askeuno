@@ -23,6 +23,7 @@ import {
   AlertCircle,
   Trash2
 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { FaGoogle } from 'react-icons/fa';
 import { Link, useLocation } from 'wouter';
 import Navbar from '@/components/Navbar';
@@ -336,8 +337,28 @@ export default function ConnectionsPage() {
 
   if (authLoading || connectionsLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-white" role="status" aria-label="Loading">
+        <Navbar />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 mt-12 sm:mt-16">
+          <div className="mb-6 sm:mb-8">
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-6 w-32 mb-2" />
+                  <Skeleton className="h-4 w-full" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-10 w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </main>
+        <Footer />
       </div>
     );
   }
@@ -646,19 +667,19 @@ export default function ConnectionsPage() {
     <div className="min-h-screen bg-white">
       <Navbar />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 mt-16">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Data Connections</h1>
-          <p className="text-gray-600 mt-2">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 mt-12 sm:mt-16">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Data Connections</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-2">
             Connect your business data sources to enable AI-powered analytics
           </p>
         </div>
 
         {/* Active Connections */}
         {connections.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Active Connections</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Active Connections</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {connections.map(renderActiveConnection)}
             </div>
           </div>
@@ -666,10 +687,10 @@ export default function ConnectionsPage() {
 
         {/* Available Connections */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">
             {connections.length > 0 ? 'Add More Connections' : 'Available Connections'}
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {CONNECTIONS.map(renderConnectionCard)}
           </div>
         </div>

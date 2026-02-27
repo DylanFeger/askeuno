@@ -21,7 +21,8 @@ export default function Navbar() {
           const dataSources = await response.json();
           setHasDataSources(dataSources.length > 0);
         } catch (error) {
-          console.error('Error checking data sources:', error);
+          // Silently fail - data source check is not critical for navigation
+          // User will see appropriate UI if they have no data sources
         }
       }
     };
@@ -33,7 +34,8 @@ export default function Navbar() {
       await apiRequest('POST', '/api/auth/logout');
       logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      // Even if logout API call fails, clear local state
+      logout();
     }
   };
 
@@ -78,12 +80,16 @@ export default function Navbar() {
                 
                 return (
                   <Link key={item.path} href={item.path}>
-                    <div className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
-                      isActive 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}>
-                      <Icon className="h-4 w-4" />
+                    <div 
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
+                        isActive 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      role="menuitem"
+                      aria-current={isActive ? 'page' : undefined}
+                    >
+                      <Icon className="h-4 w-4" aria-hidden="true" />
                       <span>{item.label}</span>
                     </div>
                   </Link>
@@ -131,6 +137,7 @@ export default function Navbar() {
                   variant="ghost"
                   size="sm"
                   onClick={handleLogout}
+                  aria-label="Logout"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
@@ -143,6 +150,9 @@ export default function Navbar() {
           <button
             className="md:hidden p-2 rounded-md text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-menu"
           >
             {isMobileMenuOpen ? (
               <X className="h-6 w-6" />
@@ -154,7 +164,7 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t py-3">
+          <div id="mobile-menu" className="md:hidden border-t py-3" role="menu">
             {/* Mobile Navigation Items */}
             <div className="space-y-1 pb-3">
               {navItems.map((item) => {
@@ -170,8 +180,10 @@ export default function Navbar() {
                           : 'text-gray-700 hover:bg-gray-100'
                       }`}
                       onClick={() => setIsMobileMenuOpen(false)}
+                      role="menuitem"
+                      aria-current={isActive ? 'page' : undefined}
                     >
-                      <Icon className="h-5 w-5" />
+                      <Icon className="h-5 w-5" aria-hidden="true" />
                       <span>{item.label}</span>
                     </div>
                   </Link>
