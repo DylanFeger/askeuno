@@ -1,12 +1,46 @@
+# ===========================================
+# Ask Euno - AWS App Runner Configuration
+# ===========================================
+# Source-based deployment configuration
+# Alternative to Dockerfile-based deployment
+# ===========================================
+
 version: 1.0
-runtime: nodejs18
+runtime: nodejs20
+
 build:
   commands:
     pre-build:
+      # Install all dependencies (including devDependencies for build)
       - npm ci --include=dev
+      # Verify environment variables are set
+      - |
+        if [ -z "$DATABASE_URL" ]; then
+          echo "Warning: DATABASE_URL not set"
+        fi
     build:
+      # Build both frontend and backend
       - npm run build
+      # Verify build output
+      - |
+        if [ ! -d "dist" ]; then
+          echo "Error: Build failed - dist directory not found"
+          exit 1
+        fi
+      - |
+        if [ ! -d "dist/public" ]; then
+          echo "Error: Frontend build failed - dist/public not found"
+          exit 1
+        fi
+      - |
+        if [ ! -f "dist/index.js" ]; then
+          echo "Error: Backend build failed - dist/index.js not found"
+          exit 1
+        fi
+      - echo "Build completed successfully"
+
 run:
+  # Start the Express server
   command: node dist/index.js
   network:
     port: 5000
@@ -14,3 +48,12 @@ run:
   env:
     - name: NODE_ENV
       value: production
+
+# Health check configuration
+# App Runner will use /api/health endpoint
+health:
+  path: /api/health
+  interval: 30
+  timeout: 5
+  healthy_threshold: 1
+  unhealthy_threshold: 5
