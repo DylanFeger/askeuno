@@ -125,7 +125,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false, // Disable secure cookies for localhost development
+    secure: process.env.NODE_ENV === 'production', // Secure cookies in production (HTTPS required)
     httpOnly: true, // Prevents XSS attacks
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     sameSite: 'lax', // Better compatibility while maintaining CSRF protection

@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import type { DataSource } from '@shared/schema';
 import SystemHealth from '@/components/SystemHealth';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
   const [conversationId, setConversationId] = useState<number | undefined>();
@@ -42,7 +43,7 @@ export default function Dashboard() {
     }
   }, [isAuthenticated, isLoading, setLocation]);
 
-  const { data: dataSources = [] } = useQuery<DataSource[]>({
+  const { data: dataSources = [], isLoading: dataSourcesLoading } = useQuery<DataSource[]>({
     queryKey: ['/api/data-sources'],
     enabled: isAuthenticated,
   });
@@ -193,7 +194,25 @@ export default function Dashboard() {
               </div>
             </div>
             
-            {dataSources.length === 0 ? (
+            {dataSourcesLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[1, 2].map((i) => (
+                  <Card key={i} className="p-4">
+                    <CardHeader className="p-0 pb-2">
+                      <Skeleton className="h-6 w-32 mb-2" />
+                      <Skeleton className="h-4 w-24" />
+                    </CardHeader>
+                    <CardContent className="p-0 pt-2">
+                      <Skeleton className="h-4 w-20 mb-3" />
+                      <div className="flex gap-2">
+                        <Skeleton className="h-8 w-24" />
+                        <Skeleton className="h-8 w-20" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : dataSources.length === 0 ? (
               <Card className="p-8 text-center">
                 <Wifi className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No data sources connected yet</h3>
