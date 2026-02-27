@@ -1,9 +1,21 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import authRouter from '../server/routes/auth';
-import { createMockRequest, createMockResponse, createMockNext } from './utils/test-helpers';
-import { mockStorage, mockLogger } from './utils/mocks';
+import { createMockRequest, createMockResponse, createMockNext, runHandler } from './utils/test-helpers';
+
+const mockStorage = vi.hoisted(() => ({
+  getUser: vi.fn(),
+  getUserByUsername: vi.fn(),
+  getUserByEmail: vi.fn(),
+  createUser: vi.fn(),
+}));
+
+const mockLogger = vi.hoisted(() => ({
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
+}));
 
 // Mock dependencies
 vi.mock('../server/storage', () => ({
@@ -20,11 +32,13 @@ vi.mock('../server/services/awsSes', () => ({
 }));
 
 describe('Authentication Routes', () => {
+  let authRouter: any;
   let req: Partial<Request>;
   let res: Partial<Response>;
   let next: ReturnType<typeof vi.fn>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    authRouter = (await import('../server/routes/auth')).default;
     req = createMockRequest();
     res = createMockResponse();
     next = createMockNext();
@@ -37,6 +51,8 @@ describe('Authentication Routes', () => {
       const email = 'test@example.com';
       const password = 'Test1234';
 
+      req.method = 'POST';
+      req.url = '/register';
       req.body = { username, email, password };
       mockStorage.getUserByUsername.mockResolvedValue(null);
       mockStorage.getUserByEmail.mockResolvedValue(null);
@@ -53,7 +69,7 @@ describe('Authentication Routes', () => {
       // Mock bcrypt.hash
       const hashSpy = vi.spyOn(bcrypt, 'hash').mockResolvedValue('hashed' as never);
 
-      await authRouter.handle(req as Request, res as Response, next);
+      await runHandler(authRouter, req, res);
 
       expect(mockStorage.getUserByUsername).toHaveBeenCalledWith(username);
       expect(mockStorage.getUserByEmail).toHaveBeenCalledWith(email);
@@ -69,6 +85,8 @@ describe('Authentication Routes', () => {
     });
 
     it('should reject registration with duplicate username', async () => {
+      req.method = 'POST';
+      req.url = '/register';
       req.body = {
         username: 'existinguser',
         email: 'new@example.com',
@@ -80,13 +98,15 @@ describe('Authentication Routes', () => {
         username: 'existinguser',
       });
 
-      await authRouter.handle(req as Request, res as Response, next);
+      await runHandler(authRouter, req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ error: 'Username already exists' });
     });
 
     it('should reject registration with duplicate email', async () => {
+      req.method = 'POST';
+      req.url = '/register';
       req.body = {
         username: 'newuser',
         email: 'existing@example.com',
@@ -99,7 +119,7 @@ describe('Authentication Routes', () => {
         email: 'existing@example.com',
       });
 
-      await authRouter.handle(req as Request, res as Response, next);
+      await runHandler(authRouter, req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ error: 'Email already exists' });
@@ -135,6 +155,8 @@ describe('Authentication Routes', () => {
       const password = 'Test1234';
       const hashedPassword = await bcrypt.hash(password, 12);
 
+      req.method = 'POST';
+      req.url = '/login';
       req.body = { username: email, password };
       mockStorage.getUserByEmail.mockResolvedValue({
         id: 1,
@@ -146,7 +168,7 @@ describe('Authentication Routes', () => {
         role: 'main_user',
       });
 
-      await authRouter.handle(req as Request, res as Response, next);
+      await runHandler(authRouter, req, res);
 
       expect(mockStorage.getUserByEmail).toHaveBeenCalledWith(email);
       expect((req.session as any).userId).toBe(1);
@@ -158,6 +180,8 @@ describe('Authentication Routes', () => {
       const password = 'Test1234';
       const hashedPassword = await bcrypt.hash(password, 12);
 
+      req.method = 'POST';
+      req.url = '/login';
       req.body = { username, password };
       mockStorage.getUserByUsername.mockResolvedValue({
         id: 1,
@@ -169,7 +193,7 @@ describe('Authentication Routes', () => {
         role: 'main_user',
       });
 
-      await authRouter.handle(req as Request, res as Response, next);
+      await runHandler(authRouter, req, res);
 
       expect(mockStorage.getUserByUsername).toHaveBeenCalledWith(username);
       expect((req.session as any).userId).toBe(1);
@@ -177,11 +201,13 @@ describe('Authentication Routes', () => {
     });
 
     it('should reject login with invalid credentials', async () => {
+      req.method = 'POST';
+      req.url = '/login';
       req.body = { username: 'nonexistent', password: 'wrong' };
       mockStorage.getUserByEmail.mockResolvedValue(null);
       mockStorage.getUserByUsername.mockResolvedValue(null);
 
-      await authRouter.handle(req as Request, res as Response, next);
+      await runHandler(authRouter, req, res);
 
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith(
@@ -193,6 +219,8 @@ describe('Authentication Routes', () => {
       const email = 'test@example.com';
       const hashedPassword = await bcrypt.hash('CorrectPassword123', 12);
 
+      req.method = 'POST';
+      req.url = '/login';
       req.body = { username: email, password: 'WrongPassword123' };
       mockStorage.getUserByEmail.mockResolvedValue({
         id: 1,
@@ -204,7 +232,7 @@ describe('Authentication Routes', () => {
         role: 'main_user',
       });
 
-      await authRouter.handle(req as Request, res as Response, next);
+      await runHandler(authRouter, req, res);
 
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith(
@@ -215,22 +243,26 @@ describe('Authentication Routes', () => {
 
   describe('POST /logout', () => {
     it('should logout user successfully', async () => {
+      req.method = 'POST';
+      req.url = '/logout';
       (req.session as any).userId = 1;
       (req.session as any).username = 'testuser';
 
-      await authRouter.handle(req as Request, res as Response, next);
+      await runHandler(authRouter, req, res);
 
       expect((req.session as any).destroy).toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith({ message: 'Logout successful' });
     });
 
     it('should handle logout errors gracefully', async () => {
+      req.method = 'POST';
+      req.url = '/logout';
       (req.session as any).userId = 1;
       (req.session as any).destroy = vi.fn((callback?: (err?: any) => void) => {
         if (callback) callback(new Error('Session destroy failed'));
       });
 
-      await authRouter.handle(req as Request, res as Response, next);
+      await runHandler(authRouter, req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({ error: 'Logout failed' });
@@ -239,6 +271,8 @@ describe('Authentication Routes', () => {
 
   describe('GET /me', () => {
     it('should return current user when authenticated', async () => {
+      req.method = 'GET';
+      req.url = '/me';
       (req.session as any).userId = 1;
       mockStorage.getUser.mockResolvedValue({
         id: 1,
@@ -252,26 +286,30 @@ describe('Authentication Routes', () => {
         invitedBy: null,
       });
 
-      await authRouter.handle(req as Request, res as Response, next);
+      await runHandler(authRouter, req, res);
 
       expect(mockStorage.getUser).toHaveBeenCalledWith(1);
       expect(res.json).toHaveBeenCalled();
     });
 
     it('should return 401 when not authenticated', async () => {
+      req.method = 'GET';
+      req.url = '/me';
       (req.session as any).userId = undefined;
 
-      await authRouter.handle(req as Request, res as Response, next);
+      await runHandler(authRouter, req, res);
 
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({ error: 'Not authenticated' });
     });
 
     it('should return 401 when user not found', async () => {
+      req.method = 'GET';
+      req.url = '/me';
       (req.session as any).userId = 999;
       mockStorage.getUser.mockResolvedValue(null);
 
-      await authRouter.handle(req as Request, res as Response, next);
+      await runHandler(authRouter, req, res);
 
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({ error: 'Invalid session' });

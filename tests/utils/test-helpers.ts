@@ -5,7 +5,7 @@ import { vi } from 'vitest';
  * Create a mock Express request
  */
 export function createMockRequest(overrides: Partial<Request> = {}): Partial<Request> {
-  return {
+  const req: any = {
     body: {},
     params: {},
     query: {},
@@ -32,8 +32,30 @@ export function createMockRequest(overrides: Partial<Request> = {}): Partial<Req
         if (callback) callback();
       }),
     } as any,
-    ...overrides,
   };
+
+  // Keep url and path in sync for Express router matching.
+  // Many tests set `req.path` but Express Router routes on `req.url`.
+  let _path = (overrides as any).path ?? '/';
+  Object.defineProperty(req, 'path', {
+    get() {
+      return _path;
+    },
+    set(value: string) {
+      _path = value;
+      req.url = value;
+    },
+    enumerable: true,
+    configurable: true,
+  });
+  req.url = (overrides as any).url ?? _path;
+
+  // Apply overrides after defining accessors so setters run.
+  Object.keys(overrides).forEach((key) => {
+    (req as any)[key] = (overrides as any)[key];
+  });
+
+  return req;
 }
 
 /**
@@ -51,6 +73,49 @@ export function createMockResponse(): Partial<Response> {
     getHeader: vi.fn(),
   };
   return res;
+}
+
+/**
+ * Run an Express router/handler and await completion.
+ * Express routers are callback-based; they do not return promises.
+ * We resolve when the handler sends a response (json/send/redirect) or calls next().
+ */
+export async function runHandler(
+  handler: any,
+  req: Partial<Request>,
+  res: Partial<Response>,
+): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    let finished = false;
+    const done = (err?: any) => {
+      if (finished) return;
+      finished = true;
+      err ? reject(err) : resolve();
+    };
+
+    const wrap = (name: 'json' | 'send' | 'redirect') => {
+      const original = (res as any)[name];
+      (res as any)[name] = vi.fn((...args: any[]) => {
+        try {
+          return original?.(...args);
+        } finally {
+          done();
+        }
+      });
+    };
+
+    wrap('json');
+    wrap('send');
+    wrap('redirect');
+
+    try {
+      handler(req as any, res as any, done);
+      // Fallback timeout so tests don't hang forever
+      setTimeout(() => done(new Error('Handler did not finish')), 2000).unref?.();
+    } catch (err) {
+      done(err);
+    }
+  });
 }
 
 /**

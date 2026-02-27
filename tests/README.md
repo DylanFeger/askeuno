@@ -175,7 +175,7 @@ The CI pipeline:
 ```typescript
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMockRequest, createMockResponse } from './utils/test-helpers';
-import { mockStorage } from './utils/mocks';
+// Prefer defining `vi.hoisted` mocks inside each test file.
 
 describe('Feature Name', () => {
   let req: Partial<Request>;

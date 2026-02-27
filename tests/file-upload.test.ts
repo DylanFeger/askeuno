@@ -1,8 +1,44 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Request, Response } from 'express';
-import uploadRouter from '../server/routes/uploads';
-import { createAuthenticatedRequest, createMockResponse, createMockNext, createMockFile } from './utils/test-helpers';
-import { mockStorage, mockLogger, mockS3Service, mockDataProcessor } from './utils/mocks';
+import { createAuthenticatedRequest, createMockResponse, createMockNext, createMockFile, runHandler } from './utils/test-helpers';
+
+const mockStorage = vi.hoisted(() => ({
+  getUser: vi.fn(),
+  getDataSourcesByUserId: vi.fn(),
+  createDataSource: vi.fn(),
+  updateDataSource: vi.fn(),
+  insertDataRows: vi.fn(),
+  getDataSource: vi.fn(),
+  deleteDataSource: vi.fn(),
+}));
+
+const mockLogger = vi.hoisted(() => ({
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
+}));
+
+const mockS3Service = vi.hoisted(() => ({
+  getPresignedDownloadUrl: vi.fn(),
+  deleteFromS3: vi.fn(),
+  listUserFiles: vi.fn(),
+}));
+
+const mockDataProcessor = vi.hoisted(() => ({
+  processUploadedFile: vi.fn(),
+  transformData: vi.fn(),
+  validateData: vi.fn(),
+}));
+
+// Multer expects multipart parsing; for unit tests we bypass it and rely on `req.file`.
+vi.mock('multer', () => {
+  const multer = () => ({
+    single: () => (_req: any, _res: any, next: any) => next(),
+  });
+  (multer as any).memoryStorage = () => ({});
+  return { default: multer };
+});
 
 // Mock dependencies
 vi.mock('../server/storage', () => ({
@@ -18,18 +54,33 @@ vi.mock('../server/services/s3Service', () => mockS3Service);
 vi.mock('../server/services/dataProcessor', () => mockDataProcessor);
 
 describe('File Upload Routes', () => {
+  let uploadRouter: any;
   let req: Partial<Request>;
   let res: Partial<Response>;
   let next: ReturnType<typeof vi.fn>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    uploadRouter = (await import('../server/routes/uploads')).default;
     req = createAuthenticatedRequest(1);
     res = createMockResponse();
     next = createMockNext();
     vi.clearAllMocks();
+
+    mockStorage.getUser.mockResolvedValue({
+      id: 1,
+      username: 'testuser',
+      subscriptionTier: 'starter',
+      subscriptionStatus: 'active',
+      role: 'main_user',
+    });
   });
 
   describe('POST /upload', () => {
+    beforeEach(() => {
+      req.method = 'POST';
+      req.path = '/upload';
+    });
+
     it('should upload and process CSV file successfully', async () => {
       const file = createMockFile('test.csv', 'name,value\ntest,123\nanother,456');
       
@@ -87,7 +138,7 @@ describe('File Upload Routes', () => {
       mockStorage.insertDataRows.mockResolvedValue(undefined);
       mockStorage.updateDataSource.mockResolvedValue(undefined);
 
-      await uploadRouter.handle(req as Request, res as Response, next);
+      await runHandler(uploadRouter, req, res);
 
       expect(mockDataProcessor.processUploadedFile).toHaveBeenCalledWith(
         1,
@@ -109,7 +160,7 @@ describe('File Upload Routes', () => {
       req.file = undefined;
       req.body = {};
 
-      await uploadRouter.handle(req as Request, res as Response, next);
+      await runHandler(uploadRouter, req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ error: 'No file provided' });
@@ -162,7 +213,7 @@ describe('File Upload Routes', () => {
         { id: 1, userId: 1, name: 'Existing Source' },
       ]);
 
-      await uploadRouter.handle(req as Request, res as Response, next);
+      await runHandler(uploadRouter, req, res);
 
       expect(res.status).toHaveBeenCalledWith(429);
       expect(res.json).toHaveBeenCalledWith(
@@ -184,7 +235,7 @@ describe('File Upload Routes', () => {
         error: 'Failed to parse CSV',
       });
 
-      await uploadRouter.handle(req as Request, res as Response, next);
+      await runHandler(uploadRouter, req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
@@ -237,7 +288,7 @@ describe('File Upload Routes', () => {
       mockStorage.insertDataRows.mockResolvedValue(undefined);
       mockStorage.updateDataSource.mockResolvedValue(undefined);
 
-      await uploadRouter.handle(req as Request, res as Response, next);
+      await runHandler(uploadRouter, req, res);
 
       expect(res.json).toHaveBeenCalled();
       const response = (res.json as any).mock.calls[0][0];
@@ -281,7 +332,7 @@ describe('File Upload Routes', () => {
 
       mockStorage.insertDataRows.mockRejectedValue(new Error('Database error'));
 
-      await uploadRouter.handle(req as Request, res as Response, next);
+      await runHandler(uploadRouter, req, res);
 
       expect(mockStorage.updateDataSource).toHaveBeenCalledWith(
         1,
@@ -312,7 +363,7 @@ describe('File Upload Routes', () => {
 
       mockS3Service.getPresignedDownloadUrl.mockResolvedValue('https://s3.amazonaws.com/presigned-url');
 
-      await uploadRouter.handle(req as Request, res as Response, next);
+      await runHandler(uploadRouter, req, res);
 
       expect(mockS3Service.getPresignedDownloadUrl).toHaveBeenCalledWith('uploads/user1/test.csv');
       expect(res.json).toHaveBeenCalledWith(
@@ -335,7 +386,7 @@ describe('File Upload Routes', () => {
         type: 'file',
       });
 
-      await uploadRouter.handle(req as Request, res as Response, next);
+      await runHandler(uploadRouter, req, res);
 
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ error: 'Data source not found' });
@@ -353,7 +404,7 @@ describe('File Upload Routes', () => {
         connectionData: {},
       });
 
-      await uploadRouter.handle(req as Request, res as Response, next);
+      await runHandler(uploadRouter, req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ error: 'Not a file upload data source' });
@@ -381,7 +432,7 @@ describe('File Upload Routes', () => {
         },
       ]);
 
-      await uploadRouter.handle(req as Request, res as Response, next);
+      await runHandler(uploadRouter, req, res);
 
       expect(res.json).toHaveBeenCalled();
       const response = (res.json as any).mock.calls[0][0];
@@ -409,7 +460,7 @@ describe('File Upload Routes', () => {
       mockS3Service.deleteFromS3.mockResolvedValue(true);
       mockStorage.deleteDataSource.mockResolvedValue(undefined);
 
-      await uploadRouter.handle(req as Request, res as Response, next);
+      await runHandler(uploadRouter, req, res);
 
       expect(mockS3Service.deleteFromS3).toHaveBeenCalledWith('uploads/user1/test.csv');
       expect(mockStorage.deleteDataSource).toHaveBeenCalledWith(1);
@@ -432,7 +483,7 @@ describe('File Upload Routes', () => {
         type: 'file',
       });
 
-      await uploadRouter.handle(req as Request, res as Response, next);
+      await runHandler(uploadRouter, req, res);
 
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ error: 'Data source not found' });
@@ -456,7 +507,7 @@ describe('File Upload Routes', () => {
       mockS3Service.deleteFromS3.mockResolvedValue(false); // S3 deletion failed
       mockStorage.deleteDataSource.mockResolvedValue(undefined);
 
-      await uploadRouter.handle(req as Request, res as Response, next);
+      await runHandler(uploadRouter, req, res);
 
       // Should still proceed with database deletion even if S3 fails
       expect(mockStorage.deleteDataSource).toHaveBeenCalled();

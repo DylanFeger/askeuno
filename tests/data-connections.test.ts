@@ -1,6 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { connectToDataSourceV2, testDataSourceConnection } from '../server/services/dataConnectorV2';
-import { mockLogger } from './utils/mocks';
+let connectToDataSourceV2: any;
+let testDataSourceConnection: any;
+
+const mockLogger = vi.hoisted(() => ({
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
+}));
+
+const legacyConnector = vi.hoisted(() => ({
+  connectToDataSource: vi.fn(),
+}));
 
 // Mock dependencies
 vi.mock('../server/utils/logger', () => ({
@@ -14,12 +25,15 @@ vi.mock('../server/connectors/registry', () => ({
 }));
 
 vi.mock('../server/services/dataConnector', () => ({
-  connectToDataSource: vi.fn(),
+  connectToDataSource: legacyConnector.connectToDataSource,
 }));
 
 describe('Data Source Connections', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+    const mod = await import('../server/services/dataConnectorV2');
+    connectToDataSourceV2 = mod.connectToDataSourceV2;
+    testDataSourceConnection = mod.testDataSourceConnection;
   });
 
   describe('connectToDataSourceV2', () => {
@@ -146,9 +160,10 @@ describe('Data Source Connections', () => {
     });
 
     it('should connect to database (PostgreSQL) successfully', async () => {
-      const { connectToDataSource } = await import('../server/services/dataConnector');
-      
-      vi.mocked(connectToDataSource).mockResolvedValue({
+      const { getConnectorMetadata } = await import('../server/connectors/registry');
+      vi.mocked(getConnectorMetadata).mockReturnValue(null);
+
+      legacyConnector.connectToDataSource.mockResolvedValue({
         success: true,
         data: [{ id: 1, name: 'Record 1' }],
       });
@@ -162,13 +177,14 @@ describe('Data Source Connections', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(connectToDataSource).toHaveBeenCalledWith('postgresql', expect.any(Object));
+      expect(legacyConnector.connectToDataSource).toHaveBeenCalledWith('postgresql', expect.any(Object));
     });
 
     it('should handle database connection error', async () => {
-      const { connectToDataSource } = await import('../server/services/dataConnector');
-      
-      vi.mocked(connectToDataSource).mockResolvedValue({
+      const { getConnectorMetadata } = await import('../server/connectors/registry');
+      vi.mocked(getConnectorMetadata).mockReturnValue(null);
+
+      legacyConnector.connectToDataSource.mockResolvedValue({
         success: false,
         error: 'Connection refused',
       });
