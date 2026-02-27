@@ -24,7 +24,7 @@ try {
 // Initialize Sentry error monitoring (optional - only if SENTRY_DSN is set)
 // Note: This is async but we don't await - it's non-blocking
 initSentry().catch(err => {
-  console.error('[Sentry] Initialization error:', err);
+  logger.error('[Sentry] Initialization error', { error: err });
   // Don't throw - Sentry is optional
 });
 
@@ -125,7 +125,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false, // Disable secure cookies for localhost development
+    secure: process.env.NODE_ENV === 'production', // Secure cookies in production (HTTPS required)
     httpOnly: true, // Prevents XSS attacks
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     sameSite: 'lax', // Better compatibility while maintaining CSRF protection

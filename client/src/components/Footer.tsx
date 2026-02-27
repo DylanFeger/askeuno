@@ -4,9 +4,9 @@ import EmailWithCopy from './EmailWithCopy';
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8 mt-auto">
+    <footer className="bg-gray-900 text-white py-8 sm:py-12 px-4 sm:px-6 lg:px-8 mt-auto" role="contentinfo">
       <div className="max-w-6xl mx-auto">
-        <div className="grid md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           <div>
             <Link href="/">
               <div className="flex items-center space-x-3 mb-4 cursor-pointer hover:opacity-80 transition-opacity">

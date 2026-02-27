@@ -4,6 +4,7 @@
  */
 
 import * as Sentry from "@sentry/node";
+import { logger } from '../utils/logger';
 
 /**
  * Initialize Sentry for backend
@@ -41,7 +42,7 @@ export async function initSentry() {
       integrations: [
         ...(profilingIntegration ? [profilingIntegration()] : []),
         // Automatically instrument Express
-        Sentry.httpIntegration({ tracing: true }),
+        Sentry.httpIntegration(),
       ],
       
       // Release tracking

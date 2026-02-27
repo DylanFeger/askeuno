@@ -54,8 +54,9 @@ export default function Chat() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-white flex items-center justify-center" role="status" aria-label="Loading">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" aria-hidden="true"></div>
+        <span className="sr-only">Loading chat...</span>
       </div>
     );
   }
@@ -70,15 +71,15 @@ export default function Chat() {
       <Navbar />
       
       <div className="flex-1 flex flex-col">
-        <div className="container mx-auto px-4 py-8 flex-1">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 flex-1">
           <div className="max-w-4xl mx-auto">
             {/* Welcome message and quick actions */}
-            <div className="mb-8">
-              <div className="text-center mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <div className="mb-6 sm:mb-8">
+              <div className="text-center mb-4 sm:mb-6">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                   Welcome back, {user?.username}!
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-sm sm:text-base text-gray-600">
                   Ask me anything about your business data
                 </p>
               </div>

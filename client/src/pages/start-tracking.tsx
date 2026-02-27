@@ -157,7 +157,7 @@ export default function StartTracking() {
       }, 1000);
       
     } catch (error: any) {
-      console.error('Error creating data source:', error);
+      // Error is already handled via toast notification
       toast({
         title: 'Failed to Create Data',
         description: error.message || 'Please try again later.',

@@ -30,7 +30,8 @@ export default function EmailWithCopy({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      // Clipboard API may fail in some browsers/environments
+      // Fail silently - user can still see the email address
     }
   };
 

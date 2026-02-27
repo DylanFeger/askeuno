@@ -305,7 +305,7 @@ if (require.main === module) {
   logger.info('Running data sync test');
   runDataSync()
     .then(result => {
-      console.log('Sync completed:', JSON.stringify(result, null, 2));
+      logger.info('Sync completed', { result });
       process.exit(0);
     })
     .catch(error => {
