@@ -6,7 +6,8 @@
 # ===========================================
 
 version: 1.0
-runtime: nodejs20
+# App Runner supports nodejs22, nodejs18 (not nodejs20)
+runtime: nodejs18
 
 build:
   commands:
