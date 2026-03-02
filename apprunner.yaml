@@ -1,12 +1,22 @@
+# ===========================================
+# Ask Euno - AWS App Runner Configuration
+# ===========================================
+# Source-based deployment configuration
+# Alternative to Dockerfile-based deployment
+# ===========================================
+
 version: 1.0
-runtime: nodejs18
+runtime: nodejs20
+
 build:
   commands:
     pre-build:
       - npm ci --include=dev
     build:
       - npm run build
+
 run:
+  # Start the Express server
   command: node dist/index.js
   network:
     port: 5000
@@ -14,3 +24,12 @@ run:
   env:
     - name: NODE_ENV
       value: production
+
+# Health check configuration
+# App Runner will use /api/health endpoint
+health:
+  path: /api/health
+  interval: 30
+  timeout: 5
+  healthy_threshold: 1
+  unhealthy_threshold: 5
